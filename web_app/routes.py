@@ -614,7 +614,6 @@ def player_stats(username):
                              stats=None,
                              exists=False)
     
-    # Получаем дополнительную статистику
     openings = get_opening_stats(username)
     games = get_recent_games(username)
     rating_stats = get_rating_stats(username)
@@ -622,18 +621,20 @@ def player_stats(username):
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
     
-    # Преобразуем даты в строки для JSON
+    # 🔥 ИСПРАВЛЕННЫЙ БЛОК: Преобразуем данные в JSON-безопасный формат
     rating_progression_json = []
     for game in rating_progression:
-        game_copy = {}
-        for key, value in game.items():
-            if isinstance(value, datetime):
-                game_copy[key] = value.strftime('%Y-%m-%d')
-            elif value is None:
-                game_copy[key] = 0
-            else:
-                game_copy[key] = value
-        rating_progression_json.append(game_copy)
+        # Создаем словарь с гарантированными значениями
+        json_game = {
+            'date': game.get('date', '').strftime('%Y-%m-%d') if isinstance(game.get('date'), datetime) else str(game.get('date', '')),
+            'my_rating': int(game.get('my_rating', 0) or 0),
+            'opponent_rating': int(game.get('opponent_rating', 0) or 0),
+            'result': str(game.get('result', '—')),
+            'opening': str(game.get('opening', '—')),
+            'color': str(game.get('color', '—')),
+            'time_control': str(game.get('time_control', '—'))
+        }
+        rating_progression_json.append(json_game)
     
     return render_template('player_stats.html',
                          username=username,
