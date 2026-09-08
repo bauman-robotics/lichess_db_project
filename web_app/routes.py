@@ -414,34 +414,47 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
         db.close()
         return []
     
-    with db.connection.get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(f"""
-                SELECT 
-                    game_date,
-                    my_rating,
-                    opponent_rating,
-                    result,
-                    opening_name,
-                    player_color,
-                    time_control
-                FROM {table_name}
-                WHERE my_rating > 0
-                ORDER BY game_date DESC
-                LIMIT %s
-            """, (limit,))
-            
-            results = []
-            for row in cur.fetchall():
-                results.append({
-                    'date': row[0] if row[0] else datetime.now(),
-                    'my_rating': row[1] if row[1] else 0,
-                    'opponent_rating': row[2] if row[2] else 0,
-                    'result': row[3] if row[3] else '—',
-                    'opening': row[4] if row[4] else '—',
-                    'color': row[5] if row[5] else '—',
-                    'time_control': row[6] if row[6] else '—'
-                })
+    results = []
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT 
+                        game_date,
+                        COALESCE(my_rating, 0) as my_rating,
+                        COALESCE(opponent_rating, 0) as opponent_rating,
+                        COALESCE(result, '—') as result,
+                        COALESCE(opening_name, '—') as opening_name,
+                        COALESCE(player_color, '—') as player_color,
+                        COALESCE(time_control, '—') as time_control
+                    FROM {table_name}
+                    ORDER BY game_date DESC
+                    LIMIT %s
+                """, (limit,))
+                
+                for row in cur.fetchall():
+                    # Преобразуем дату в строку сразу
+                    date_val = row[0]
+                    if isinstance(date_val, datetime):
+                        date_str = date_val.strftime('%Y-%m-%d')
+                    elif date_val:
+                        date_str = str(date_val)
+                    else:
+                        date_str = '2000-01-01'
+                    
+                    results.append({
+                        'date': date_str,  # ← уже строка!
+                        'my_rating': int(row[1]) if row[1] is not None else 0,
+                        'opponent_rating': int(row[2]) if row[2] is not None else 0,
+                        'result': str(row[3]) if row[3] else '—',
+                        'opening': str(row[4]) if row[4] else '—',
+                        'color': str(row[5]) if row[5] else '—',
+                        'time_control': str(row[6]) if row[6] else '—'
+                    })
+    except Exception as e:
+        print(f"ERROR in get_rating_progression: {e}")
+        import traceback
+        traceback.print_exc()
     
     db.table_name = original_table
     db.close()
@@ -621,12 +634,11 @@ def player_stats(username):
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
     
-    # 🔥 ИСПРАВЛЕННЫЙ БЛОК: Преобразуем данные в JSON-безопасный формат
+    # 🔥 Теперь даты уже строки, просто передаем как есть
     rating_progression_json = []
     for game in rating_progression:
-        # Создаем словарь с гарантированными значениями
         json_game = {
-            'date': game.get('date', '').strftime('%Y-%m-%d') if isinstance(game.get('date'), datetime) else str(game.get('date', '')),
+            'date': game.get('date', '2000-01-01'),
             'my_rating': int(game.get('my_rating', 0) or 0),
             'opponent_rating': int(game.get('opponent_rating', 0) or 0),
             'result': str(game.get('result', '—')),
