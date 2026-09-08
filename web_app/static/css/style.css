@@ -566,38 +566,6 @@ table tbody tr:last-child td {
 }
 
 /* ============================================
-   АДАПТИВ
-   ============================================ */
-
-@media (max-width: 992px) {
-    .col-md-3 { flex: 0 0 50%; max-width: 50%; }
-    .col-md-4 { flex: 0 0 50%; max-width: 50%; }
-}
-
-@media (max-width: 768px) {
-    body { padding: 10px; }
-    .main-container { padding: 16px; }
-    .stat-number { font-size: 22px; }
-    .navbar .container { flex-direction: column; align-items: stretch; }
-    .navbar-nav { justify-content: center; }
-    table { font-size: 12px; }
-    table thead th, table tbody td { padding: 6px 8px; }
-    .col-md-3, .col-md-4 { flex: 0 0 100%; max-width: 100%; }
-    .card-header { flex-direction: column; align-items: stretch; text-align: center; }
-    .toast-container { left: 12px; right: 12px; bottom: 12px; max-width: none; }
-}
-
-@media (max-width: 480px) {
-    .stat-number { font-size: 18px; }
-    .btn { font-size: 12px; padding: 6px 12px; }
-    table { font-size: 10px; }
-    table thead th, table tbody td { padding: 4px 6px; }
-    .card-body { padding: 12px; }
-    .progress { height: 16px; }
-    .progress-bar { font-size: 9px; }
-}
-
-/* ============================================
    СКРОЛЛБАР
    ============================================ */
 
@@ -636,4 +604,311 @@ table tbody tr:last-child td {
 
 .pulse {
     animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   МОБИЛЬНАЯ АДАПТАЦИЯ
+   ============================================ */
+
+/* Планшеты и маленькие ноутбуки */
+@media (max-width: 992px) {
+    .col-md-3 { flex: 0 0 50%; max-width: 50%; }
+    .col-md-4 { flex: 0 0 50%; max-width: 50%; }
+    .stat-number { font-size: 24px; }
+    .card-header { flex-wrap: wrap; }
+}
+
+/* Телефоны (горизонтальная ориентация) */
+@media (max-width: 768px) {
+    body { 
+        padding: 8px; 
+        font-size: 14px;
+    }
+    
+    .main-container { 
+        padding: 12px; 
+        border-radius: 8px;
+    }
+    
+    /* Статистика - карточки в 2 колонки */
+    .col-md-3 { 
+        flex: 0 0 50%; 
+        max-width: 50%; 
+        padding: 0 6px;
+    }
+    .col-md-4 { 
+        flex: 0 0 50%; 
+        max-width: 50%; 
+        padding: 0 6px;
+    }
+    
+    .stat-card {
+        padding: 12px 10px;
+        margin-bottom: 8px;
+        min-height: 70px;
+    }
+    
+    .stat-number { 
+        font-size: 20px; 
+    }
+    .stat-label { 
+        font-size: 10px; 
+    }
+    
+    /* Навигация */
+    .navbar .container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 12px;
+    }
+    
+    .navbar-brand {
+        font-size: 20px;
+        justify-content: center;
+        padding: 4px 0;
+    }
+    
+    .navbar-nav {
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    
+    .navbar-nav a {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+    
+    /* Карточки */
+    .card {
+        margin-bottom: 12px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 4px;
+    }
+    
+    .card-header h5 {
+        font-size: 14px;
+    }
+    
+    .card-body {
+        padding: 12px;
+        overflow-x: auto;
+    }
+    
+    /* Таблицы */
+    table {
+        font-size: 11px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table thead th {
+        font-size: 9px;
+        padding: 6px 6px;
+        white-space: nowrap;
+    }
+    
+    table tbody td {
+        padding: 4px 6px;
+        white-space: nowrap;
+    }
+    
+    /* Прогресс-бары */
+    .progress {
+        height: 14px;
+        min-width: 40px;
+    }
+    
+    .progress-bar {
+        font-size: 8px;
+        min-width: 20px;
+    }
+    
+    /* Бэйджи */
+    .badge {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+    
+    /* Кнопки - легче нажимать на мобильных */
+    .btn {
+        font-size: 12px;
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+    
+    .btn-sm {
+        font-size: 10px;
+        padding: 6px 12px;
+        min-height: 36px;
+    }
+    
+    /* Алерты */
+    .alert {
+        padding: 10px 14px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+    
+    /* Toast уведомления */
+    .toast-container {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        max-width: none;
+    }
+    
+    .toast {
+        font-size: 12px;
+        padding: 10px 14px;
+        border-radius: 8px;
+    }
+}
+
+/* Маленькие телефоны (вертикальная ориентация) */
+@media (max-width: 480px) {
+    body { 
+        padding: 4px; 
+        font-size: 12px;
+    }
+    
+    .main-container { 
+        padding: 8px; 
+        border-radius: 6px;
+    }
+    
+    /* Статистика - карточки в 1 колонку */
+    .col-md-3, .col-md-4 { 
+        flex: 0 0 100%; 
+        max-width: 100%; 
+        padding: 0 4px;
+    }
+    
+    .stat-card {
+        padding: 10px 8px;
+        margin-bottom: 6px;
+        min-height: 70px;
+    }
+    
+    .stat-number { 
+        font-size: 18px; 
+    }
+    .stat-label { 
+        font-size: 9px; 
+    }
+    .stat-card small {
+        font-size: 9px;
+    }
+    
+    .navbar-brand {
+        font-size: 16px;
+    }
+    
+    .navbar-nav a {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+    
+    .card-header {
+        padding: 8px 10px;
+    }
+    
+    .card-header h5 {
+        font-size: 12px;
+    }
+    
+    .card-body {
+        padding: 8px;
+    }
+    
+    table {
+        font-size: 9px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    table thead th {
+        font-size: 8px;
+        padding: 4px 4px;
+    }
+    
+    table tbody td {
+        padding: 3px 4px;
+    }
+    
+    .progress {
+        height: 12px;
+        min-width: 30px;
+        border-radius: 6px;
+    }
+    
+    .progress-bar {
+        font-size: 7px;
+        min-width: 15px;
+    }
+    
+    .badge {
+        font-size: 8px;
+        padding: 1px 5px;
+        border-radius: 8px;
+    }
+    
+    .btn {
+        font-size: 10px;
+        padding: 8px 12px;
+        min-height: 40px;
+        border-radius: 4px;
+    }
+    
+    .btn-sm {
+        font-size: 9px;
+        padding: 4px 8px;
+        min-height: 32px;
+    }
+    
+    .alert {
+        padding: 8px 10px;
+        font-size: 11px;
+        border-radius: 6px;
+    }
+    
+    h2 {
+        font-size: 18px !important;
+    }
+    h5 {
+        font-size: 13px !important;
+    }
+    
+    .toast {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+    
+    .container {
+        padding: 0 4px;
+    }
+}
+
+/* Очень маленькие экраны (до 360px) */
+@media (max-width: 360px) {
+    .stat-number { font-size: 15px; }
+    .stat-label { font-size: 8px; }
+    table { font-size: 8px; }
+    .navbar-brand { font-size: 14px; }
+    .navbar-nav a { font-size: 9px; padding: 2px 5px; }
+    .btn { 
+        font-size: 9px; 
+        padding: 6px 10px; 
+        min-height: 36px;
+    }
 }
