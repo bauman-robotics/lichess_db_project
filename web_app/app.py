@@ -21,17 +21,18 @@ def create_app():
         __name__,
         template_folder=str(WebConfig.TEMPLATES_DIR),
         static_folder=str(WebConfig.STATIC_DIR),
-        static_url_path='/lichess-analyzer/static'  # 🔥 ВАЖНО: путь к статике
+        static_url_path='/lichess-analyzer/static'
     )
     
     app.config['SECRET_KEY'] = WebConfig.SECRET_KEY
     app.config['DEBUG'] = WebConfig.DEBUG
-    app.config['APPLICATION_ROOT'] = WebConfig.APPLICATION_ROOT  # 🔥 ВАЖНО
     
-    # CSRF защита
+    # 🔥 ВАЖНО: добавляем APPLICATION_ROOT
+    app.config['APPLICATION_ROOT'] = '/lichess-analyzer'
+    
     csrf = CSRFProtect(app)
     
-    # Регистрируем маршруты с префиксом /lichess-analyzer
-    app.register_blueprint(main_bp, url_prefix='/lichess-analyzer')  # 🔥 ВАЖНО
+    # 🔥 ВАЖНО: регистрируем блюпринт с префиксом
+    app.register_blueprint(main_bp, url_prefix='/lichess-analyzer')
     
     return app
