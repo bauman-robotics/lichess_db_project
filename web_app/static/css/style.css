@@ -607,10 +607,37 @@ table tbody tr:last-child td {
 }
 
 /* ============================================
+   АНИМАЦИИ ДЛЯ ЗАГРУЗКИ
+   ============================================ */
+
+@keyframes loadingPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.loading-pulse {
+    animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: text-bottom;
+    border: 0.2em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
    МОБИЛЬНАЯ АДАПТАЦИЯ
    ============================================ */
 
-/* Планшеты и маленькие ноутбуки */
 @media (max-width: 992px) {
     .col-md-3 { flex: 0 0 50%; max-width: 50%; }
     .col-md-4 { flex: 0 0 50%; max-width: 50%; }
@@ -618,7 +645,6 @@ table tbody tr:last-child td {
     .card-header { flex-wrap: wrap; }
 }
 
-/* Телефоны (горизонтальная ориентация) */
 @media (max-width: 768px) {
     body { 
         padding: 8px; 
@@ -630,7 +656,6 @@ table tbody tr:last-child td {
         border-radius: 8px;
     }
     
-    /* Статистика - карточки в 2 колонки */
     .col-md-3 { 
         flex: 0 0 50%; 
         max-width: 50%; 
@@ -655,7 +680,6 @@ table tbody tr:last-child td {
         font-size: 10px; 
     }
     
-    /* Навигация */
     .navbar .container {
         flex-direction: column;
         align-items: stretch;
@@ -679,7 +703,6 @@ table tbody tr:last-child td {
         padding: 4px 10px;
     }
     
-    /* Карточки */
     .card {
         margin-bottom: 12px;
         border-radius: 8px;
@@ -702,7 +725,6 @@ table tbody tr:last-child td {
         overflow-x: auto;
     }
     
-    /* Таблицы */
     table {
         font-size: 11px;
         display: block;
@@ -722,7 +744,6 @@ table tbody tr:last-child td {
         white-space: nowrap;
     }
     
-    /* Прогресс-бары */
     .progress {
         height: 14px;
         min-width: 40px;
@@ -733,13 +754,11 @@ table tbody tr:last-child td {
         min-width: 20px;
     }
     
-    /* Бэйджи */
     .badge {
         font-size: 9px;
         padding: 2px 6px;
     }
     
-    /* Кнопки - легче нажимать на мобильных */
     .btn {
         font-size: 12px;
         padding: 10px 16px;
@@ -752,14 +771,12 @@ table tbody tr:last-child td {
         min-height: 36px;
     }
     
-    /* Алерты */
     .alert {
         padding: 10px 14px;
         font-size: 13px;
         border-radius: 8px;
     }
     
-    /* Toast уведомления */
     .toast-container {
         left: 8px;
         right: 8px;
@@ -774,7 +791,6 @@ table tbody tr:last-child td {
     }
 }
 
-/* Маленькие телефоны (вертикальная ориентация) */
 @media (max-width: 480px) {
     body { 
         padding: 4px; 
@@ -786,7 +802,6 @@ table tbody tr:last-child td {
         border-radius: 6px;
     }
     
-    /* Статистика - карточки в 1 колонку */
     .col-md-3, .col-md-4 { 
         flex: 0 0 100%; 
         max-width: 100%; 
@@ -899,7 +914,6 @@ table tbody tr:last-child td {
     }
 }
 
-/* Очень маленькие экраны (до 360px) */
 @media (max-width: 360px) {
     .stat-number { font-size: 15px; }
     .stat-label { font-size: 8px; }
@@ -911,35 +925,6 @@ table tbody tr:last-child td {
         padding: 6px 10px; 
         min-height: 36px;
     }
-}
-
-/* ============================================
-   АНИМАЦИИ ДЛЯ ЗАГРУЗКИ
-   ============================================ */
-
-@keyframes loadingPulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-}
-
-.loading-pulse {
-    animation: loadingPulse 1.5s ease-in-out infinite;
-}
-
-/* Спиннер загрузки */
-.spinner-border {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    vertical-align: text-bottom;
-    border: 0.2em solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-    to { transform: rotate(360deg); }
 }
 
 /* ============================================
@@ -998,52 +983,15 @@ table tbody tr:last-child td {
     }
 }
 
-/* Принудительная темная тема (для переключателя) */
-.dark-theme {
-    --bg-primary: #121212 !important;
-    --bg-secondary: #1e1e1e !important;
-    --bg-card: #252525 !important;
-    --bg-hover: #2a2a2a !important;
-    --text-primary: #e8e8e8 !important;
-    --text-secondary: #a0a0a0 !important;
-    --text-muted: #666 !important;
-    --border-color: #333 !important;
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
-}
-
-.dark-theme body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-}
-
-.dark-theme .navbar {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.dark-theme .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-}
-
-.dark-theme .stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-}
-
-.dark-theme .card-header {
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.dark-theme .table thead th {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.dark-theme .progress {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-.dark-theme .toast {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+/* Принудительная темная тема для мобильных (если не работает prefers-color-scheme) */
+@media (max-width: 768px) {
+    :root {
+        --bg-primary: #121212 !important;
+        --bg-secondary: #1e1e1e !important;
+        --bg-card: #252525 !important;
+        --text-primary: #e8e8e8 !important;
+        --text-secondary: #a0a0a0 !important;
+        --text-muted: #666 !important;
+        --border-color: #333 !important;
+    }
 }
