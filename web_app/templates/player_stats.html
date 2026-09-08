@@ -27,16 +27,30 @@
         {% if not exists %}
             <div class="alert alert-warning">
                 <p>Игрок <strong>{{ username }}</strong> не найден в базе данных.</p>
-                <a href="{{ url_for('main.download_player', username=username) }}" class="btn btn-success">
+                <a href="/lichess-analyzer/player/{{ username }}/download" class="btn btn-success">
                     📥 Скачать игры с Lichess
                 </a>
             </div>
         {% elif stats and stats.get('empty', False) %}
             <div class="alert alert-info">
-                <p>Игрок <strong>{{ username }}</strong> найден в базе данных, но игры еще не загружены.</p>
-                <a href="{{ url_for('main.download_player', username=username) }}" class="btn btn-success">
-                    📥 Загрузить игры
-                </a>
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border text-info me-3" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <div>
+                        <p class="mb-0"><strong>⏳ Загрузка игр для {{ username }}...</strong></p>
+                        <small class="text-muted">Это может занять несколько секунд</small>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                                 role="progressbar" 
+                                 style="width: 100%;" 
+                                 aria-valuenow="100" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         {% elif stats and stats.total > 0 %}
             <!-- БАЗОВАЯ СТАТИСТИКА -->

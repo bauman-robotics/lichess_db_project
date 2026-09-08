@@ -619,13 +619,12 @@ def search():
     
     if form.validate_on_submit():
         username = form.username.data.strip()
-        limit = int(form.limit.data)  # ← получаем значение из выпадающего списка
+        limit = int(form.limit.data)
         
-        # Проверяем, есть ли таблица
         stats = get_player_stats(username)
         
         if not stats.get('exists'):
-            flash(f'Игрок {username} не найден. Скачиваем игры...', 'info')
+            flash(f'⏳ Загрузка игр для {username}... Это может занять несколько секунд.', 'info')
             result = download_player_games(username, limit=limit)
             
             if result.get('success'):

@@ -6,11 +6,11 @@
         <h2 class="mb-4">🔍 Поиск игрока</h2>
         <div class="card shadow-sm">
             <div class="card-body">
-                <form method="POST" action="/lichess-analyzer/search">
+                <form method="POST" action="/lichess-analyzer/search" id="searchForm">
                     {{ form.csrf_token }}
                     <div class="mb-3">
                         <label class="form-label">Имя игрока на Lichess</label>
-                        {{ form.username(class="form-control form-control-lg", placeholder="например: MagnusCarlsen") }}
+                        {{ form.username(class="form-control form-control-lg", placeholder="например: MagnusCarlsen", id="usernameInput") }}
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -20,12 +20,51 @@
                             </div>
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
-                            {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="searchBtn">
+                                <span id="btnText">🔍 Анализировать</span>
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                    <span class="visually-hidden">Загрузка...</span>
+                                </span>
+                            </button>
                         </div>
                     </div>
                 </form>
+                <div id="loadingInfo" class="mt-3 d-none">
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border text-info me-3" role="status">
+                                <span class="visually-hidden">Загрузка...</span>
+                            </div>
+                            <div>
+                                <p class="mb-0"><strong>⏳ Загрузка игр...</strong></p>
+                                <small class="text-muted" id="loadingMessage">Это может занять несколько секунд</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    // Показываем индикатор загрузки
+    const btn = document.getElementById('searchBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    const loadingInfo = document.getElementById('loadingInfo');
+    const username = document.getElementById('usernameInput').value;
+    
+    // Меняем кнопку
+    btnText.textContent = '⏳ Загрузка...';
+    btnSpinner.classList.remove('d-none');
+    btn.disabled = true;
+    
+    // Показываем информацию о загрузке
+    loadingInfo.classList.remove('d-none');
+    document.getElementById('loadingMessage').textContent = 
+        `Скачивание игр для ${username}... Это может занять несколько секунд`;
+});
+</script>
 {% endblock %}
