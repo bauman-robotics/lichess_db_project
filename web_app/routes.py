@@ -647,6 +647,20 @@ def player_stats(username):
             'time_control': str(game.get('time_control', '—'))
         }
         rating_progression_json.append(json_game)
+
+
+    # Отладка - посмотрим, что в данных
+    print(f"DEBUG: rating_progression length = {len(rating_progression)}")
+    print(f"DEBUG: rating_progression_json length = {len(rating_progression_json)}")
+    if rating_progression_json:
+        print(f"DEBUG: first item = {rating_progression_json[0]}")
+        print(f"DEBUG: first item type = {type(rating_progression_json[0])}")
+        # Проверяем каждый элемент на None
+        for i, item in enumerate(rating_progression_json):
+            for key, value in item.items():
+                if value is None:
+                    print(f"DEBUG: item {i} has None in key '{key}'")
+                            
     
     return render_template('player_stats.html',
                          username=username,
