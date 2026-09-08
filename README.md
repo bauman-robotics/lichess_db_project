@@ -142,10 +142,10 @@ cd lichess_db_project
 bash
 
 # Создает виртуальное окружение и устанавливает зависимости
-python scripts/init_project.py
+python3 scripts/init_project.py
 
 # Или с пересозданием venv
-python scripts/init_project.py --force-venv
+python3 scripts/init_project.py --force-venv
 
 3. Активация виртуального окружения
 bash
@@ -208,38 +208,38 @@ GRANT ALL PRIVILEGES ON DATABASE lichess_games TO your_user;
 bash
 
 # Создание таблицы
-python scripts/setup_db.py --action create --verbose
+python3 scripts/setup_db.py --action create --verbose
 
 # Просмотр статуса
-python scripts/setup_db.py --action status --verbose
+python3 scripts/setup_db.py --action status --verbose
 
 # Удаление таблицы
-python scripts/setup_db.py --action drop --drop-table --verbose
+python3 scripts/setup_db.py --action drop --drop-table --verbose
 
 # Пересоздание таблицы
-python scripts/setup_db.py --action recreate --verbose
+python3 scripts/setup_db.py --action recreate --verbose
 
 📥 Импорт игр
 Из PGN файла
 bash
 
 # Импорт из файла
-python scripts/import_games.py --source file --path data/uploads/games.pgn --player "YourName" --verbose
+python3 scripts/import_games.py --source file --path data/uploads/games.pgn --player "YourName" --verbose
 
 # Использование конфига
-python scripts/import_games.py
+python3 scripts/import_games.py
 
 Через Lichess API
 bash
 
 # Импорт последних 100 игр
-python scripts/import_games.py --source api --username Hikaru --limit 100 --verbose
+python3 scripts/import_games.py --source api --username Hikaru --limit 100 --verbose
 
 # Импорт за определенный период
-python scripts/import_games.py --source api --username Hikaru --since 2024-01-01 --until 2024-12-31
+python3 scripts/import_games.py --source api --username Hikaru --since 2024-01-01 --until 2024-12-31
 
 # Только блиц игры
-python scripts/import_games.py --source api --username Hikaru --perf-type blitz --limit 50
+python3 scripts/import_games.py --source api --username Hikaru --perf-type blitz --limit 50
 
 🌐 Веб-интерфейс
 bash
@@ -261,29 +261,31 @@ python run_web.py
 📊 Анализ игр
 
 # Базовый анализ
-python scripts/01_analyze_games.py
+python3 scripts/01_analyze_games.py
 
 # Детальный анализ с графиками
-python scripts/01_analyze_games.py --detailed
+python3 scripts/01_analyze_games.py --detailed
 
 # Анализ игрока
-python scripts/01_analyze_games.py --player "Hikaru"
+python3 scripts/01_analyze_games.py --player "Hikaru"
 
 # Глубокий анализ
-python scripts/02_deep_analysis.py
-python scripts/02_deep_analysis.py --player "Hikaru"
+python3 scripts/02_deep_analysis.py
+python3 scripts/02_deep_analysis.py --player "Hikaru"
 
 # Анализ дебютов
-python scripts/03_analyze_opening.py --list
-python scripts/03_analyze_opening.py --player "Hikaru" --list
-python scripts/03_analyze_opening.py --analyze "Caro-Kann Defense"
+python3 scripts/03_analyze_opening.py --list
+python3 scripts/03_analyze_opening.py --player "Hikaru" --list
+python3 scripts/03_analyze_opening.py --analyze "Caro-Kann Defense"
 
 # Скачивание игр игрока
-python scripts/04_download_player_games.py --username "Hikaru"
-python scripts/04_download_player_games.py --username "Hikaru" --limit 100
+<pre>
+python3 scripts/04_download_player_games.py --username "Hikaru"
+python3 scripts/04_download_player_games.py --username "Hikaru" --limit 100
+</pre>
 
 # Анализ игрока (отдельный скрипт)
-python scripts/05_analyze_player.py --username "Hikaru"
+python3 scripts/05_analyze_player.py --username "Hikaru"
 
 # Список таблиц
-python scripts/06_list_tables.py
+python3 scripts/06_list_tables.py
