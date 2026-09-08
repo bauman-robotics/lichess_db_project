@@ -174,16 +174,20 @@ cp config/secrets.yaml.example config/secrets.yaml
 yaml
 
 # Локальная база данных
+<pre>
 local:
   host: "localhost"
   port: 5432
   user: "postgres"
   password: "your_password_here"
+</pre>
 
 # Lichess API токен (опционально)
+<pre>
 lichess:
   api_token: "lip_your_api_token_here"
   username: "your_lichess_username"
+</pre>  
 
 2. Настройка PostgreSQL
 
@@ -196,12 +200,13 @@ brew services list                 # Mac
 
 Создайте базу данных (если нужно):
 bash
-
+<pre>
 sudo -u postgres psql
 CREATE DATABASE lichess_games;
 CREATE USER your_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE lichess_games TO your_user;
 \q
+</pre>
 
 📖 Использование
 🗄️ Работа с базой данных
