@@ -23,4 +23,4 @@ app = create_app()
 if __name__ == '__main__':
     print("🚀 Starting web server at http://localhost:5555")
     print("🌐 Available at: https://84-252-143-212.nip.io/lichess-analyzer/")
-    app.run(debug=True, host='0.0.0.0', port=5555)
+    app.run(debug=False, host='0.0.0.0', port=5555)
