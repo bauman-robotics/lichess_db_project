@@ -21,18 +21,15 @@ def create_app():
         __name__,
         template_folder=str(WebConfig.TEMPLATES_DIR),
         static_folder=str(WebConfig.STATIC_DIR),
-        static_url_path='/lichess-analyzer/static'
+        static_url_path='/static'
     )
     
     app.config['SECRET_KEY'] = WebConfig.SECRET_KEY
     app.config['DEBUG'] = WebConfig.DEBUG
     
-    # 🔥 ВАЖНО: добавляем APPLICATION_ROOT
-    app.config['APPLICATION_ROOT'] = '/lichess-analyzer'
-    
     csrf = CSRFProtect(app)
     
-    # 🔥 ВАЖНО: регистрируем блюпринт с префиксом
-    app.register_blueprint(main_bp, url_prefix='/lichess-analyzer')
+    # Регистрируем блюпринт БЕЗ префикса
+    app.register_blueprint(main_bp)
     
     return app

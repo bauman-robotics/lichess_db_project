@@ -23,9 +23,6 @@ from services.pgn_parser import PGNParser
 
 main_bp = Blueprint('main', __name__)
 
-# 🔥 Добавляем префикс для генерации ссылок
-URL_PREFIX = '/lichess-analyzer'
-
 # Формы
 class PlayerSearchForm(FlaskForm):
     username = StringField('Имя игрока', validators=[DataRequired()])
@@ -155,12 +152,6 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
     
     db.table_name = original_table
     db.close()
-    
-    # Отладка
-    # print(f"DEBUG: get_opening_stats вернула {len(results)} дебютов")
-    # if results:
-    #     print(f"DEBUG: тип первого элемента = {type(results[0])}")
-    #     print(f"DEBUG: первый дебют = {results[0]}")
     
     return results
 
@@ -639,9 +630,6 @@ def player_stats(username):
             game_copy['date'] = game_copy['date'].strftime('%Y-%m-%d')
         rating_progression_json.append(game_copy)
     
-    # Отладка
-    #print(f"DEBUG player_stats: openings = {openings[:2] if openings else []}")
-    
     return render_template('player_stats.html',
                          username=username,
                          stats=stats,
@@ -667,6 +655,7 @@ def download_player(username):
     return redirect(url_for('main.player_stats', username=username))
 
 
+# Закомментированные маршруты (можно раскомментировать позже)
 # @main_bp.route('/players')
 # def players_list():
 #     """Список игроков"""
