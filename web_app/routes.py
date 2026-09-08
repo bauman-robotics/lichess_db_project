@@ -655,6 +655,20 @@ def player_stats(username):
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
     
+    # Преобразуем данные для графика
+    rating_progression_json = []
+    for game in rating_progression:
+        json_game = {
+            'date': game.get('date', '2000-01-01'),
+            'my_rating': int(game.get('my_rating', 0) or 0),
+            'opponent_rating': int(game.get('opponent_rating', 0) or 0),
+            'result': game.get('result', '—'),
+            'opening': game.get('opening', '—'),
+            'color': game.get('color', '—'),
+            'time_control': game.get('time_control', '—')
+        }
+        rating_progression_json.append(json_game)
+    
     return render_template('player_stats.html',
                          username=username,
                          stats=stats,
@@ -664,4 +678,5 @@ def player_stats(username):
                          rating_stats=rating_stats,
                          time_stats=time_stats,
                          move_stats=move_stats,
-                         rating_progression=rating_progression)
+                         rating_progression=rating_progression,
+                         rating_progression_json=rating_progression_json)
