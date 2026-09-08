@@ -270,13 +270,17 @@ python3 scripts/01_analyze_games.py --detailed
 python3 scripts/01_analyze_games.py --player "Hikaru"
 
 # Глубокий анализ
+<pre>
 python3 scripts/02_deep_analysis.py
 python3 scripts/02_deep_analysis.py --player "Hikaru"
+</pre>
 
 # Анализ дебютов
+<pre>
 python3 scripts/03_analyze_opening.py --list
 python3 scripts/03_analyze_opening.py --player "Hikaru" --list
 python3 scripts/03_analyze_opening.py --analyze "Caro-Kann Defense"
+</pre>
 
 # Скачивание игр игрока
 <pre>
