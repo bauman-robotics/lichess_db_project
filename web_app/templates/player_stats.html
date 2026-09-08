@@ -21,7 +21,7 @@
             </code>
         </div>
         <!-- ===== КОНЕЦ ОТЛАДОЧНОГО БЛОКА ===== -->
-        -->
+        
         <h2 class="mb-4">♟️ Анализ игрока: {{ username }}</h2>
         
         {% if not exists %}
@@ -425,13 +425,10 @@
                         <span class="badge bg-secondary">Всего игр: {{ stats.total }}</span>
                     </div>
                     <div class="card-body">
-                        <!-- Временно убираем canvas -->
-                        
-                        <div class="mb-3" style="height: 200px;">
+                        <!-- График -->
+                        <div class="mb-3" style="height: 300px; width: 100%;">
                             <canvas id="ratingProgressionChart"></canvas>
                         </div>
-                        
-                        <p class="text-muted text-center">График временно отключен для отладки</p>
                         
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered">
@@ -501,7 +498,6 @@
                             </table>
                         </div>
                         
-                        <!-- Сводка по последним играм -->
                         <div class="row mt-3">
                             <div class="col-md-4">
                                 <div class="alert alert-info">
@@ -740,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return [
                                     'Результат: ' + game.result,
                                     'Дебют: ' + game.opening,
-                                    'Цвет: ' + game.color'
+                                    'Цвет: ' + game.color
                                 ];
                             }
                         }
