@@ -21,7 +21,7 @@ def create_app():
         __name__,
         template_folder=str(WebConfig.TEMPLATES_DIR),
         static_folder=str(WebConfig.STATIC_DIR),
-        static_url_path='/static'  # ← без префикса
+        static_url_path='/static'
     )
     
     app.config['SECRET_KEY'] = WebConfig.SECRET_KEY
@@ -30,6 +30,6 @@ def create_app():
     csrf = CSRFProtect(app)
     
     # Регистрируем блюпринт БЕЗ префикса
-    app.register_blueprint(main_bp)  # ← убрали url_prefix
+    app.register_blueprint(main_bp)
     
     return app

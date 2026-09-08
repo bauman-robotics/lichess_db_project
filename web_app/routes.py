@@ -597,10 +597,10 @@ def search():
         username = form.username.data.strip()
         limit = form.limit.data or 100
         
-        return redirect(url_for('main.player_stats', username=username))
+        # Используем жесткий путь с префиксом
+        return redirect(f'/lichess-analyzer/player/{username}')
     
     return render_template('player_search.html', form=form)
-
 
 @main_bp.route('/player/<username>')
 def player_stats(username):
@@ -622,7 +622,7 @@ def player_stats(username):
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
     
-    # 🔥 ИСПРАВЛЕНО: Преобразуем даты в строки и заменяем None на 0
+    # Преобразуем даты в строки для JSON
     rating_progression_json = []
     for game in rating_progression:
         game_copy = {}
