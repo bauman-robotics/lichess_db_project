@@ -20,16 +20,18 @@ def create_app():
     app = Flask(
         __name__,
         template_folder=str(WebConfig.TEMPLATES_DIR),
-        static_folder=str(WebConfig.STATIC_DIR)
+        static_folder=str(WebConfig.STATIC_DIR),
+        static_url_path='/lichess-analyzer/static'  # 🔥 ВАЖНО: путь к статике
     )
     
     app.config['SECRET_KEY'] = WebConfig.SECRET_KEY
     app.config['DEBUG'] = WebConfig.DEBUG
+    app.config['APPLICATION_ROOT'] = WebConfig.APPLICATION_ROOT  # 🔥 ВАЖНО
     
     # CSRF защита
     csrf = CSRFProtect(app)
     
-    # Регистрируем маршруты
-    app.register_blueprint(main_bp)
+    # Регистрируем маршруты с префиксом /lichess-analyzer
+    app.register_blueprint(main_bp, url_prefix='/lichess-analyzer')  # 🔥 ВАЖНО
     
     return app

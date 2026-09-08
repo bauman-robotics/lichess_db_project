@@ -1,6 +1,3 @@
-"""
-Конфигурация веб-приложения
-"""
 import os
 from pathlib import Path
 
@@ -11,6 +8,9 @@ class WebConfig:
     """Конфигурация веб-приложения"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+    
+    # 🔥 ВАЖНО: для работы из подпапки /lichess-analyzer/
+    APPLICATION_ROOT = '/lichess-analyzer'
     
     # Пути к шаблонам и статике
     TEMPLATES_DIR = BASE_DIR / 'web_app' / 'templates'

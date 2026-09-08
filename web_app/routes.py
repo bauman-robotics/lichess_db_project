@@ -23,6 +23,9 @@ from services.pgn_parser import PGNParser
 
 main_bp = Blueprint('main', __name__)
 
+# 🔥 Добавляем префикс для генерации ссылок
+URL_PREFIX = '/lichess-analyzer'
+
 # Формы
 class PlayerSearchForm(FlaskForm):
     username = StringField('Имя игрока', validators=[DataRequired()])
