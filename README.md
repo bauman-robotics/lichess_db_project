@@ -3,7 +3,7 @@
 Система для хранения и управления шахматными партиями с Lichess в PostgreSQL.
 
 ## 📁 Структура проекта
-
+<pre>
 lichess_db_project/
 ├── config/ # Конфигурационные файлы
 │ ├── app_config.yaml # Общие настройки
@@ -18,7 +18,7 @@ lichess_db_project/
 ├── data/ # PGN файлы и данные
 ├── tests/ # Тесты
 └── logs/ # Логи
-text
+</pre>
 
 
 ## 🚀 Быстрый старт
