@@ -654,96 +654,18 @@
 
 {% block scripts %}
 {{ super() }}
+<!-- Временное отключение графика для отладки -->
+<!--
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('ratingProgressionChart');
     if (ctx) {
         const data = {{ rating_progression_json|tojson }};
-        const reversed = [...data].reverse();
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: reversed.map((_, i) => i + 1),
-                datasets: [
-                    {
-                        label: 'Мой рейтинг',
-                        data: reversed.map(d => d.my_rating),
-                        borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                        tension: 0.1,
-                        fill: true,
-                        pointBackgroundColor: reversed.map(d => {
-                            if (d.result === 'Win') return 'rgb(40, 167, 69)';
-                            if (d.result === 'Loss') return 'rgb(220, 53, 69)';
-                            return 'rgb(255, 193, 7)';
-                        }),
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    },
-                    {
-                        label: 'Рейтинг соперника',
-                        data: reversed.map(d => d.opponent_rating || 0),
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        tension: 0.1,
-                        fill: true,
-                        borderDash: [5, 5],
-                        pointRadius: 3,
-                        pointHoverRadius: 5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            font: { size: 12 }
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Динамика рейтинга',
-                        font: { size: 14 }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            afterLabel: function(context) {
-                                const idx = context.dataIndex;
-                                const game = reversed[idx];
-                                return [
-                                    'Результат: ' + game.result,
-                                    'Дебют: ' + game.opening,
-                                    'Цвет: ' + game.color
-                                ];
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Номер игры (от старых к новым)',
-                            font: { size: 11 }
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Рейтинг',
-                            font: { size: 11 }
-                        },
-                        beginAtZero: false
-                    }
-                }
-            }
-        });
+        // ... остальной код
     }
 });
 </script>
+-->
+<p class="text-muted text-center">График временно отключен для отладки</p>
 {% endblock %}
