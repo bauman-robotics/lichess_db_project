@@ -6,8 +6,7 @@
         <h2 class="mb-4">🔍 Поиск игрока</h2>
         <div class="card shadow-sm">
             <div class="card-body">
-                <!-- Исправляем action -->
-                <form method="POST" action="{{ url_for('main.search') }}">
+                <form method="POST" action="/lichess-analyzer/search">
                     {{ form.csrf_token }}
                     <div class="mb-3">
                         <label class="form-label">Имя игрока на Lichess</label>
