@@ -913,7 +913,10 @@ table tbody tr:last-child td {
     }
 }
 
-/* Анимация пульсации для индикатора загрузки */
+/* ============================================
+   АНИМАЦИИ ДЛЯ ЗАГРУЗКИ
+   ============================================ */
+
 @keyframes loadingPulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
@@ -937,4 +940,110 @@ table tbody tr:last-child td {
 
 @keyframes spinner-border {
     to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   ПОДДЕРЖКА ТЕМНОЙ ТЕМЫ НА МОБИЛЬНЫХ
+   ============================================ */
+
+/* Автоматическая темная тема для систем с темной темой */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --bg-card: #252525;
+        --bg-hover: #2a2a2a;
+        --text-primary: #e8e8e8;
+        --text-secondary: #a0a0a0;
+        --text-muted: #666;
+        --border-color: #333;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+    
+    body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+    
+    .navbar {
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+    }
+    
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+    }
+    
+    .card-header {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .table thead th {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .progress {
+        background: rgba(255, 255, 255, 0.06);
+    }
+    
+    .toast {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+}
+
+/* Принудительная темная тема (для переключателя) */
+.dark-theme {
+    --bg-primary: #121212 !important;
+    --bg-secondary: #1e1e1e !important;
+    --bg-card: #252525 !important;
+    --bg-hover: #2a2a2a !important;
+    --text-primary: #e8e8e8 !important;
+    --text-secondary: #a0a0a0 !important;
+    --text-muted: #666 !important;
+    --border-color: #333 !important;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-theme body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.dark-theme .navbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dark-theme .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.dark-theme .card-header {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .table thead th {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .progress {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dark-theme .toast {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
 }
