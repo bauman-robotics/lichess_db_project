@@ -1,0 +1,71 @@
+# Общие настройки приложения
+app:
+  name: "Lichess DB Manager"
+  version: "1.0.0"
+  description: "Управление базой данных шахматных партий с Lichess"
+  environment: "development"  # development, staging, production
+  log_level: "INFO"
+  data_dir: "data"
+
+# Настройки базы данных
+database:
+  db_name: "lichess_games"
+  pool_size: 5
+  timeout: 30
+  encoding: "UTF8"
+  connection_retries: 3
+  retry_delay: 2
+
+# Настройки SSH (для удаленного подключения)
+ssh:
+  default_username: "ubuntu"
+  default_port: 22
+  connection_timeout: 10
+  key_type: "rsa"
+
+# Настройки импорта
+import:
+  default_mode: "file"  # file или api
+  
+  file:
+    default_path: "data/uploads/games.pgn"
+    supported_formats: [".pgn", ".PGN"]
+    encoding: "utf-8"
+    chunk_size: 100
+    delete_after_import: false
+    
+  api:
+    base_url: "https://lichess.org/api"
+    download_limit: 1000
+    max_retries: 3
+    retry_delay: 2
+    export_format: "pgn"
+    timeout: 60
+    params:
+      max: 1000
+      since: null
+      until: null
+      perfType: null
+      moves: true
+      tags: true
+      clocks: true
+      evals: true
+      accuracy: true
+
+# Настройки для статистики
+statistics:
+  cache_enabled: true
+  cache_ttl: 3600  # секунды
+  default_limit: 100
+
+# Настройки валидации
+validation:
+  strict_mode: true
+  skip_invalid: false
+  required_fields:
+    - game_date
+    - player_color
+    - result
+    - opponent_name
+    - my_rating
+    - opponent_rating

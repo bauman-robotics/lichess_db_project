@@ -1,0 +1,171 @@
+# Схема таблицы для хранения шахматных партий Lichess
+# Версия: 1.0.0
+
+schema:
+  name: "lichess_games_schema_v1"
+  version: "1.0.0"
+  description: "Основная схема для хранения шахматных партий с Lichess"
+  
+  table:
+    name: "games"
+    comment: "Таблица с шахматными партиями с Lichess"
+    
+    columns:
+      # Системные поля
+      - name: "id"
+        type: "SERIAL"
+        constraints: "PRIMARY KEY"
+        comment: "Уникальный идентификатор записи"
+        system: true
+        
+      - name: "game_id"
+        type: "VARCHAR(20)"
+        constraints: "UNIQUE NOT NULL"
+        comment: "ID игры на Lichess"
+        system: true
+        index: true
+        
+      - name: "game_date"
+        type: "TIMESTAMP"
+        constraints: "NOT NULL"
+        comment: "Дата и время проведения партии"
+        index: true
+        
+      - name: "time_control"
+        type: "VARCHAR(20)"
+        constraints: "NOT NULL"
+        comment: "Контроль времени (например, 5+3, 10+0)"
+        
+      - name: "player_color"
+        type: "VARCHAR(10)"
+        constraints: "NOT NULL"
+        comment: "Цвет фигур игрока (white/black)"
+        
+      - name: "result"
+        type: "VARCHAR(10)"
+        constraints: "NOT NULL"
+        comment: "Результат (Win/Loss/Draw)"
+        index: true
+        
+      - name: "accuracy"
+        type: "DECIMAL(5,2)"
+        constraints: ""
+        comment: "Точность игры в процентах"
+        
+      - name: "move_count"
+        type: "INTEGER"
+        constraints: "NOT NULL"
+        comment: "Количество ходов в партии"
+        
+      - name: "opening_name"
+        type: "VARCHAR(200)"
+        constraints: ""
+        comment: "Название дебюта"
+        index: true
+        
+      - name: "opponent_name"
+        type: "VARCHAR(100)"
+        constraints: "NOT NULL"
+        comment: "Имя соперника"
+        index: true
+        
+      - name: "my_rating"
+        type: "INTEGER"
+        constraints: "NOT NULL"
+        comment: "Рейтинг игрока на момент партии"
+        index: true
+        
+      - name: "opponent_rating"
+        type: "INTEGER"
+        constraints: "NOT NULL"
+        comment: "Рейтинг соперника на момент партии"
+        
+      - name: "opponent_games_count"
+        type: "INTEGER"
+        constraints: ""
+        comment: "Количество игр у соперника"
+        
+      - name: "game_analysis"
+        type: "TEXT"
+        constraints: ""
+        comment: "Текстовый разбор партии"
+        
+      - name: "game_url"
+        type: "VARCHAR(200)"
+        constraints: ""
+        comment: "Ссылка на игру на Lichess"
+        
+      - name: "pgn_moves"
+        type: "TEXT"
+        constraints: ""
+        comment: "Полная PGN нотация партии"
+        
+      - name: "import_source"
+        type: "VARCHAR(20)"
+        constraints: ""
+        comment: "Источник импорта (file/api)"
+        default: "'api'"
+        
+      - name: "created_at"
+        type: "TIMESTAMP"
+        constraints: "DEFAULT CURRENT_TIMESTAMP"
+        comment: "Время создания записи"
+        system: true
+        
+      - name: "updated_at"
+        type: "TIMESTAMP"
+        constraints: "DEFAULT CURRENT_TIMESTAMP"
+        comment: "Время последнего обновления"
+        system: true
+        trigger_update: true
+    
+    indexes:
+      - name: "idx_game_date_desc"
+        columns: ["game_date DESC"]
+        
+      - name: "idx_result_player"
+        columns: ["result", "player_color"]
+        
+      - name: "idx_opponent_rating"
+        columns: ["opponent_rating"]
+
+# Маппинг полей из различных источников
+field_mappings:
+  pgn:
+    # Основные поля
+    game_id: "game_id"
+    game_date: "game_date"    # ← Добавляем прямой маппинг
+    date: "game_date"         # ← Оставляем для обратной совместимости
+    time_control: "time_control"
+    player_color: "player_color"
+    color: "player_color"     # ← Алиас
+    result: "result"
+    accuracy: "accuracy"
+    move_count: "move_count"
+    opening_name: "opening_name"
+    opening: "opening_name"   # ← Алиас
+    opponent_name: "opponent_name"
+    opponent: "opponent_name" # ← Алиас
+    my_rating: "my_rating"
+    opponent_rating: "opponent_rating"
+    opponent_games_count: "opponent_games_count"
+    game_analysis: "game_analysis"
+    game_url: "game_url"
+    pgn_moves: "pgn_moves"
+    import_source: "import_source"
+    
+    # Алиасы для разных форматов PGN
+    GameId: "game_id"
+    Site: "game_url"
+    WhiteElo: "my_rating"
+    BlackElo: "opponent_rating"
+    White: "opponent_name"
+    Black: "opponent_name"
+    Opening: "opening_name"
+    TimeControl: "time_control"
+    color: "player_color"
+    date_utc: "game_date"
+    utc_date: "game_date"
+    
+    # Для результата
+    Termination: "result"

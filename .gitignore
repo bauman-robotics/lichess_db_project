@@ -1,0 +1,46 @@
+# Виртуальное окружение
+venv/
+env/
+.venv/
+ENV/
+venv*/
+
+# Конфиги с секретами
+config/secrets.yaml
+config/*secret*.yaml
+*.secret.yaml
+
+# Данные
+data/downloads/*.pgn
+data/uploads/*.pgn
+data/*.pgn
+
+# Логи
+logs/
+*.log
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# Файлы IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Файлы тестов
+*.pytest_cache
+
+# Временные файлы
+*.tmp
+*.temp
+*.bak
