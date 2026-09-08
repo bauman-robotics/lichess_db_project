@@ -12,7 +12,8 @@ sys.path.insert(0, str(project_root))
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField
+from wtforms import StringField, IntegerField, SelectField, SubmitField
+
 from wtforms.validators import DataRequired, Optional, NumberRange
 
 # Импортируем существующие сервисы
@@ -27,9 +28,17 @@ main_bp = Blueprint('main', __name__)
 # Формы
 class PlayerSearchForm(FlaskForm):
     username = StringField('Имя игрока', validators=[DataRequired()])
-    limit = IntegerField('Количество игр', default=100, validators=[Optional(), NumberRange(min=1, max=1000)])
+    limit = SelectField('Количество игр', 
+                        choices=[
+                            ('100', '100 игр'),
+                            ('500', '500 игр'),
+                            ('1000', '1000 игр'),
+                            ('5000', '5000 игр'),
+                            ('10000', 'Все игры (до 10000)')
+                        ],
+                        default='1000',
+                        validators=[DataRequired()])
     submit = SubmitField('Анализировать')
-
 
 def get_player_stats(username: str) -> dict:
     """Получает статистику игрока из таблицы игрока"""
@@ -610,7 +619,7 @@ def search():
     
     if form.validate_on_submit():
         username = form.username.data.strip()
-        limit = form.limit.data or 100
+        limit = int(form.limit.data)  # ← получаем значение из выпадающего списка
         
         # Проверяем, есть ли таблица
         stats = get_player_stats(username)
@@ -632,11 +641,14 @@ def search():
 @main_bp.route('/player/<username>')
 def player_stats(username):
     """Страница статистики игрока"""
+    # Получаем лимит из URL (если есть)
+    limit = request.args.get('limit', 1000, type=int)
+    
     stats = get_player_stats(username)
     
     if not stats.get('exists'):
         flash(f'Игрок {username} не найден. Скачиваем игры...', 'info')
-        result = download_player_games(username, limit=100)
+        result = download_player_games(username, limit=limit)
         
         if result.get('success'):
             flash(f'✅ Загружено {result["saved"]} игр для {username}', 'success')
