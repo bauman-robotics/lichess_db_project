@@ -629,74 +629,31 @@ def search():
     
     return render_template('player_search.html', form=form)
 
-
 @main_bp.route('/player/<username>')
 def player_stats(username):
-    """Страница статистики игрока с автоматическим скачиванием"""
-    print(f"=" * 60)
-    print(f"🔍 DEBUG: player_stats вызвана для {username}")
-    print(f"=" * 60)
-    
-    # Получаем статистику
+    """Страница статистики игрока"""
     stats = get_player_stats(username)
-    print(f"📊 DEBUG: stats = {stats}")
     
-    # Если таблицы нет - создаем и импортируем автоматически
     if not stats.get('exists'):
-        print(f"📥 DEBUG: Таблица не найдена, скачиваем игры для {username}")
         flash(f'Игрок {username} не найден. Скачиваем игры...', 'info')
-        
-        # Скачиваем и импортируем игры (лимит 100 игр)
         result = download_player_games(username, limit=100)
-        print(f"📥 DEBUG: Результат скачивания = {result}")
         
         if result.get('success'):
-            saved = result.get('saved', 0)
-            total = result.get('total', 0)
-            flash(f'✅ Загружено {saved} игр для {username}', 'success')
-            # Перенаправляем на ту же страницу, чтобы показать статистику
+            flash(f'✅ Загружено {result["saved"]} игр для {username}', 'success')
             return redirect(f'/lichess-analyzer/player/{username}')
         else:
-            error_msg = result.get('error', 'Неизвестная ошибка')
-            flash(f'❌ Ошибка загрузки игр для {username}: {error_msg}', 'danger')
+            flash(f'❌ Ошибка загрузки: {result.get("error")}', 'danger')
             return render_template('player_stats.html', 
                                  username=username, 
                                  stats=None,
                                  exists=False)
     
-    # Если таблица существует, но пустая
-    if stats.get('empty', False):
-        flash(f'Игрок {username} найден, но игры не загружены. Нажмите "Обновить игры".', 'warning')
-        return render_template('player_stats.html', 
-                             username=username, 
-                             stats=stats,
-                             exists=True)
-    
-    # Получаем дополнительную статистику
-    print(f"📊 DEBUG: Получение дополнительной статистики для {username}")
     openings = get_opening_stats(username)
     games = get_recent_games(username)
     rating_stats = get_rating_stats(username)
     time_stats = get_time_control_stats(username)
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
-    
-    # Проверяем, что получили
-    print(f"📊 DEBUG: openings = {len(openings) if openings else 0}")
-    print(f"📊 DEBUG: games = {len(games) if games else 0}")
-    print(f"📊 DEBUG: rating_stats = {rating_stats is not None}")
-    print(f"📊 DEBUG: time_stats = {len(time_stats) if time_stats else 0}")
-    print(f"📊 DEBUG: move_stats = {move_stats is not None}")
-    print(f"📊 DEBUG: rating_progression = {len(rating_progression) if rating_progression else 0}")
-    
-    # Проверяем rating_progression на наличие проблем
-    if rating_progression:
-        for i, game in enumerate(rating_progression[:3]):
-            print(f"📊 DEBUG: game {i} = {game}")
-            # Проверяем каждый ключ
-            for key, value in game.items():
-                if value is None:
-                    print(f"⚠️ DEBUG: game {i} has None for key '{key}'")
     
     return render_template('player_stats.html',
                          username=username,
@@ -707,6 +664,4 @@ def player_stats(username):
                          rating_stats=rating_stats,
                          time_stats=time_stats,
                          move_stats=move_stats,
-                         rating_progression=rating_progression
-                         # rating_progression_json временно убран
-                         )
+                         rating_progression=rating_progression)
