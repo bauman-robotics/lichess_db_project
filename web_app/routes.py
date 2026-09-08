@@ -434,13 +434,13 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
             results = []
             for row in cur.fetchall():
                 results.append({
-                    'date': row[0],
-                    'my_rating': row[1],
-                    'opponent_rating': row[2],
-                    'result': row[3],
+                    'date': row[0] if row[0] else datetime.now(),
+                    'my_rating': row[1] if row[1] else 0,
+                    'opponent_rating': row[2] if row[2] else 0,
+                    'result': row[3] if row[3] else '—',
                     'opening': row[4] if row[4] else '—',
-                    'color': row[5],
-                    'time_control': row[6]
+                    'color': row[5] if row[5] else '—',
+                    'time_control': row[6] if row[6] else '—'
                 })
     
     db.table_name = original_table
@@ -622,12 +622,17 @@ def player_stats(username):
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
     
-    # Преобразуем даты в строки для JSON
+    # 🔥 ИСПРАВЛЕНО: Преобразуем даты в строки и заменяем None на 0
     rating_progression_json = []
     for game in rating_progression:
-        game_copy = dict(game)
-        if isinstance(game_copy.get('date'), datetime):
-            game_copy['date'] = game_copy['date'].strftime('%Y-%m-%d')
+        game_copy = {}
+        for key, value in game.items():
+            if isinstance(value, datetime):
+                game_copy[key] = value.strftime('%Y-%m-%d')
+            elif value is None:
+                game_copy[key] = 0
+            else:
+                game_copy[key] = value
         rating_progression_json.append(game_copy)
     
     return render_template('player_stats.html',
