@@ -3,6 +3,24 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
+        <!-- ===== ОТЛАДОЧНЫЙ БЛОК ===== -->
+        <div class="alert alert-info">
+            <strong>🐛 ОТЛАДКА:</strong><br>
+            <code>
+                username: {{ username }}<br>
+                exists: {{ exists }}<br>
+                stats: {{ stats is not none }}<br>
+                stats.total: {{ stats.total if stats else 'N/A' }}<br>
+                openings: {{ openings|length if openings else 0 }}<br>
+                games: {{ games|length if games else 0 }}<br>
+                rating_stats: {{ rating_stats is not none }}<br>
+                time_stats: {{ time_stats|length if time_stats else 0 }}<br>
+                move_stats: {{ move_stats is not none }}<br>
+                rating_progression: {{ rating_progression|length if rating_progression else 0 }}<br>
+            </code>
+        </div>
+        <!-- ===== КОНЕЦ ОТЛАДОЧНОГО БЛОКА ===== -->
+        
         <h2 class="mb-4">♟️ Анализ игрока: {{ username }}</h2>
         
         {% if not exists %}
@@ -406,10 +424,13 @@
                         <span class="badge bg-secondary">Всего игр: {{ stats.total }}</span>
                     </div>
                     <div class="card-body">
-                        <!-- График изменения рейтинга -->
+                        <!-- Временно убираем canvas -->
+                        <!--
                         <div class="mb-3" style="height: 200px;">
                             <canvas id="ratingProgressionChart"></canvas>
                         </div>
+                        -->
+                        <p class="text-muted text-center">График временно отключен для отладки</p>
                         
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered">
@@ -430,18 +451,18 @@
                                     {% for game in rating_progression %}
                                         <tr>
                                             <td>{{ loop.index }}</td>
-                                            <td>{{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}</td>
+                                            <td>{{ game.date if game.date else '—' }}</td>
                                             <td>
                                                 <span class="badge bg-secondary">{{ game.time_control if game.time_control else '?' }}</span>
                                             </td>
                                             <td>
                                                 <span class="badge {% if game.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
-                                                    {{ game.color }}
+                                                    {{ game.color if game.color else '?' }}
                                                 </span>
                                             </td>
                                             <td>
                                                 <strong class="{% if game.my_rating > 1300 %}text-success{% elif game.my_rating > 1000 %}text-warning{% else %}text-danger{% endif %}">
-                                                    {{ game.my_rating }}
+                                                    {{ game.my_rating if game.my_rating else '—' }}
                                                 </strong>
                                             </td>
                                             <td>
@@ -471,7 +492,7 @@
                                                 {% endif %}
                                             </td>
                                             <td style="max-width: 150px; white-space: normal; word-wrap: break-word;">
-                                                <small>{{ game.opening }}</small>
+                                                <small>{{ game.opening if game.opening else '—' }}</small>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -505,7 +526,7 @@
                                     {% else %}
                                         <span class="text-muted">0</span>
                                     {% endif %}
-                                    (с {{ first.my_rating }} до {{ last.my_rating }})
+                                    (с {{ first.my_rating if first.my_rating else '—' }} до {{ last.my_rating if last.my_rating else '—' }})
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -514,7 +535,7 @@
                                     {% set pop_openings = rating_progression|map(attribute='opening')|list %}
                                     {% set opening_counts = {} %}
                                     {% for o in pop_openings %}
-                                        {% if o != '—' %}
+                                        {% if o and o != '—' %}
                                             {% set _ = opening_counts.update({o: opening_counts.get(o, 0) + 1}) %}
                                         {% endif %}
                                     {% endfor %}
@@ -554,7 +575,7 @@
                                 <tbody>
                                     {% for op in openings %}
                                         <tr>
-                                            <td><strong>{{ op.name }}</strong></td>
+                                            <td><strong>{{ op.name if op.name else 'Неизвестно' }}</strong></td>
                                             <td>{{ op.games }}</td>
                                             <td>{{ op.wins }}</td>
                                             <td>{{ op.losses }}</td>
@@ -654,18 +675,6 @@
 
 {% block scripts %}
 {{ super() }}
-<!-- Временное отключение графика для отладки -->
-<!--
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('ratingProgressionChart');
-    if (ctx) {
-        const data = {{ rating_progression_json|tojson }};
-        // ... остальной код
-    }
-});
-</script>
--->
+<!-- График временно отключен для отладки -->
 <p class="text-muted text-center">График временно отключен для отладки</p>
 {% endblock %}

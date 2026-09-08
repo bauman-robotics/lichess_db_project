@@ -4,6 +4,7 @@
 import sys
 from pathlib import Path
 from datetime import datetime
+import json
 
 # Добавляем корень проекта в PYTHONPATH
 project_root = Path(__file__).parent.parent
@@ -32,6 +33,8 @@ class PlayerSearchForm(FlaskForm):
 
 def get_player_stats(username: str) -> dict:
     """Получает статистику игрока из таблицы игрока"""
+    print(f"🔍 DEBUG: get_player_stats вызвана для {username}")
+    
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
@@ -43,12 +46,17 @@ def get_player_stats(username: str) -> dict:
     if not db.table_exists():
         db.table_name = original_table
         db.close()
+        print(f"❌ DEBUG: Таблица {table_name} не существует")
         return {'exists': False, 'error': f'Таблица {table_name} не существует'}
+    
+    print(f"✅ DEBUG: Таблица {table_name} существует")
     
     # Получаем статистику
     stats = db.get_table_stats()
     db.table_name = original_table
     db.close()
+    
+    print(f"📊 DEBUG: stats = {stats}")
     
     # Проверяем, есть ли данные
     if not stats or stats.get('total_records', 0) == 0:
@@ -80,7 +88,7 @@ def get_player_stats(username: str) -> dict:
         except:
             accuracy = None
     
-    return {
+    result = {
         'exists': True,
         'total': stats.get('total_records', 0),
         'first_game': stats.get('first_game'),
@@ -89,9 +97,15 @@ def get_player_stats(username: str) -> dict:
         'accuracy': accuracy if accuracy is not None else 0,
         'results': result_dist
     }
+    
+    print(f"✅ DEBUG: get_player_stats результат = {result}")
+    return result
+
 
 def get_opening_stats(username: str, limit: int = 30) -> list:
     """Получает статистику по дебютам из таблицы игрока"""
+    print(f"🔍 DEBUG: get_opening_stats вызвана для {username}")
+    
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
@@ -125,7 +139,6 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
                 """, (limit,))
                 
                 for row in cur.fetchall():
-                    # Принудительно создаем словарь с явным преобразованием типов
                     name = str(row[0]).strip() if row[0] else 'Неизвестно'
                     games = int(row[1]) if row[1] is not None else 0
                     wins = int(row[2]) if row[2] is not None else 0
@@ -134,7 +147,7 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
                     accuracy = float(row[5]) if row[5] is not None else 0
                     win_rate = (wins / games * 100) if games > 0 else 0
                     
-                    result_dict = {
+                    results.append({
                         'name': name,
                         'games': games,
                         'wins': wins,
@@ -142,18 +155,18 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
                         'draws': draws,
                         'accuracy': accuracy,
                         'win_rate': win_rate
-                    }
-                    results.append(result_dict)
-                    
+                    })
     except Exception as e:
-        print(f"ERROR in get_opening_stats: {e}")
+        print(f"❌ ERROR in get_opening_stats: {e}")
         import traceback
         traceback.print_exc()
     
     db.table_name = original_table
     db.close()
     
+    print(f"✅ DEBUG: get_opening_stats вернула {len(results)} дебютов")
     return results
+
 
 def get_recent_games(username: str, limit: int = 10) -> list:
     """Получает последние игры игрока из таблицы игрока"""
@@ -207,24 +220,6 @@ def get_recent_games(username: str, limit: int = 10) -> list:
     db.close()
     return results
 
-
-def get_all_players() -> list:
-    """Получает список всех игроков в БД"""
-    config = ConfigLoader()
-    db = DatabaseManager(config, 'local')
-    
-    with db.connection.get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_name LIKE 'games_%'
-                ORDER BY table_name;
-            """)
-            players = [row[0][6:] for row in cur.fetchall()]
-    
-    db.close()
-    return players
 
 def get_rating_stats(username: str) -> dict:
     """Получает статистику по рейтингу"""
@@ -402,6 +397,8 @@ def get_time_control_stats(username: str) -> list:
 
 def get_rating_progression(username: str, limit: int = 30) -> list:
     """Прогресс рейтинга с дебютами"""
+    print(f"🔍 DEBUG: get_rating_progression вызвана для {username}")
+    
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
@@ -433,7 +430,6 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
                 """, (limit,))
                 
                 for row in cur.fetchall():
-                    # Преобразуем дату в строку сразу
                     date_val = row[0]
                     if isinstance(date_val, datetime):
                         date_str = date_val.strftime('%Y-%m-%d')
@@ -443,7 +439,7 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
                         date_str = '2000-01-01'
                     
                     results.append({
-                        'date': date_str,  # ← уже строка!
+                        'date': date_str,
                         'my_rating': int(row[1]) if row[1] is not None else 0,
                         'opponent_rating': int(row[2]) if row[2] is not None else 0,
                         'result': str(row[3]) if row[3] else '—',
@@ -452,12 +448,17 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
                         'time_control': str(row[6]) if row[6] else '—'
                     })
     except Exception as e:
-        print(f"ERROR in get_rating_progression: {e}")
+        print(f"❌ ERROR in get_rating_progression: {e}")
         import traceback
         traceback.print_exc()
     
     db.table_name = original_table
     db.close()
+    
+    print(f"✅ DEBUG: get_rating_progression вернула {len(results)} записей")
+    if results:
+        print(f"✅ DEBUG: первая запись = {results[0]}")
+    
     return results
 
 
@@ -521,6 +522,7 @@ def get_move_stats(username: str) -> dict:
         'median_moves': row[3] if row else 0,
         'distribution': distribution
     }
+
 
 def download_player_games(username: str, limit: int = 1000) -> dict:
     """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока"""
@@ -610,15 +612,20 @@ def search():
         username = form.username.data.strip()
         limit = form.limit.data or 100
         
-        # Используем жесткий путь с префиксом
         return redirect(f'/lichess-analyzer/player/{username}')
     
     return render_template('player_search.html', form=form)
 
+
 @main_bp.route('/player/<username>')
 def player_stats(username):
     """Страница статистики игрока"""
+    print(f"=" * 60)
+    print(f"🔍 DEBUG: player_stats вызвана для {username}")
+    print(f"=" * 60)
+    
     stats = get_player_stats(username)
+    print(f"📊 DEBUG: stats = {stats}")
     
     if not stats.get('exists'):
         flash(f'Игрок {username} не найден в базе данных', 'warning')
@@ -627,6 +634,7 @@ def player_stats(username):
                              stats=None,
                              exists=False)
     
+    # Получаем дополнительную статистику
     openings = get_opening_stats(username)
     games = get_recent_games(username)
     rating_stats = get_rating_stats(username)
@@ -634,33 +642,24 @@ def player_stats(username):
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
     
-    # 🔥 Теперь даты уже строки, просто передаем как есть
-    rating_progression_json = []
-    for game in rating_progression:
-        json_game = {
-            'date': game.get('date', '2000-01-01'),
-            'my_rating': int(game.get('my_rating', 0) or 0),
-            'opponent_rating': int(game.get('opponent_rating', 0) or 0),
-            'result': str(game.get('result', '—')),
-            'opening': str(game.get('opening', '—')),
-            'color': str(game.get('color', '—')),
-            'time_control': str(game.get('time_control', '—'))
-        }
-        rating_progression_json.append(json_game)
-
-
-    # Отладка - посмотрим, что в данных
-    print(f"DEBUG: rating_progression length = {len(rating_progression)}")
-    print(f"DEBUG: rating_progression_json length = {len(rating_progression_json)}")
-    if rating_progression_json:
-        print(f"DEBUG: first item = {rating_progression_json[0]}")
-        print(f"DEBUG: first item type = {type(rating_progression_json[0])}")
-        # Проверяем каждый элемент на None
-        for i, item in enumerate(rating_progression_json):
-            for key, value in item.items():
+    # Проверяем, что получили
+    print(f"📊 DEBUG: openings = {len(openings) if openings else 0}")
+    print(f"📊 DEBUG: games = {len(games) if games else 0}")
+    print(f"📊 DEBUG: rating_stats = {rating_stats is not None}")
+    print(f"📊 DEBUG: time_stats = {len(time_stats) if time_stats else 0}")
+    print(f"📊 DEBUG: move_stats = {move_stats is not None}")
+    print(f"📊 DEBUG: rating_progression = {len(rating_progression) if rating_progression else 0}")
+    
+    # Проверяем rating_progression на наличие проблем
+    if rating_progression:
+        for i, game in enumerate(rating_progression[:3]):
+            print(f"📊 DEBUG: game {i} = {game}")
+            # Проверяем каждый ключ
+            for key, value in game.items():
                 if value is None:
-                    print(f"DEBUG: item {i} has None in key '{key}'")
-                            
+                    print(f"⚠️ DEBUG: game {i} has None for key '{key}'")
+                elif isinstance(value, datetime):
+                    print(f"ℹ️ DEBUG: game {i} key '{key}' is datetime: {value}")
     
     return render_template('player_stats.html',
                          username=username,
@@ -671,84 +670,6 @@ def player_stats(username):
                          rating_stats=rating_stats,
                          time_stats=time_stats,
                          move_stats=move_stats,
-                         rating_progression=rating_progression,
-                         rating_progression_json=rating_progression_json)
-
-@main_bp.route('/player/<username>/download')
-def download_player(username):
-    """Скачивает игры игрока"""
-    result = download_player_games(username)
-    
-    if result.get('success'):
-        flash(f'✅ Загружено {result["saved"]} игр для {username}', 'success')
-    else:
-        flash(f'❌ Ошибка: {result.get("error", "Неизвестная ошибка")}', 'danger')
-    
-    return redirect(url_for('main.player_stats', username=username))
-
-
-# Закомментированные маршруты (можно раскомментировать позже)
-# @main_bp.route('/players')
-# def players_list():
-#     """Список игроков"""
-#     players = get_all_players()
-#     return render_template('players_list.html', players=players)
-
-
-# @main_bp.route('/compare', methods=['GET', 'POST'])
-# def compare():
-#     """Сравнение игроков"""
-#     form = CompareForm()
-    
-#     if form.validate_on_submit():
-#         player1 = form.player1.data.strip()
-#         player2 = form.player2.data.strip()
-        
-#         return redirect(url_for('main.compare_results', player1=player1, player2=player2))
-    
-#     return render_template('compare_players.html', form=form)
-
-
-# Форма сравнения
-class CompareForm(FlaskForm):
-    player1 = StringField('Первый игрок', validators=[DataRequired()])
-    player2 = StringField('Второй игрок', validators=[DataRequired()])
-    submit = SubmitField('Сравнить')
-
-
-# @main_bp.route('/compare/<player1>/<player2>')
-# def compare_results(player1, player2):
-#     """Результаты сравнения"""
-#     stats1 = get_player_stats(player1)
-#     stats2 = get_player_stats(player2)
-    
-#     if not stats1.get('exists') or not stats2.get('exists'):
-#         flash('Один из игроков не найден', 'danger')
-#         return redirect(url_for('main.compare'))
-    
-#     # Сравнение
-#     comparison = {}
-#     for key in ['total', 'opponents', 'accuracy']:
-#         v1 = stats1.get(key, 0) or 0
-#         v2 = stats2.get(key, 0) or 0
-#         comparison[key] = {
-#             'diff': v1 - v2,
-#             'p1': v1,
-#             'p2': v2
-#         }
-    
-#     # Процент побед
-#     win_rate1 = stats1['results'].get('Win', 0) / stats1['total'] * 100 if stats1['total'] > 0 else 0
-#     win_rate2 = stats2['results'].get('Win', 0) / stats2['total'] * 100 if stats2['total'] > 0 else 0
-#     comparison['win_rate'] = {
-#         'diff': win_rate1 - win_rate2,
-#         'p1': win_rate1,
-#         'p2': win_rate2
-#     }
-    
-#     return render_template('compare_results.html',
-#                          player1=player1,
-#                          player2=player2,
-#                          stats1=stats1,
-#                          stats2=stats2,
-#                          comparison=comparison)
+                         rating_progression=rating_progression
+                         # rating_progression_json временно убран
+                         )
