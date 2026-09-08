@@ -176,9 +176,10 @@ class SchemaLoader:
                 col_sql += f" DEFAULT {col.default}"
             columns_sql.append(col_sql)
         
+        columns_str = ",\n    ".join(columns_sql)
         create_table = f'''
 CREATE TABLE IF NOT EXISTS "{table_name}" (
-    {",\n    ".join(columns_sql)}
+    {columns_str}
 );
 '''
         sql_parts.append(create_table)
@@ -186,7 +187,6 @@ CREATE TABLE IF NOT EXISTS "{table_name}" (
         # Комментарии к колонкам
         for col in schema.columns:
             if col.comment:
-                # Экранируем одинарные кавычки в комментарии
                 comment = col.comment.replace("'", "''")
                 sql_parts.append(
                     f'COMMENT ON COLUMN "{table_name}"."{col.name}" IS \'{comment}\';'
@@ -258,7 +258,6 @@ CREATE TRIGGER update_{table_name}_updated_at
         schema = self.get_schema()
         table_name = schema.table_name
         
-        # Исключаем системные поля, которые генерируются автоматически
         exclude_fields = ['id', 'created_at', 'updated_at']
         columns = [col.name for col in schema.columns if col.name not in exclude_fields]
         
