@@ -605,12 +605,25 @@ def index():
 
 @main_bp.route('/search', methods=['GET', 'POST'])
 def search():
-    """Поиск игрока"""
+    """Поиск игрока с автоматическим скачиванием"""
     form = PlayerSearchForm()
     
     if form.validate_on_submit():
         username = form.username.data.strip()
         limit = form.limit.data or 100
+        
+        # Проверяем, есть ли таблица
+        stats = get_player_stats(username)
+        
+        if not stats.get('exists'):
+            flash(f'Игрок {username} не найден. Скачиваем игры...', 'info')
+            result = download_player_games(username, limit=limit)
+            
+            if result.get('success'):
+                flash(f'✅ Загружено {result["saved"]} игр для {username}', 'success')
+            else:
+                flash(f'❌ Ошибка загрузки: {result.get("error", "Неизвестная ошибка")}', 'danger')
+                return render_template('player_search.html', form=form)
         
         return redirect(f'/lichess-analyzer/player/{username}')
     
@@ -619,22 +632,48 @@ def search():
 
 @main_bp.route('/player/<username>')
 def player_stats(username):
-    """Страница статистики игрока"""
+    """Страница статистики игрока с автоматическим скачиванием"""
     print(f"=" * 60)
     print(f"🔍 DEBUG: player_stats вызвана для {username}")
     print(f"=" * 60)
     
+    # Получаем статистику
     stats = get_player_stats(username)
     print(f"📊 DEBUG: stats = {stats}")
     
+    # Если таблицы нет - создаем и импортируем автоматически
     if not stats.get('exists'):
-        flash(f'Игрок {username} не найден в базе данных', 'warning')
+        print(f"📥 DEBUG: Таблица не найдена, скачиваем игры для {username}")
+        flash(f'Игрок {username} не найден. Скачиваем игры...', 'info')
+        
+        # Скачиваем и импортируем игры (лимит 100 игр)
+        result = download_player_games(username, limit=100)
+        print(f"📥 DEBUG: Результат скачивания = {result}")
+        
+        if result.get('success'):
+            saved = result.get('saved', 0)
+            total = result.get('total', 0)
+            flash(f'✅ Загружено {saved} игр для {username}', 'success')
+            # Перенаправляем на ту же страницу, чтобы показать статистику
+            return redirect(f'/lichess-analyzer/player/{username}')
+        else:
+            error_msg = result.get('error', 'Неизвестная ошибка')
+            flash(f'❌ Ошибка загрузки игр для {username}: {error_msg}', 'danger')
+            return render_template('player_stats.html', 
+                                 username=username, 
+                                 stats=None,
+                                 exists=False)
+    
+    # Если таблица существует, но пустая
+    if stats.get('empty', False):
+        flash(f'Игрок {username} найден, но игры не загружены. Нажмите "Обновить игры".', 'warning')
         return render_template('player_stats.html', 
                              username=username, 
-                             stats=None,
-                             exists=False)
+                             stats=stats,
+                             exists=True)
     
     # Получаем дополнительную статистику
+    print(f"📊 DEBUG: Получение дополнительной статистики для {username}")
     openings = get_opening_stats(username)
     games = get_recent_games(username)
     rating_stats = get_rating_stats(username)
@@ -658,8 +697,6 @@ def player_stats(username):
             for key, value in game.items():
                 if value is None:
                     print(f"⚠️ DEBUG: game {i} has None for key '{key}'")
-                elif isinstance(value, datetime):
-                    print(f"ℹ️ DEBUG: game {i} key '{key}' is datetime: {value}")
     
     return render_template('player_stats.html',
                          username=username,
