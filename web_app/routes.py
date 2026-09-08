@@ -664,25 +664,25 @@ def download_player(username):
     return redirect(url_for('main.player_stats', username=username))
 
 
-@main_bp.route('/players')
-def players_list():
-    """Список игроков"""
-    players = get_all_players()
-    return render_template('players_list.html', players=players)
+# @main_bp.route('/players')
+# def players_list():
+#     """Список игроков"""
+#     players = get_all_players()
+#     return render_template('players_list.html', players=players)
 
 
-@main_bp.route('/compare', methods=['GET', 'POST'])
-def compare():
-    """Сравнение игроков"""
-    form = CompareForm()
+# @main_bp.route('/compare', methods=['GET', 'POST'])
+# def compare():
+#     """Сравнение игроков"""
+#     form = CompareForm()
     
-    if form.validate_on_submit():
-        player1 = form.player1.data.strip()
-        player2 = form.player2.data.strip()
+#     if form.validate_on_submit():
+#         player1 = form.player1.data.strip()
+#         player2 = form.player2.data.strip()
         
-        return redirect(url_for('main.compare_results', player1=player1, player2=player2))
+#         return redirect(url_for('main.compare_results', player1=player1, player2=player2))
     
-    return render_template('compare_players.html', form=form)
+#     return render_template('compare_players.html', form=form)
 
 
 # Форма сравнения
@@ -692,39 +692,39 @@ class CompareForm(FlaskForm):
     submit = SubmitField('Сравнить')
 
 
-@main_bp.route('/compare/<player1>/<player2>')
-def compare_results(player1, player2):
-    """Результаты сравнения"""
-    stats1 = get_player_stats(player1)
-    stats2 = get_player_stats(player2)
+# @main_bp.route('/compare/<player1>/<player2>')
+# def compare_results(player1, player2):
+#     """Результаты сравнения"""
+#     stats1 = get_player_stats(player1)
+#     stats2 = get_player_stats(player2)
     
-    if not stats1.get('exists') or not stats2.get('exists'):
-        flash('Один из игроков не найден', 'danger')
-        return redirect(url_for('main.compare'))
+#     if not stats1.get('exists') or not stats2.get('exists'):
+#         flash('Один из игроков не найден', 'danger')
+#         return redirect(url_for('main.compare'))
     
-    # Сравнение
-    comparison = {}
-    for key in ['total', 'opponents', 'accuracy']:
-        v1 = stats1.get(key, 0) or 0
-        v2 = stats2.get(key, 0) or 0
-        comparison[key] = {
-            'diff': v1 - v2,
-            'p1': v1,
-            'p2': v2
-        }
+#     # Сравнение
+#     comparison = {}
+#     for key in ['total', 'opponents', 'accuracy']:
+#         v1 = stats1.get(key, 0) or 0
+#         v2 = stats2.get(key, 0) or 0
+#         comparison[key] = {
+#             'diff': v1 - v2,
+#             'p1': v1,
+#             'p2': v2
+#         }
     
-    # Процент побед
-    win_rate1 = stats1['results'].get('Win', 0) / stats1['total'] * 100 if stats1['total'] > 0 else 0
-    win_rate2 = stats2['results'].get('Win', 0) / stats2['total'] * 100 if stats2['total'] > 0 else 0
-    comparison['win_rate'] = {
-        'diff': win_rate1 - win_rate2,
-        'p1': win_rate1,
-        'p2': win_rate2
-    }
+#     # Процент побед
+#     win_rate1 = stats1['results'].get('Win', 0) / stats1['total'] * 100 if stats1['total'] > 0 else 0
+#     win_rate2 = stats2['results'].get('Win', 0) / stats2['total'] * 100 if stats2['total'] > 0 else 0
+#     comparison['win_rate'] = {
+#         'diff': win_rate1 - win_rate2,
+#         'p1': win_rate1,
+#         'p2': win_rate2
+#     }
     
-    return render_template('compare_results.html',
-                         player1=player1,
-                         player2=player2,
-                         stats1=stats1,
-                         stats2=stats2,
-                         comparison=comparison)
+#     return render_template('compare_results.html',
+#                          player1=player1,
+#                          player2=player2,
+#                          stats1=stats1,
+#                          stats2=stats2,
+#                          comparison=comparison)
