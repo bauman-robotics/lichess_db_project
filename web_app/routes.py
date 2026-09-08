@@ -597,7 +597,7 @@ def search():
         username = form.username.data.strip()
         limit = form.limit.data or 100
         
-        return redirect(url_for('main.player_stats', username=username))
+        return redirect(f'/lichess-analyzer/player/{username}')  # ← ИСПРАВЛЕНО
     
     return render_template('player_search.html', form=form)
 
