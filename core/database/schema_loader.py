@@ -223,24 +223,27 @@ CREATE TABLE IF NOT EXISTS "{table_name}" (
     
     def _create_update_trigger_sql(self, table_name: str) -> str:
         """Создает триггер для обновления updated_at"""
+        # Очищаем имя таблицы от спецсимволов для имени триггера
+        trigger_name = f"update_{table_name}_updated_at".replace('-', '_').replace('.', '_')
+        
         return f'''
--- Функция для обновления updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+    -- Функция для обновления updated_at
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+    END;
+    $$ language 'plpgsql';
 
--- Триггер для таблицы {table_name}
-DROP TRIGGER IF EXISTS update_{table_name}_updated_at ON "{table_name}";
-CREATE TRIGGER update_{table_name}_updated_at
-    BEFORE UPDATE ON "{table_name}"
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-'''
-    
+    -- Триггер для таблицы {table_name}
+    DROP TRIGGER IF EXISTS {trigger_name} ON "{table_name}";
+    CREATE TRIGGER {trigger_name}
+        BEFORE UPDATE ON "{table_name}"
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
+    '''
+        
     def get_field_mapping(self, source: str = 'pgn') -> Dict[str, str]:
         """Возвращает маппинг полей для указанного источника"""
         schema = self.get_schema()
