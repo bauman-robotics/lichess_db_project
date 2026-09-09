@@ -53,7 +53,7 @@ def get_player_stats(username: str) -> dict:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -124,7 +124,7 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -188,7 +188,7 @@ def get_recent_games(username: str, limit: int = 10) -> list:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -241,7 +241,7 @@ def get_rating_stats(username: str) -> dict:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -372,7 +372,7 @@ def get_time_control_stats(username: str) -> list:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -417,7 +417,7 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -482,7 +482,7 @@ def get_move_stats(username: str) -> dict:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
-    table_name = get_safe_table_name(username)"
+    table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
     
@@ -566,7 +566,7 @@ def download_player_games(username: str, limit: int = 1000) -> dict:
         db = DatabaseManager(config, 'local')
         
         # Создаем таблицу для игрока если не существует
-        table_name = get_safe_table_name(username)"
+        table_name = get_safe_table_name(username)
         
         # Используем менеджер импорта
         import_manager = ImportManager(config, db)
