@@ -702,16 +702,13 @@ def player_stats(username):
 @main_bp.route('/player/<username>/delete', methods=['POST'])
 def delete_player(username):
     """Удаляет таблицу игрока"""
-    from core.database.db_manager import DatabaseManager
-    from config.config_loader import ConfigLoader
-    
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
-    
+
     table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
-    
+
     try:
         if db.table_exists():
             db.drop_table()
@@ -723,5 +720,5 @@ def delete_player(username):
     finally:
         db.table_name = original_table
         db.close()
-    
-    return redirect(url_for('main.index'))    
+
+    return redirect(f'/lichess-analyzer/')  

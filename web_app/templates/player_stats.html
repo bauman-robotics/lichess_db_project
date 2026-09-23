@@ -8,7 +8,7 @@
         {% if not exists %}
             <div class="alert alert-warning">
                 <p>Игрок <strong>{{ username }}</strong> не найден в базе данных.</p>
-                <form method="POST" action="{{ url_for('main.search') }}">
+                <form method="POST" action="/lichess-analyzer/search">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="username" value="{{ username }}">
                     <input type="hidden" name="limit" value="1000">
@@ -515,7 +515,7 @@
                                 <div class="alert alert-warning">
                                     <strong>📖 Популярные дебюты:</strong><br>
                                     {# Jinja2 не позволяет мутировать dict в цикле.
-                                       Считаем через selectattr/map и уникальные значения. #}
+                                       Считаем через уникальные значения и подсчёт вхождений. #}
                                     {% set all_openings = rating_progression|map(attribute='opening')|select('ne', '—')|select('ne', None)|list %}
                                     {% set unique_openings = all_openings|unique|list %}
                                     {% if unique_openings %}
@@ -633,14 +633,14 @@
             {% endif %}
 
             <div class="mt-3 d-flex gap-2">
-                <form method="POST" action="{{ url_for('main.delete_player', username=username) }}"
+                <form method="POST" action="/lichess-analyzer/player/{{ username }}/delete"
                       onsubmit="return confirm('Удалить все игры игрока {{ username }}? Это действие необратимо.');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">
                         🗑️ Удалить игры
                     </button>
                 </form>
-                <a href="{{ url_for('main.search') }}" class="btn btn-secondary">
+                <a href="/lichess-analyzer/search" class="btn btn-secondary">
                     🔍 Новый поиск
                 </a>
             </div>
@@ -648,7 +648,7 @@
         {% else %}
             <div class="alert alert-warning">
                 <p>Не удалось получить статистику для игрока <strong>{{ username }}</strong>.</p>
-                <form method="POST" action="{{ url_for('main.search') }}">
+                <form method="POST" action="/lichess-analyzer/search">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="username" value="{{ username }}">
                     <input type="hidden" name="limit" value="1000">
