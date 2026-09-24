@@ -73,7 +73,7 @@ class ConfigLoader:
         
         # Переопределяем переменными окружения
         self._apply_env_overrides()
-    
+
     def _apply_env_overrides(self) -> None:
         """Применяет переменные окружения для переопределения конфига"""
         env_mappings = {

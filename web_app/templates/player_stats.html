@@ -632,7 +632,10 @@
                 </div>
             {% endif %}
 
-            <div class="mt-3 d-flex gap-2">
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-primary">
+                    📖 Анализ по дебютам
+                </a>
                 <form method="POST" action="/lichess-analyzer/player/{{ username }}/delete"
                       onsubmit="return confirm('Удалить все игры игрока {{ username }}? Это действие необратимо.');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -1,0 +1,53 @@
+# Список популярных дебютов для быстрого фильтра
+# Названия должны совпадать с тем, как их пишет Lichess в PGN (opening_name)
+#
+# Порядок:
+#   1. Caro-Kann Defense — основные варианты
+#   2. Queen's Gambit — основные варианты
+#   3. Остальные популярные дебюты
+
+openings:
+  # ============================================
+  # Caro-Kann Defense
+  # ============================================
+  - "Caro-Kann Defense"
+  - "Caro-Kann Defense: Advance Variation"
+  - "Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense"
+  - "Caro-Kann Defense: Exchange Variation"
+  - "Caro-Kann Defense: Main Line"
+  - "Caro-Kann Defense: Hillbilly Attack"
+  - "Caro-Kann Defense: Two Knights Attack"
+  - "Caro-Kann Defense: Two Knights Attack, Mindeno Variation, Exchange Line"
+  - "Caro-Kann Defense: Classical Variation"
+  - "Caro-Kann Defense: Panov Attack"
+
+  # ============================================
+  # Queen's Gambit
+  # ============================================
+  - "Queen's Gambit Declined"
+  - "Queen's Gambit Declined: Marshall Defense"
+  - "Queen's Gambit Declined: Exchange Variation"
+  - "Queen's Gambit Declined: Baltic Defense"
+  - "Queen's Gambit Declined: Albin Countergambit"
+  - "Queen's Gambit Accepted"
+  - "Queen's Gambit Accepted: Old Variation"
+  - "Queen's Gambit Accepted: Gunsberg Defense"
+  - "Slav Defense"
+  - "Slav Defense: Modern Line"
+  - "Slav Defense: Exchange Variation"
+  - "Slav Defense: Three Knights Variation"
+  - "Semi-Slav Defense"
+
+  # ============================================
+  # Остальные популярные дебюты
+  # ============================================
+  - "Sicilian Defense"
+  - "French Defense"
+  - "Pirc Defense"
+  - "Scandinavian Defense"
+  - "English Opening"
+  - "King's Indian Defense"
+  - "Nimzo-Indian Defense"
+  - "Italian Game"
+  - "Ruy Lopez"
+  - "London System"

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h2 class="mb-0">📖 Анализ по дебютам: {{ username }}</h2>
+            <a href="/lichess-analyzer/player/{{ username }}" class="btn btn-secondary">
+                ← Назад к игроку
+            </a>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- ФОРМА ФИЛЬТРОВ                                -->
+        <!-- ============================================ -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="/lichess-analyzer/player/{{ username }}/openings">
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-4">
+                            <label class="form-label">Название дебюта</label>
+                            <input type="text" name="opening" class="form-control"
+                                   value="{{ filters.opening }}"
+                                   placeholder="например, Caro-Kann или Marshall">
+                            <small class="text-muted">
+                                Поиск по части названия, регистр не важен
+                            </small>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label d-block">Результат</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox"
+                                       name="result" value="Win" id="resWin"
+                                       {% if 'Win' in filters.results %}checked{% endif %}>
+                                <label class="form-check-label" for="resWin">Победа</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox"
+                                       name="result" value="Loss" id="resLoss"
+                                       {% if 'Loss' in filters.results %}checked{% endif %}>
+                                <label class="form-check-label" for="resLoss">Поражение</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox"
+                                       name="result" value="Draw" id="resDraw"
+                                       {% if 'Draw' in filters.results %}checked{% endif %}>
+                                <label class="form-check-label" for="resDraw">Ничья</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Цвет фигур</label>
+                            <select name="color" class="form-select">
+                                <option value="" {% if not filters.color %}selected{% endif %}>Оба</option>
+                                <option value="white" {% if filters.color == 'white' %}selected{% endif %}>Белые</option>
+                                <option value="black" {% if filters.color == 'black' %}selected{% endif %}>Чёрные</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                🔍 Применить
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+
+                <!-- ============================================ -->
+                <!-- КЛИКАБЕЛЬНЫЙ СПИСОК ДЕБЮТОВ                  -->
+                <!-- ============================================ -->
+                {% if popular_openings %}
+                    <hr class="my-3">
+                    <small class="text-muted d-block mb-2">Популярные дебюты:</small>
+                    <div>
+                        {% for op in popular_openings %}
+                            <a href="?opening={{ op|urlencode }}{% if filters.color %}&color={{ filters.color }}{% endif %}{% for r in filters.results %}&result={{ r }}{% endfor %}"
+                               class="badge bg-secondary text-decoration-none me-1 mb-1"
+                               title="{{ op }}">
+                                {{ op }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- ТАБЛИЦА РЕЗУЛЬТАТОВ                          -->
+        <!-- ============================================ -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Найдено партий: {{ games|length }}</h5>
+                {% if filters.opening or filters.results or filters.color %}
+                    <a href="/lichess-analyzer/player/{{ username }}/openings"
+                       class="btn btn-sm btn-outline-secondary">
+                        ✖ Сбросить фильтры
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+
+                {% if games and games|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Мой рейтинг</th>
+                                    <th>Контроль</th>
+                                    <th>Цвет</th>
+                                    <th>Ходов</th>
+                                    <th>Соперник</th>
+                                    <th>Дебют</th>
+                                    <th>Ссылка</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for g in games %}
+                                    <tr>
+                                        <td>
+                                            {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
+                                        </td>
+                                        <td><strong>{{ g.my_rating }}</strong></td>
+                                        <td><code>{{ g.time_control }}</code></td>
+                                        <td>
+                                            <span class="badge {% if g.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
+                                                {{ g.color }}
+                                            </span>
+                                        </td>
+                                        <td>{{ g.move_count }}</td>
+                                        <td>
+                                            <a href="https://lichess.org/@/{{ g.opponent }}" target="_blank" rel="noopener">
+                                                {{ g.opponent }} ({{ g.opponent_rating }})
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <small>{{ g.opening if g.opening else '—' }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if g.game_url %}
+                                                <a href="{{ g.game_url }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
+                                            {% else %}
+                                                <a href="https://lichess.org/{{ g.game_id }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if games|length >= 200 %}
+                        <div class="alert alert-info mt-3 mb-0">
+                            Показаны первые 200 партий. Уточните фильтры, чтобы увидеть больше.
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <p class="mb-1">Ничего не найдено по заданным фильтрам.</p>
+                        <small>Попробуйте изменить название дебюта или снять галочки результата.</small>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -235,6 +235,98 @@ def get_recent_games(username: str, limit: int = 10) -> list:
     db.close()
     return results
 
+def get_games_filtered(username, opening=None, results=None, color=None, limit=200):
+    """
+    Выборка игр игрока по фильтрам.
+
+    Args:
+        username: имя игрока
+        opening: подстрока названия дебюта (ILIKE %...%), или None
+        results: список ['Win', 'Loss', 'Draw'], или None (все)
+        color: 'white' / 'black' / None (оба)
+        limit: максимум строк
+
+    Returns:
+        list[dict]: список игр
+    """
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+
+    if not db.table_exists():
+        db.table_name = original_table
+        db.close()
+        return []
+
+    where = []
+    params = []
+
+    if opening:
+        where.append("opening_name ILIKE %s")
+        params.append(f"%{opening}%")
+
+    if results:
+        placeholders = ','.join(['%s'] * len(results))
+        where.append(f"result IN ({placeholders})")
+        params.extend(results)
+
+    if color:
+        where.append("player_color = %s")
+        params.append(color)
+
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+
+    sql = f"""
+        SELECT
+            game_id,
+            game_date,
+            my_rating,
+            time_control,
+            player_color,
+            move_count,
+            opponent_name,
+            opponent_rating,
+            result,
+            opening_name,
+            game_url
+        FROM {table_name}
+        {where_sql}
+        ORDER BY game_date DESC
+        LIMIT %s;
+    """
+    params.append(limit)
+
+    results_list = []
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                for r in cur.fetchall():
+                    results_list.append({
+                        'game_id': r[0],
+                        'date': r[1],
+                        'my_rating': r[2],
+                        'time_control': r[3],
+                        'color': r[4],
+                        'move_count': r[5],
+                        'opponent': r[6],
+                        'opponent_rating': r[7],
+                        'result': r[8],
+                        'opening': r[9],
+                        'game_url': r[10],
+                    })
+    except Exception as e:
+        print(f"❌ Ошибка get_games_filtered: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        db.table_name = original_table
+        db.close()
+
+    return results_list
 
 def get_rating_stats(username: str) -> dict:
     """Получает статистику по рейтингу"""
@@ -612,6 +704,29 @@ def download_player_games(username: str, limit: int = 1000) -> dict:
         return {'success': False, 'error': str(e)}
 
 
+def get_popular_openings() -> list:
+    """
+    Читает список популярных дебютов из config/openings.yaml.
+
+    Возвращает список строк. Если файл отсутствует или пуст — пустой список.
+    """
+    import yaml
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / 'config' / 'openings.yaml'
+    if not path.exists():
+        print(f"⚠️  Файл дебютов не найден: {path}")
+        return []
+
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        openings = data.get('openings', []) if data else []
+        return openings if isinstance(openings, list) else []
+    except Exception as e:
+        print(f"❌ Ошибка чтения openings.yaml: {e}")
+        return []
+
 @main_bp.route('/')
 def index():
     """Главная страница"""
@@ -722,3 +837,25 @@ def delete_player(username):
         db.close()
 
     return redirect(f'/lichess-analyzer/')  
+
+@main_bp.route('/player/<username>/openings')
+def player_openings(username):
+    """Страница анализа партий по дебютам с фильтрами"""
+    opening = request.args.get('opening', '').strip()
+    results = request.args.getlist('result') or None
+    color = request.args.get('color', '').strip() or None
+
+    games = get_games_filtered(username, opening, results, color)
+    popular_openings = get_popular_openings()
+
+    return render_template(
+        'player_openings.html',
+        username=username,
+        games=games,
+        popular_openings=popular_openings,
+        filters={
+            'opening': opening,
+            'results': results or [],
+            'color': color or '',
+        }
+    )    
