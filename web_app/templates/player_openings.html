@@ -166,11 +166,9 @@
                                         </td>
                                         <td><small>{{ g.opening if g.opening else '—' }}</small></td>
                                         <td class="text-center">
-                                            {% if g.game_url %}
-                                                <a href="{{ g.game_url }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
-                                            {% else %}
-                                                <a href="https://lichess.org/{{ g.game_id }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
-                                            {% endif %}
+                                            {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
+                                            {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
+                                            <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -240,17 +238,12 @@
                                 </div>
 
                                 <div class="game-card-footer">
-                                    {% if g.game_url %}
-                                        <a href="{{ g.game_url }}" target="_blank" rel="noopener"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            ↗ Открыть на Lichess
-                                        </a>
-                                    {% else %}
-                                        <a href="https://lichess.org/{{ g.game_id }}" target="_blank" rel="noopener"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            ↗ Открыть на Lichess
-                                        </a>
-                                    {% endif %}
+                                    {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
+                                    {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
+                                    <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        ↗ Открыть на Lichess
+                                    </a>
                                 </div>
 
                             </div>
