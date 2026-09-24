@@ -3,7 +3,12 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2 class="mb-4">♟️ Анализ игрока: {{ username }}</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h2 class="mb-0">♟️ Анализ игрока: {{ username }}</h2>
+            <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-primary">
+                📖 Анализ по дебютам
+            </a>
+        </div>
 
         {% if not exists %}
             <div class="alert alert-warning">
