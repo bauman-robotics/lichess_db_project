@@ -606,8 +606,8 @@
                                         <th>Соперник</th>
                                         <th>Результат</th>
                                         <th>Рейтинг соп.</th>
-                                        <th>Точность</th>
                                         <th>Дебют</th>
+                                        <th>Ссылка</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -626,8 +626,16 @@
                                                 </span>
                                             </td>
                                             <td>{{ game.opponent_rating if game.opponent_rating else '?' }}</td>
-                                            <td>{{ game.accuracy|round(1) if game.accuracy else 'Н/Д' }}</td>
                                             <td>{{ game.opening or '—' }}</td>
+                                            <td class="text-center">
+                                                {% if game.game_id %}
+                                                    {% set orientation = '/white' if game.color == 'white' else ('/black' if game.color == 'black' else '') %}
+                                                    <a href="https://lichess.org/{{ game.game_id }}{{ orientation }}"
+                                                       target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
