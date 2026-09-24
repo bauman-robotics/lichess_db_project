@@ -2,7 +2,7 @@
    LICHESS STYLE - ТЕМНАЯ ТЕМА
    ============================================ */
 
-/* Принудительная темная тема для Bootstrap и всех элементов */
+/* Принудительная тёмная тема для Bootstrap */
 [data-bs-theme="dark"] {
     color-scheme: dark;
 }
@@ -70,6 +70,9 @@
     color: #888;
 }
 
+/* ============================================
+   ПЕРЕМЕННЫЕ
+   ============================================ */
 
 :root {
     --bg-primary: #121212;
@@ -225,18 +228,10 @@ body {
     color: var(--text-primary);
 }
 
-.stat-number.gold {
-    color: var(--accent-gold);
-}
-.stat-number.green {
-    color: var(--accent-green);
-}
-.stat-number.blue {
-    color: var(--accent-blue);
-}
-.stat-number.red {
-    color: var(--accent-red);
-}
+.stat-number.gold { color: var(--accent-gold); }
+.stat-number.green { color: var(--accent-green); }
+.stat-number.blue { color: var(--accent-blue); }
+.stat-number.red { color: var(--accent-red); }
 
 .stat-card small {
     font-size: 12px;
@@ -345,23 +340,11 @@ table tbody tr:last-child td {
     min-width: 30px;
 }
 
-.progress-bar.bg-success {
-    background: var(--accent-green);
-}
-.progress-bar.bg-warning {
-    background: #ffc107;
-    color: #1a1a2e;
-}
-.progress-bar.bg-danger {
-    background: var(--accent-red);
-}
-.progress-bar.bg-info {
-    background: var(--accent-blue);
-}
-.progress-bar.bg-gold {
-    background: var(--accent-gold);
-    color: #1a1a2e;
-}
+.progress-bar.bg-success { background: var(--accent-green); }
+.progress-bar.bg-warning { background: #ffc107; color: #1a1a2e; }
+.progress-bar.bg-danger { background: var(--accent-red); }
+.progress-bar.bg-info { background: var(--accent-blue); }
+.progress-bar.bg-gold { background: var(--accent-gold); color: #1a1a2e; }
 
 /* ============================================
    БЭЙДЖИ (BADGES)
@@ -377,33 +360,50 @@ table tbody tr:last-child td {
     white-space: nowrap;
 }
 
-.badge.bg-success {
-    background: rgba(40, 167, 69, 0.2);
-    color: var(--accent-green);
+.badge.bg-success { background: rgba(40, 167, 69, 0.2); color: var(--accent-green); }
+.badge.bg-danger { background: rgba(220, 53, 69, 0.2); color: var(--accent-red); }
+.badge.bg-warning { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.badge.bg-secondary { background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); }
+.badge.bg-light { background: rgba(255, 255, 255, 0.12); color: var(--text-primary); }
+.badge.bg-dark { background: rgba(0, 0, 0, 0.4); color: var(--text-primary); }
+.badge.bg-info { background: rgba(23, 162, 184, 0.2); color: #17a2b8; }
+
+/* ============================================
+   БЕЙДЖИ РЕЗУЛЬТАТА (мягкие цвета)
+   ============================================ */
+
+.badge-result {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
 }
-.badge.bg-danger {
-    background: rgba(220, 53, 69, 0.2);
-    color: var(--accent-red);
+
+.badge-result-win {
+    background: rgba(40, 167, 69, 0.18);
+    color: #5cd679;
+    border: 1px solid rgba(40, 167, 69, 0.35);
 }
-.badge.bg-warning {
-    background: rgba(255, 193, 7, 0.2);
-    color: #ffc107;
+
+.badge-result-loss {
+    background: rgba(220, 53, 69, 0.15);
+    color: #e6858f;
+    border: 1px solid rgba(220, 53, 69, 0.3);
 }
-.badge.bg-secondary {
+
+.badge-result-draw {
+    background: rgba(255, 193, 7, 0.15);
+    color: #e6c15c;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.badge-result-unknown {
     background: rgba(255, 255, 255, 0.08);
-    color: var(--text-secondary);
-}
-.badge.bg-light {
-    background: rgba(255, 255, 255, 0.12);
-    color: var(--text-primary);
-}
-.badge.bg-dark {
-    background: rgba(0, 0, 0, 0.4);
-    color: var(--text-primary);
-}
-.badge.bg-info {
-    background: rgba(23, 162, 184, 0.2);
-    color: #17a2b8;
+    color: #a0a0a0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* ============================================
@@ -434,26 +434,14 @@ table tbody tr:last-child td {
     transform: scale(0.96);
 }
 
-.btn-success {
-    background: var(--accent-green);
-}
-.btn-success:hover {
-    background: #1e7e34;
-}
+.btn-success { background: var(--accent-green); }
+.btn-success:hover { background: #1e7e34; }
 
-.btn-primary {
-    background: var(--accent-blue);
-}
-.btn-primary:hover {
-    background: #0056b3;
-}
+.btn-primary { background: var(--accent-blue); }
+.btn-primary:hover { background: #0056b3; }
 
-.btn-danger {
-    background: var(--accent-red);
-}
-.btn-danger:hover {
-    background: #b02a37;
-}
+.btn-danger { background: var(--accent-red); }
+.btn-danger:hover { background: #b02a37; }
 
 .btn-secondary {
     background: rgba(255, 255, 255, 0.08);
@@ -464,34 +452,15 @@ table tbody tr:last-child td {
     color: var(--text-primary);
 }
 
-.btn-warning {
-    background: #ffc107;
-    color: #1a1a2e;
-}
-.btn-warning:hover {
-    background: #e0a800;
-}
+.btn-warning { background: #ffc107; color: #1a1a2e; }
+.btn-warning:hover { background: #e0a800; }
 
-.btn-gold {
-    background: var(--accent-gold);
-    color: #1a1a2e;
-}
-.btn-gold:hover {
-    background: #ffed4a;
-}
+.btn-gold { background: var(--accent-gold); color: #1a1a2e; }
+.btn-gold:hover { background: #ffed4a; }
 
-.btn-sm {
-    padding: 4px 12px;
-    font-size: 12px;
-}
-.btn-lg {
-    padding: 12px 28px;
-    font-size: 18px;
-}
-.btn-block {
-    display: block;
-    width: 100%;
-}
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-lg { padding: 12px 28px; font-size: 18px; }
+.btn-block { display: block; width: 100%; }
 
 /* ============================================
    АЛЕРТЫ
@@ -541,22 +510,10 @@ table tbody tr:last-child td {
     min-width: 0;
 }
 
-.col-md-3 {
-    flex: 0 0 25%;
-    max-width: 25%;
-}
-.col-md-4 {
-    flex: 0 0 33.333%;
-    max-width: 33.333%;
-}
-.col-md-6 {
-    flex: 0 0 50%;
-    max-width: 50%;
-}
-.col-md-12 {
-    flex: 0 0 100%;
-    max-width: 100%;
-}
+.col-md-3 { flex: 0 0 25%; max-width: 25%; }
+.col-md-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+.col-md-6 { flex: 0 0 50%; max-width: 50%; }
+.col-md-12 { flex: 0 0 100%; max-width: 100%; }
 
 /* ============================================
    МАРДЖИНЫ И ПАДДИНГИ
@@ -617,22 +574,10 @@ table tbody tr:last-child td {
     opacity: 1;
 }
 
-.toast-success {
-    border-left: 4px solid var(--accent-green);
-    color: var(--accent-green);
-}
-.toast-error {
-    border-left: 4px solid var(--accent-red);
-    color: var(--accent-red);
-}
-.toast-warning {
-    border-left: 4px solid #ffc107;
-    color: #ffc107;
-}
-.toast-info {
-    border-left: 4px solid var(--accent-blue);
-    color: var(--accent-blue);
-}
+.toast-success { border-left: 4px solid var(--accent-green); color: var(--accent-green); }
+.toast-error { border-left: 4px solid var(--accent-red); color: var(--accent-red); }
+.toast-warning { border-left: 4px solid #ffc107; color: #ffc107; }
+.toast-info { border-left: 4px solid var(--accent-blue); color: var(--accent-blue); }
 
 /* ============================================
    СКРОЛЛБАР
@@ -676,17 +621,8 @@ table tbody tr:last-child td {
 }
 
 /* ============================================
-   АНИМАЦИИ ДЛЯ ЗАГРУЗКИ
+   СПИННЕР
    ============================================ */
-
-@keyframes loadingPulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-}
-
-.loading-pulse {
-    animation: loadingPulse 1.5s ease-in-out infinite;
-}
 
 .spinner-border {
     display: inline-block;
@@ -701,406 +637,6 @@ table tbody tr:last-child td {
 
 @keyframes spinner-border {
     to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   МОБИЛЬНАЯ АДАПТАЦИЯ
-   ============================================ */
-
-@media (max-width: 992px) {
-    .col-md-3 { flex: 0 0 50%; max-width: 50%; }
-    .col-md-4 { flex: 0 0 50%; max-width: 50%; }
-    .stat-number { font-size: 24px; }
-    .card-header { flex-wrap: wrap; }
-}
-
-@media (max-width: 768px) {
-    body { 
-        padding: 8px; 
-        font-size: 14px;
-    }
-    
-    .main-container { 
-        padding: 12px; 
-        border-radius: 8px;
-    }
-    
-    .col-md-3 { 
-        flex: 0 0 50%; 
-        max-width: 50%; 
-        padding: 0 6px;
-    }
-    .col-md-4 { 
-        flex: 0 0 50%; 
-        max-width: 50%; 
-        padding: 0 6px;
-    }
-    
-    .stat-card {
-        padding: 12px 10px;
-        margin-bottom: 8px;
-        min-height: 70px;
-    }
-    
-    .stat-number { 
-        font-size: 20px; 
-    }
-    .stat-label { 
-        font-size: 10px; 
-    }
-    
-    .navbar .container {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0 12px;
-    }
-    
-    .navbar-brand {
-        font-size: 20px;
-        justify-content: center;
-        padding: 4px 0;
-    }
-    
-    .navbar-nav {
-        justify-content: center;
-        gap: 4px;
-        flex-wrap: wrap;
-    }
-    
-    .navbar-nav a {
-        font-size: 12px;
-        padding: 4px 10px;
-    }
-    
-    .card {
-        margin-bottom: 12px;
-        border-radius: 8px;
-    }
-    
-    .card-header {
-        padding: 10px 14px;
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-        gap: 4px;
-    }
-    
-    .card-header h5 {
-        font-size: 14px;
-    }
-    
-    .card-body {
-        padding: 12px;
-        overflow-x: auto;
-    }
-    
-    table {
-        font-size: 11px;
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    table thead th {
-        font-size: 9px;
-        padding: 6px 6px;
-        white-space: nowrap;
-    }
-    
-    table tbody td {
-        padding: 4px 6px;
-        white-space: nowrap;
-    }
-    
-    .progress {
-        height: 14px;
-        min-width: 40px;
-    }
-    
-    .progress-bar {
-        font-size: 8px;
-        min-width: 20px;
-    }
-    
-    .badge {
-        font-size: 9px;
-        padding: 2px 6px;
-    }
-    
-    .btn {
-        font-size: 12px;
-        padding: 10px 16px;
-        min-height: 44px;
-    }
-    
-    .btn-sm {
-        font-size: 10px;
-        padding: 6px 12px;
-        min-height: 36px;
-    }
-    
-    .alert {
-        padding: 10px 14px;
-        font-size: 13px;
-        border-radius: 8px;
-    }
-    
-    .toast-container {
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-        max-width: none;
-    }
-    
-    .toast {
-        font-size: 12px;
-        padding: 10px 14px;
-        border-radius: 8px;
-    }
-}
-
-@media (max-width: 480px) {
-    body { 
-        padding: 4px; 
-        font-size: 12px;
-    }
-    
-    .main-container { 
-        padding: 8px; 
-        border-radius: 6px;
-    }
-    
-    .col-md-3, .col-md-4 { 
-        flex: 0 0 100%; 
-        max-width: 100%; 
-        padding: 0 4px;
-    }
-    
-    .stat-card {
-        padding: 10px 8px;
-        margin-bottom: 6px;
-        min-height: 70px;
-    }
-    
-    .stat-number { 
-        font-size: 18px; 
-    }
-    .stat-label { 
-        font-size: 9px; 
-    }
-    .stat-card small {
-        font-size: 9px;
-    }
-    
-    .navbar-brand {
-        font-size: 16px;
-    }
-    
-    .navbar-nav a {
-        font-size: 10px;
-        padding: 3px 6px;
-    }
-    
-    .card-header {
-        padding: 8px 10px;
-    }
-    
-    .card-header h5 {
-        font-size: 12px;
-    }
-    
-    .card-body {
-        padding: 8px;
-    }
-    
-    table {
-        font-size: 9px;
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    
-    table thead th {
-        font-size: 8px;
-        padding: 4px 4px;
-    }
-    
-    table tbody td {
-        padding: 3px 4px;
-    }
-    
-    .progress {
-        height: 12px;
-        min-width: 30px;
-        border-radius: 6px;
-    }
-    
-    .progress-bar {
-        font-size: 7px;
-        min-width: 15px;
-    }
-    
-    .badge {
-        font-size: 8px;
-        padding: 1px 5px;
-        border-radius: 8px;
-    }
-    
-    .btn {
-        font-size: 10px;
-        padding: 8px 12px;
-        min-height: 40px;
-        border-radius: 4px;
-    }
-    
-    .btn-sm {
-        font-size: 9px;
-        padding: 4px 8px;
-        min-height: 32px;
-    }
-    
-    .alert {
-        padding: 8px 10px;
-        font-size: 11px;
-        border-radius: 6px;
-    }
-    
-    h2 {
-        font-size: 18px !important;
-    }
-    h5 {
-        font-size: 13px !important;
-    }
-    
-    .toast {
-        font-size: 11px;
-        padding: 8px 12px;
-    }
-    
-    .container {
-        padding: 0 4px;
-    }
-}
-
-@media (max-width: 360px) {
-    .stat-number { font-size: 15px; }
-    .stat-label { font-size: 8px; }
-    table { font-size: 8px; }
-    .navbar-brand { font-size: 14px; }
-    .navbar-nav a { font-size: 9px; padding: 2px 5px; }
-    .btn { 
-        font-size: 9px; 
-        padding: 6px 10px; 
-        min-height: 36px;
-    }
-}
-
-/* ============================================
-   ПОДДЕРЖКА ТЕМНОЙ ТЕМЫ НА МОБИЛЬНЫХ
-   ============================================ */
-
-/* Автоматическая темная тема для систем с темной темой */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-primary: #121212;
-        --bg-secondary: #1e1e1e;
-        --bg-card: #252525;
-        --bg-hover: #2a2a2a;
-        --text-primary: #e8e8e8;
-        --text-secondary: #a0a0a0;
-        --text-muted: #666;
-        --border-color: #333;
-        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-    }
-    
-    body {
-        background: var(--bg-primary);
-        color: var(--text-primary);
-    }
-    
-    .navbar {
-        background: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-    }
-    
-    .stat-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-    }
-    
-    .card-header {
-        background: rgba(255, 255, 255, 0.03);
-    }
-    
-    .table thead th {
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .progress {
-        background: rgba(255, 255, 255, 0.06);
-    }
-    
-    .toast {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-    }
-}
-
-/* Принудительная темная тема для мобильных (если не работает prefers-color-scheme) */
-@media (max-width: 768px) {
-    :root {
-        --bg-primary: #121212 !important;
-        --bg-secondary: #1e1e1e !important;
-        --bg-card: #252525 !important;
-        --text-primary: #e8e8e8 !important;
-        --text-secondary: #a0a0a0 !important;
-        --text-muted: #666 !important;
-        --border-color: #333 !important;
-    }
-}
-
-/* ============================================
-   БЕЙДЖИ РЕЗУЛЬТАТА (мягкие цвета)
-   ============================================ */
-
-.badge-result {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.badge-result-win {
-    background: rgba(40, 167, 69, 0.18);
-    color: #5cd679;
-    border: 1px solid rgba(40, 167, 69, 0.35);
-}
-
-.badge-result-loss {
-    background: rgba(220, 53, 69, 0.15);
-    color: #e6858f;
-    border: 1px solid rgba(220, 53, 69, 0.3);
-}
-
-.badge-result-draw {
-    background: rgba(255, 193, 7, 0.15);
-    color: #e6c15c;
-    border: 1px solid rgba(255, 193, 7, 0.3);
-}
-
-.badge-result-unknown {
-    background: rgba(255, 255, 255, 0.08);
-    color: #a0a0a0;
-    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* ============================================
@@ -1212,8 +748,236 @@ table tbody tr:last-child td {
     padding: 6px 12px;
 }
 
-/* На очень узких экранах — уменьшаем отступы */
+/* ============================================
+   МОБИЛЬНАЯ АДАПТАЦИЯ
+   ============================================ */
+
+@media (max-width: 992px) {
+    .col-md-3 { flex: 0 0 50%; max-width: 50%; }
+    .col-md-4 { flex: 0 0 50%; max-width: 50%; }
+    .stat-number { font-size: 24px; }
+    .card-header { flex-wrap: wrap; }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .main-container {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .col-md-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 0 6px;
+    }
+    .col-md-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 0 6px;
+    }
+
+    .stat-card {
+        padding: 12px 10px;
+        margin-bottom: 8px;
+        min-height: 70px;
+    }
+
+    .stat-number { font-size: 20px; }
+    .stat-label { font-size: 10px; }
+
+    .navbar .container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 12px;
+    }
+
+    .navbar-brand {
+        font-size: 20px;
+        justify-content: center;
+        padding: 4px 0;
+    }
+
+    .navbar-nav {
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    .navbar-nav a {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+
+    .card {
+        margin-bottom: 12px;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 4px;
+    }
+
+    .card-header h5 {
+        font-size: 14px;
+    }
+
+    .card-body {
+        padding: 12px;
+        overflow-x: auto;
+    }
+
+    .progress {
+        height: 14px;
+        min-width: 40px;
+    }
+
+    .progress-bar {
+        font-size: 8px;
+        min-width: 20px;
+    }
+
+    .badge {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+
+    .badge-result {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+
+    .btn {
+        font-size: 12px;
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+
+    .btn-sm {
+        font-size: 10px;
+        padding: 6px 12px;
+        min-height: 36px;
+    }
+
+    .alert {
+        padding: 10px 14px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+
+    .toast-container {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        max-width: none;
+    }
+
+    .toast {
+        font-size: 12px;
+        padding: 10px 14px;
+        border-radius: 8px;
+    }
+}
+
 @media (max-width: 480px) {
+    body {
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .main-container {
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    .col-md-3, .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0 4px;
+    }
+
+    .stat-card {
+        padding: 10px 8px;
+        margin-bottom: 6px;
+        min-height: 70px;
+    }
+
+    .stat-number { font-size: 18px; }
+    .stat-label { font-size: 9px; }
+    .stat-card small { font-size: 9px; }
+
+    .navbar-brand { font-size: 16px; }
+
+    .navbar-nav a {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .card-header { padding: 8px 10px; }
+    .card-header h5 { font-size: 12px; }
+    .card-body { padding: 8px; }
+
+    .progress {
+        height: 12px;
+        min-width: 30px;
+        border-radius: 6px;
+    }
+
+    .progress-bar {
+        font-size: 7px;
+        min-width: 15px;
+    }
+
+    .badge {
+        font-size: 8px;
+        padding: 1px 5px;
+        border-radius: 8px;
+    }
+
+    .badge-result {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+
+    .btn {
+        font-size: 10px;
+        padding: 8px 12px;
+        min-height: 40px;
+        border-radius: 4px;
+    }
+
+    .btn-sm {
+        font-size: 9px;
+        padding: 4px 8px;
+        min-height: 32px;
+    }
+
+    .alert {
+        padding: 8px 10px;
+        font-size: 11px;
+        border-radius: 6px;
+    }
+
+    h2 { font-size: 18px !important; }
+    h5 { font-size: 13px !important; }
+
+    .toast {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+
+    .container {
+        padding: 0 4px;
+    }
+
     .game-card {
         padding: 10px 12px;
         margin-bottom: 8px;
@@ -1242,14 +1006,89 @@ table tbody tr:last-child td {
         font-size: 9px;
     }
 
-    .badge-result {
-        font-size: 10px;
-        padding: 2px 8px;
-    }
-
     .game-card-footer .btn {
         font-size: 11px;
         padding: 5px 10px;
         width: 100%;
+    }
+}
+
+@media (max-width: 360px) {
+    .stat-number { font-size: 15px; }
+    .stat-label { font-size: 8px; }
+    .navbar-brand { font-size: 14px; }
+    .navbar-nav a { font-size: 9px; padding: 2px 5px; }
+    .btn {
+        font-size: 9px;
+        padding: 6px 10px;
+        min-height: 36px;
+    }
+}
+
+/* ============================================
+   ТЁМНАЯ ТЕМА СИСТЕМЫ
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --bg-card: #252525;
+        --bg-hover: #2a2a2a;
+        --text-primary: #e8e8e8;
+        --text-secondary: #a0a0a0;
+        --text-muted: #666;
+        --border-color: #333;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .navbar {
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+    }
+
+    .card-header {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .table thead th {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .progress {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .toast {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+}
+
+/* Принудительная тёмная тема на мобильных */
+@media (max-width: 768px) {
+    :root {
+        --bg-primary: #121212 !important;
+        --bg-secondary: #1e1e1e !important;
+        --bg-card: #252525 !important;
+        --text-primary: #e8e8e8 !important;
+        --text-secondary: #a0a0a0 !important;
+        --text-muted: #666 !important;
+        --border-color: #333 !important;
     }
 }
