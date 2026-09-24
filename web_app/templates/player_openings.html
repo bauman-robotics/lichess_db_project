@@ -70,29 +70,40 @@
                 </form>
 
                 <!-- ============================================ -->
-                <!-- КЛИКАБЕЛЬНЫЙ СПИСОК ДЕБЮТОВ                  -->
+                <!-- ПОПУЛЯРНЫЕ ДЕБЮТЫ ПОД КНОПКОЙ                -->
                 <!-- ============================================ -->
                 {% if popular_openings %}
-                    <hr class="my-3">
-                    <small class="text-muted d-block mb-2">Популярные дебюты:</small>
-                    <div>
-                        {% for op in popular_openings %}
-                            <a href="?opening={{ op|urlencode }}{% if filters.color %}&color={{ filters.color }}{% endif %}{% for r in filters.results %}&result={{ r }}{% endfor %}"
-                               class="badge bg-secondary text-decoration-none me-1 mb-1"
-                               title="{{ op }}">
-                                {{ op }}
-                            </a>
-                        {% endfor %}
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-secondary"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#popularOpenings"
+                                aria-expanded="false"
+                                aria-controls="popularOpenings">
+                            📚 Популярные дебюты ({{ popular_openings|length }})
+                        </button>
+                    </div>
+
+                    <div class="collapse mt-2" id="popularOpenings">
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for op in popular_openings %}
+                                <a href="?opening={{ op|urlencode }}{% if filters.color %}&color={{ filters.color }}{% endif %}{% for r in filters.results %}&result={{ r }}{% endfor %}"
+                                   class="badge bg-secondary text-decoration-none"
+                                   title="{{ op }}">
+                                    {{ op }}
+                                </a>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
 
         <!-- ============================================ -->
-        <!-- ТАБЛИЦА РЕЗУЛЬТАТОВ                          -->
+        <!-- РЕЗУЛЬТАТЫ                                    -->
         <!-- ============================================ -->
         <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="mb-0">Найдено партий: {{ games|length }}</h5>
                 {% if filters.opening or filters.results or filters.color %}
                     <a href="/lichess-analyzer/player/{{ username }}/openings"
@@ -104,7 +115,11 @@
             <div class="card-body">
 
                 {% if games and games|length > 0 %}
-                    <div class="table-responsive">
+
+                    <!-- ============================================ -->
+                    <!-- ТАБЛИЦА (десктоп)                            -->
+                    <!-- ============================================ -->
+                    <div class="table-responsive desktop-table">
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
                                 <tr>
@@ -128,11 +143,11 @@
                                         <td><strong>{{ g.my_rating }}</strong></td>
                                         <td>
                                             {% if g.result == 'Win' %}
-                                                <span class="badge-result badge-result-win">✅ Win</span>
+                                                <span class="badge-result badge-result-win">✅ Победа</span>
                                             {% elif g.result == 'Loss' %}
-                                                <span class="badge-result badge-result-loss">❌ Fail</span>
+                                                <span class="badge-result badge-result-loss">❌ Поражение</span>
                                             {% elif g.result == 'Draw' %}
-                                                <span class="badge-result badge-result-draw">➖ Draw</span>
+                                                <span class="badge-result badge-result-draw">➖ Ничья</span>
                                             {% else %}
                                                 <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
                                             {% endif %}
@@ -149,9 +164,7 @@
                                                 {{ g.opponent }} ({{ g.opponent_rating }})
                                             </a>
                                         </td>
-                                        <td>
-                                            <small>{{ g.opening if g.opening else '—' }}</small>
-                                        </td>
+                                        <td><small>{{ g.opening if g.opening else '—' }}</small></td>
                                         <td class="text-center">
                                             {% if g.game_url %}
                                                 <a href="{{ g.game_url }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
@@ -163,6 +176,85 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- ============================================ -->
+                    <!-- КАРТОЧКИ (мобильные)                         -->
+                    <!-- ============================================ -->
+                    <div class="mobile-cards">
+                        {% for g in games %}
+                            <div class="game-card">
+
+                                <div class="game-card-header">
+                                    <span class="game-card-date">
+                                        {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
+                                    </span>
+                                    <span>
+                                        {% if g.result == 'Win' %}
+                                            <span class="badge-result badge-result-win">✅ Победа</span>
+                                        {% elif g.result == 'Loss' %}
+                                            <span class="badge-result badge-result-loss">❌ Поражение</span>
+                                        {% elif g.result == 'Draw' %}
+                                            <span class="badge-result badge-result-draw">➖ Ничья</span>
+                                        {% else %}
+                                            <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="game-card-body">
+                                    <div class="row-line">
+                                        <span class="label">Контроль</span>
+                                        <span><code>{{ g.time_control }}</code></span>
+                                    </div>
+                                    <div class="row-line">
+                                        <span class="label">Цвет</span>
+                                        <span>
+                                            <span class="badge {% if g.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
+                                                {{ g.color }}
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div class="row-line">
+                                        <span class="label">Ходов</span>
+                                        <span>{{ g.move_count }}</span>
+                                    </div>
+                                    <div class="row-line">
+                                        <span class="label">Мой рейтинг</span>
+                                        <span><strong>{{ g.my_rating }}</strong></span>
+                                    </div>
+                                    <div class="row-line">
+                                        <span class="label">Соперник</span>
+                                        <span>
+                                            <a href="https://lichess.org/@/{{ g.opponent }}" target="_blank" rel="noopener">
+                                                {{ g.opponent }} ({{ g.opponent_rating }})
+                                            </a>
+                                        </span>
+                                    </div>
+                                    <div class="row-line">
+                                        <span class="label">Дебют</span>
+                                        <span class="game-card-opening">
+                                            <small>{{ g.opening if g.opening else '—' }}</small>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="game-card-footer">
+                                    {% if g.game_url %}
+                                        <a href="{{ g.game_url }}" target="_blank" rel="noopener"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            ↗ Открыть на Lichess
+                                        </a>
+                                    {% else %}
+                                        <a href="https://lichess.org/{{ g.game_id }}" target="_blank" rel="noopener"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            ↗ Открыть на Lichess
+                                        </a>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        {% endfor %}
                     </div>
 
                     {% if games|length >= 200 %}

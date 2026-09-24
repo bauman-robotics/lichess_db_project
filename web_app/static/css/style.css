@@ -1102,3 +1102,154 @@ table tbody tr:last-child td {
     color: #a0a0a0;
     border: 1px solid rgba(255, 255, 255, 0.12);
 }
+
+/* ============================================
+   ПЕРЕКЛЮЧЕНИЕ ТАБЛИЦА / КАРТОЧКИ
+   ============================================ */
+
+/* По умолчанию: таблица видна, карточки скрыты */
+.desktop-table {
+    display: block;
+}
+
+.mobile-cards {
+    display: none;
+}
+
+/* На мобильных: таблица скрыта, карточки видны */
+@media (max-width: 768px) {
+    .desktop-table {
+        display: none !important;
+    }
+
+    .mobile-cards {
+        display: block;
+    }
+}
+
+/* ============================================
+   КАРТОЧКИ ПАРТИЙ
+   ============================================ */
+
+.game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: var(--transition);
+}
+
+.game-card:hover {
+    border-color: rgba(255, 215, 0, 0.2);
+}
+
+.game-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.game-card-date {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.game-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.game-card-body .row-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.game-card-body .label {
+    color: var(--text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.game-card-body .row-line > span:last-child {
+    text-align: right;
+    word-break: break-word;
+}
+
+.game-card-opening {
+    max-width: 60%;
+    text-align: right;
+}
+
+.game-card-opening small {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.game-card-footer {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+    text-align: right;
+}
+
+.game-card-footer .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+/* На очень узких экранах — уменьшаем отступы */
+@media (max-width: 480px) {
+    .game-card {
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+    }
+
+    .game-card-header {
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+    }
+
+    .game-card-date {
+        font-size: 13px;
+    }
+
+    .game-card-body {
+        gap: 4px;
+    }
+
+    .game-card-body .row-line {
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .game-card-body .label {
+        font-size: 9px;
+    }
+
+    .badge-result {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+
+    .game-card-footer .btn {
+        font-size: 11px;
+        padding: 5px 10px;
+        width: 100%;
+    }
+}
