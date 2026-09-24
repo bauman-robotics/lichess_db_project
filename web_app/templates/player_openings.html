@@ -110,6 +110,7 @@
                                 <tr>
                                     <th>Дата</th>
                                     <th>Мой рейтинг</th>
+                                    <th>Результат</th>
                                     <th>Контроль</th>
                                     <th>Цвет</th>
                                     <th>Ходов</th>
@@ -125,6 +126,17 @@
                                             {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
                                         </td>
                                         <td><strong>{{ g.my_rating }}</strong></td>
+                                        <td>
+                                            {% if g.result == 'Win' %}
+                                                <span class="badge-result badge-result-win">✅ Win</span>
+                                            {% elif g.result == 'Loss' %}
+                                                <span class="badge-result badge-result-loss">❌ Fail</span>
+                                            {% elif g.result == 'Draw' %}
+                                                <span class="badge-result badge-result-draw">➖ Draw</span>
+                                            {% else %}
+                                                <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
+                                            {% endif %}
+                                        </td>
                                         <td><code>{{ g.time_control }}</code></td>
                                         <td>
                                             <span class="badge {% if g.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
