@@ -44,3 +44,5 @@ htmlcov/
 *.tmp
 *.temp
 *.bak
+
+Info_lichess_analyzer_private/
