@@ -109,11 +109,11 @@ def strip_clk(pgn: str) -> str:
     return re.sub(r'\s*\[%clk[^\]]*\]\s*', ' ', pgn).strip()
 
 
-def build_prompt(game: dict, prompts: dict) -> tuple:
+def build_prompt(game: dict, prompts: dict, player_name: str = "Игрок") -> tuple:
     """Формирует system и user промпты"""
     system = prompts['system'].strip()
     user = prompts['user_template'].format(
-        player_name=username,
+        player_name=player_name,
         player_color=game['color'],
         opponent_name=game['opponent_name'],
         opponent_rating=game['opponent_rating'],
