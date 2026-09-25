@@ -184,7 +184,9 @@ def update_task_done(task_id: str):
             with conn.cursor() as cur:
                 cur.execute("""
                     UPDATE analysis_tasks
-                    SET status = 'done', finished_at = NOW()
+                    SET status = 'done',
+                        finished_at = NOW(),
+                        error = NULL
                     WHERE task_id = %s
                 """, (task_id,))
                 conn.commit()

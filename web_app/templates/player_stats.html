@@ -856,13 +856,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const CSRF_TOKEN = '{{ csrf_token() }}';
 
-    // Проверяем, что модалка есть на странице
     const modalEl = document.getElementById('analysisModal');
     if (!modalEl) {
         console.warn('analysisModal не найден');
         return;
     }
-
     const modal = new bootstrap.Modal(modalEl);
 
     const elGameId     = document.getElementById('analysis-game-id');
@@ -874,8 +872,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const elStatus     = document.getElementById('analysis-status');
     const elError      = document.getElementById('analysis-error');
     const elContent    = document.getElementById('analysis-content');
-
-    let currentGame = null;
 
     // -------- Утилиты --------
     function setButtonState(btn, state) {
@@ -890,7 +886,18 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (state === 'error')   btn.textContent = '❌';
     }
 
-    // Загружает краткую нотацию с сервера (только ходы)
+    function resetModal() {
+        elGameId.textContent = '';
+        elMetaDate.textContent = '—';
+        elMetaResult.textContent = '—';
+        elMetaOpp.textContent = '—';
+        elMetaOpen.textContent = '—';
+        elPgn.textContent = '—';
+        elContent.textContent = '';
+        elError.classList.add('d-none');
+        elStatus.classList.add('d-none');
+    }
+
     async function loadPgn(username, gameId) {
         elPgn.textContent = 'Загрузка…';
         try {
@@ -906,62 +913,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // -------- Открытие модалки --------
-    async function openModal(username, gameId, button) {
-        currentGame = { username, gameId, button };
-
+    // -------- Открытие модалки с готовым результатом --------
+    async function openModalWithResult(username, gameId) {
+        resetModal();
         elGameId.textContent = gameId;
-        elMetaDate.textContent = '—';
-        elMetaResult.textContent = '—';
-        elMetaOpp.textContent = '—';
-        elMetaOpen.textContent = '—';
-        elPgn.textContent = '—';
-        elContent.textContent = '';
-        elError.classList.add('d-none');
-        elStatus.classList.add('d-none');
-
         modal.show();
-
         loadPgn(username, gameId);
 
-        if (button.dataset.state === 'none' || button.dataset.state === 'error') {
-            await startAnalysis(username, gameId, button);
-        } else if (button.dataset.state === 'done') {
-            // Уже есть — подгружаем
-            try {
-                const r = await fetch(
-                    `/lichess-analyzer/player/${username}/game/${gameId}/analyze`,
-                    {
-                        method: 'POST',
-                        headers: { 'X-CSRFToken': CSRF_TOKEN },
-                        credentials: 'same-origin',
-                    }
-                );
-                const data = await r.json();
-                if (data.status === 'done') {
-                    elContent.textContent = data.analysis;
-                } else if (data.status === 'busy') {
-                    showError(data.message);
-                } else {
-                    showError('Не удалось загрузить анализ');
+        try {
+            const r = await fetch(
+                `/lichess-analyzer/player/${username}/game/${gameId}/analyze`,
+                {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN },
+                    credentials: 'same-origin',
                 }
-            } catch (e) {
-                showError('Ошибка: ' + e.message);
+            );
+            const data = await r.json();
+            if (data.status === 'done' && data.analysis) {
+                elContent.textContent = data.analysis;
+            } else {
+                elError.textContent = '❌ ' + (data.message || 'Не удалось загрузить анализ');
+                elError.classList.remove('d-none');
             }
+        } catch (e) {
+            elError.textContent = '❌ Ошибка: ' + e.message;
+            elError.classList.remove('d-none');
         }
     }
 
-    function showError(msg) {
-        elError.textContent = '❌ ' + msg;
-        elError.classList.remove('d-none');
-        elStatus.classList.add('d-none');
-    }
-
-    // -------- Запуск анализа --------
+    // -------- Запуск анализа (без открытия модалки) --------
     async function startAnalysis(username, gameId, button) {
-        elStatus.classList.remove('d-none');
-        elContent.textContent = '';
-        elError.classList.add('d-none');
+        setButtonState(button, 'running');
 
         try {
             const r = await fetch(
@@ -976,29 +959,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.status === 'done') {
                 setButtonState(button, 'done');
-                elContent.textContent = data.analysis;
-                elStatus.classList.add('d-none');
+                openModalWithResult(username, gameId);
                 return;
             }
+
             if (data.status === 'started') {
-                setButtonState(button, 'running');
                 pollStatus(username, gameId, data.task_id, button);
                 return;
             }
+
             if (data.status === 'busy') {
-                setButtonState(button, 'error');
-                showError(data.message);
+                setButtonState(button, 'none');
+                alert(data.message || 'Дождитесь окончания текущего анализа');
                 return;
             }
+
             setButtonState(button, 'error');
-            showError(data.message || 'Ошибка');
+            alert(data.message || 'Ошибка анализа');
         } catch (e) {
             setButtonState(button, 'error');
-            showError('Ошибка сети: ' + e.message);
+            alert('Ошибка сети: ' + e.message);
         }
     }
 
-    // -------- Polling статуса --------
+    // -------- Polling --------
     async function pollStatus(username, gameId, taskId, button) {
         const url = `/lichess-analyzer/player/${username}/game/${gameId}/analyze/status/${taskId}`;
         let attempts = 0;
@@ -1012,24 +996,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.status === 'done') {
                     setButtonState(button, 'done');
-                    elContent.textContent = data.analysis;
-                    elStatus.classList.add('d-none');
+                    openModalWithResult(username, gameId);
                     return;
                 }
                 if (data.status === 'error') {
                     setButtonState(button, 'error');
-                    showError(data.message || 'Ошибка анализа');
+                    alert(data.message || 'Ошибка анализа');
                     return;
                 }
                 if (attempts >= maxAttempts) {
                     setButtonState(button, 'error');
-                    showError('Превышено время ожидания');
+                    alert('Превышено время ожидания');
                     return;
                 }
                 setTimeout(tick, 2000);
             } catch (e) {
                 setButtonState(button, 'error');
-                showError('Ошибка сети: ' + e.message);
+                alert('Ошибка сети: ' + e.message);
             }
         };
 
@@ -1041,7 +1024,20 @@ document.addEventListener('DOMContentLoaded', function() {
         setButtonState(btn, btn.dataset.state || 'none');
 
         btn.addEventListener('click', () => {
-            openModal(btn.dataset.username, btn.dataset.gameId, btn);
+            const state = btn.dataset.state;
+            const username = btn.dataset.username;
+            const gameId = btn.dataset.gameId;
+
+            if (state === 'done') {
+                openModalWithResult(username, gameId);
+                return;
+            }
+            if (state === 'running') {
+                alert('Анализ уже выполняется. Дождитесь ответа.');
+                return;
+            }
+            // none или error — запускаем
+            startAnalysis(username, gameId, btn);
         });
     });
 });
