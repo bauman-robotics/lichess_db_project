@@ -26,8 +26,8 @@ def create_app():
     
     app.config['SECRET_KEY'] = WebConfig.SECRET_KEY
     app.config['DEBUG'] = WebConfig.DEBUG
-    
-    csrf = CSRFProtect(app)
+     
+    #csrf = CSRFProtect(app)  # временно для теста
     
     # Регистрируем блюпринт БЕЗ префикса
     app.register_blueprint(main_bp)
