@@ -744,8 +744,7 @@
 
                 <div id="analysis-error" class="alert alert-danger d-none"></div>
 
-                <div id="analysis-content"
-                     style="white-space: pre-wrap; line-height: 1.6; font-size: 14px;"></div>
+                <div id="analysis-content" class="markdown-body"></div>
 
             </div>
         </div>
@@ -942,7 +941,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data.status === 'done' && data.analysis) {
-                elContent.textContent = data.analysis;
+                renderMarkdown(data.analysis);
             } else {
                 elError.textContent = '❌ ' + (data.message || 'Не удалось загрузить анализ');
                 elError.classList.remove('d-none');
@@ -1007,7 +1006,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.status === 'done') {
                     setButtonState(button, 'done');
-                    openModalWithResult(username, gameId);
+                    renderMarkdown(data.analysis);
+                    elStatus.classList.add('d-none');
                     return;
                 }
                 if (data.status === 'error') {
@@ -1028,6 +1028,29 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         setTimeout(tick, 2000);
+    }
+
+    // -------- Markdown-рендер --------
+    function renderMarkdown(text) {
+        if (!text) {
+            elContent.textContent = '';
+            return;
+        }
+        try {
+            // Парсим Markdown
+            let html = marked.parse(text);
+
+            // Санитайз — защита от XSS
+            if (typeof DOMPurify !== 'undefined') {
+                html = DOMPurify.sanitize(html);
+            }
+
+            elContent.innerHTML = html;
+        } catch (e) {
+            console.error('Markdown error:', e);
+            // Fallback — показываем как plain text
+            elContent.textContent = text;
+        }
     }
 
     // -------- Обработка кликов --------
