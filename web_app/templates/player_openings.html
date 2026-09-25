@@ -132,6 +132,7 @@
                                     <th>Соперник</th>
                                     <th>Дебют</th>
                                     <th>Ссылка</th>
+                                    <th class="text-center">Анализ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -164,6 +165,19 @@
                                                 {{ g.opponent }} ({{ g.opponent_rating }})
                                             </a>
                                         </td>
+                                        <td class="text-center">
+                                            {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
+                                            <button class="btn btn-sm btn-analysis"
+                                                    data-username="{{ username }}"
+                                                    data-game-id="{{ g.game_id }}"
+                                                    data-state="{{ state }}"
+                                                    title="Анализ партии через DeepSeek">
+                                                {% if state == 'running' %}⏳
+                                                {% elif state == 'done' %}✅
+                                                {% elif state == 'error' %}❌
+                                                {% else %}🤖{% endif %}
+                                            </button>
+                                        </td>                                        
                                         <td><small>{{ g.opening if g.opening else '—' }}</small></td>
                                         <td class="text-center">
                                             {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
@@ -237,13 +251,24 @@
                                     </div>
                                 </div>
 
-                                <div class="game-card-footer">
+                                <div class="game-card-footer d-flex gap-2 justify-content-end flex-wrap">
                                     {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
                                     {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
                                     <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener"
                                        class="btn btn-sm btn-outline-secondary">
                                         ↗ Открыть на Lichess
                                     </a>
+                                    {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
+                                    <button class="btn btn-sm btn-analysis"
+                                            data-username="{{ username }}"
+                                            data-game-id="{{ g.game_id }}"
+                                            data-state="{{ state }}"
+                                            title="Анализ партии через DeepSeek">
+                                        {% if state == 'running' %}⏳
+                                        {% elif state == 'done' %}✅
+                                        {% elif state == 'error' %}❌
+                                        {% else %}🤖{% endif %}
+                                    </button>
                                 </div>
 
                             </div>
@@ -266,6 +291,63 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- МОДАЛКА АНАЛИЗА -->
+<div class="modal fade" id="analysisModal" tabindex="-1" aria-labelledby="analysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="analysisModalLabel">
+                    🤖 Анализ партии <span id="analysis-game-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div id="analysis-meta" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Дата</small>
+                            <div id="meta-date">—</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Результат</small>
+                            <div id="meta-result">—</div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <small class="text-muted">Соперник</small>
+                            <div id="meta-opponent">—</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Дебют</small>
+                            <div id="meta-opening">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <details class="mb-3">
+                    <summary class="text-muted" style="cursor: pointer;">
+                        📋 Краткая нотация
+                    </summary>
+                    <pre id="analysis-pgn" class="mt-2 p-2"
+                         style="background: rgba(255,255,255,0.03); border-radius: 6px;
+                                max-height: 200px; overflow-y: auto;
+                                white-space: pre-wrap; font-size: 12px;">—</pre>
+                </details>
+
+                <div id="analysis-status" class="text-center py-3 d-none">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="mt-2 mb-0 text-muted">DeepSeek думает…</p>
+                </div>
+
+                <div id="analysis-error" class="alert alert-danger d-none"></div>
+
+                <div id="analysis-content" class="markdown-body"></div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
