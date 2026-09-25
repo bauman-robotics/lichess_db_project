@@ -5,6 +5,10 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import json
+import uuid
+import threading
+import logging
+from datetime import datetime
 
 # Добавляем корень проекта в PYTHONPATH
 project_root = Path(__file__).parent.parent
@@ -22,6 +26,9 @@ from core.database.db_manager import DatabaseManager
 from services.lichess_client import LichessClient
 from services.import_manager import ImportManager
 from services.pgn_parser import PGNParser
+
+from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError, DeepSeekUnavailable
+from web_app import tasks as analysis_tasks
 
 main_bp = Blueprint('main', __name__)
 
@@ -210,7 +217,8 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     move_count,
                     opening_name,
                     my_rating,
-                    opponent_rating
+                    opponent_rating,
+                    game_analysis
                 FROM {table_name}
                 ORDER BY game_date DESC
                 LIMIT %s;
@@ -228,12 +236,125 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     'move_count': row[6],
                     'opening': row[7],
                     'my_rating': row[8],
-                    'opponent_rating': row[9]
+                    'opponent_rating': row[9],
+                    'analysis': row[10] or '',      # ← добавили
                 })
     
     db.table_name = original_table
     db.close()
     return results
+
+def get_game_for_analysis(username: str, game_id: str) -> dict:
+    """
+    Загружает партию из БД для анализа.
+    Возвращает словарь или None, если партия не найдена.
+    """
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+
+    if not db.table_exists():
+        db.table_name = original_table
+        db.close()
+        return None
+
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"""
+                    SELECT
+                        game_id, game_date, player_color, opponent_name,
+                        opponent_rating, result, opening_name, time_control,
+                        move_count, pgn_moves, game_analysis
+                    FROM {table_name}
+                    WHERE game_id = %s;
+                """, (game_id,))
+                row = cur.fetchone()
+                if not row:
+                    return None
+                return {
+                    'game_id': row[0],
+                    'game_date': row[1],
+                    'color': row[2],
+                    'opponent_name': row[3],
+                    'opponent_rating': row[4],
+                    'result': row[5],
+                    'opening_name': row[6],
+                    'time_control': row[7],
+                    'move_count': row[8],
+                    'pgn_moves': row[9] or '',
+                    'game_analysis': row[10] or '',
+                }
+    finally:
+        db.table_name = original_table
+        db.close()
+
+def save_analysis(username: str, game_id: str, analysis: str) -> bool:
+    """Сохраняет текст анализа в поле game_analysis."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"UPDATE {table_name} SET game_analysis = %s WHERE game_id = %s",
+                    (analysis, game_id)
+                )
+                conn.commit()
+        return True
+    except Exception as e:
+        print(f"❌ Ошибка сохранения анализа: {e}")
+        return False
+    finally:
+        db.table_name = original_table
+        db.close()
+
+def _run_analysis_task(task_id: str, username: str, game_id: str):
+    """
+    Выполняется в фоновом потоке.
+    Загружает партию, вызывает DeepSeek, сохраняет результат.
+    """
+    logger = logging.getLogger(__name__)
+    try:
+        logger.info(f"[task {task_id}] Старт анализа {username}/{game_id}")
+
+        # 1. Загружаем партию
+        game = get_game_for_analysis(username, game_id)
+        if not game:
+            raise DeepSeekError(f"Партия {game_id} не найдена")
+
+        # 2. Вызываем DeepSeek
+        analysis = analyze_game(game, player_name=username)
+        logger.info(f"[task {task_id}] Ответ получен, {len(analysis)} символов")
+
+        # 3. Сохраняем в БД
+        if not save_analysis(username, game_id, analysis):
+            raise DeepSeekError("Не удалось сохранить анализ в БД")
+
+        # 4. Помечаем задачу как done
+        analysis_tasks.update_task_done(task_id)
+        logger.info(f"[task {task_id}] Завершено успешно")
+
+    except DeepSeekUnavailable as e:
+        msg = f"DeepSeek недоступен: {e}"
+        logger.error(f"[task {task_id}] {msg}")
+        analysis_tasks.update_task_error(task_id, msg)
+
+    except DeepSeekError as e:
+        msg = f"Ошибка DeepSeek: {e}"
+        logger.error(f"[task {task_id}] {msg}")
+        analysis_tasks.update_task_error(task_id, msg)
+
+    except Exception as e:
+        msg = f"Неожиданная ошибка: {e}"
+        logger.exception(f"[task {task_id}] {msg}")
+        analysis_tasks.update_task_error(task_id, msg)
 
 def get_games_filtered(username, opening=None, results=None, color=None, limit=200):
     """
@@ -859,3 +980,109 @@ def player_openings(username):
             'color': color or '',
         }
     )    
+
+@main_bp.route('/player/<username>/game/<game_id>/analyze', methods=['POST'])
+def analyze_game_route(username, game_id):
+    """
+    Запускает анализ партии через DeepSeek.
+
+    Возвращает JSON:
+      - {status: "done", analysis: "..."} — если анализ уже есть
+      - {status: "started", task_id: "..."} — если задача запущена
+      - {status: "busy", message: "..."} — если идёт другой анализ
+      - {status: "error", message: "..."} — ошибка
+    """
+    # 1. Проверяем, есть ли уже анализ
+    game = get_game_for_analysis(username, game_id)
+    if not game:
+        return jsonify({
+            'status': 'error',
+            'message': f'Партия {game_id} не найдена',
+        }), 404
+
+    if game['game_analysis']:
+        return jsonify({
+            'status': 'done',
+            'analysis': game['game_analysis'],
+        })
+
+    # 2. Проверяем, есть ли running-задача для этой пары
+    running = analysis_tasks.get_running_task_for(username, game_id)
+    if running:
+        return jsonify({
+            'status': 'started',
+            'task_id': running['task_id'],
+        })
+
+    # 3. Проверяем доступность DeepSeek
+    if not check_health():
+        return jsonify({
+            'status': 'error',
+            'message': 'DeepSeek API недоступен',
+        })
+
+    # 4. Создаём задачу (лимит 1)
+    task_id = analysis_tasks.create_task(username, game_id)
+    if not task_id:
+        return jsonify({
+            'status': 'busy',
+            'message': 'Дождитесь окончания текущего анализа',
+        })
+
+    # 5. Запускаем фоновый поток
+    t = threading.Thread(
+        target=_run_analysis_task,
+        args=(task_id, username, game_id),
+        daemon=True,
+    )
+    t.start()
+
+    return jsonify({
+        'status': 'started',
+        'task_id': task_id,
+    })    
+
+@main_bp.route('/player/<username>/game/<game_id>/analyze/status/<task_id>', methods=['GET'])
+def analyze_status_route(username, game_id, task_id):
+    """
+    Возвращает статус задачи анализа.
+
+    JSON:
+      - {status: "running"}
+      - {status: "done", analysis: "..."}
+      - {status: "error", message: "..."}
+    """
+    # Проверяем, не протухла ли задача (>10 минут)
+    analysis_tasks.cleanup_stale_running_task(task_id)
+
+    task = analysis_tasks.get_task(task_id)
+    if not task:
+        return jsonify({
+            'status': 'error',
+            'message': 'Задача не найдена',
+        }), 404
+
+    # Проверяем, что задача относится к этому игроку/партии
+    if task['username'] != username or task['game_id'] != game_id:
+        return jsonify({
+            'status': 'error',
+            'message': 'Задача относится к другой партии',
+        }), 400
+
+    if task['status'] == 'done':
+        # Загружаем готовый анализ из БД
+        game = get_game_for_analysis(username, game_id)
+        analysis = game['game_analysis'] if game else ''
+        return jsonify({
+            'status': 'done',
+            'analysis': analysis,
+        })
+
+    if task['status'] == 'error':
+        return jsonify({
+            'status': 'error',
+            'message': task['error'] or 'Неизвестная ошибка',
+        })
+
+    # running
+    return jsonify({'status': 'running'})    
