@@ -1021,6 +1021,7 @@ def analyze_game_route(username, game_id):
         return jsonify({
             'status': 'done',
             'analysis': game['game_analysis'],
+            'meta': _game_meta(game),
         })
 
     # 2. Проверяем, есть ли running-задача для этой пары
