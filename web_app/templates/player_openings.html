@@ -165,6 +165,12 @@
                                                 {{ g.opponent }} ({{ g.opponent_rating }})
                                             </a>
                                         </td>
+                                        <td><small>{{ g.opening if g.opening else '—' }}</small></td>
+                                        <td class="text-center">
+                                            {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
+                                            {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
+                                            <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
+                                        </td>
                                         <td class="text-center">
                                             {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
                                             <button class="btn btn-sm btn-analysis"
@@ -177,12 +183,6 @@
                                                 {% elif state == 'error' %}❌
                                                 {% else %}🤖{% endif %}
                                             </button>
-                                        </td>                                        
-                                        <td><small>{{ g.opening if g.opening else '—' }}</small></td>
-                                        <td class="text-center">
-                                            {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
-                                            {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
-                                            <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
                                         </td>
                                     </tr>
                                 {% endfor %}
