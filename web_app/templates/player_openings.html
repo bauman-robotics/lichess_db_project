@@ -123,6 +123,7 @@
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
                                 <tr>
+                                    <th>#</th>
                                     <th>Дата</th>
                                     <th>Мой рейтинг</th>
                                     <th>Результат</th>
@@ -138,6 +139,7 @@
                             <tbody>
                                 {% for g in games %}
                                     <tr>
+                                        <td class="text-muted">{{ loop.index }}</td>
                                         <td>
                                             {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
                                         </td>
@@ -198,8 +200,11 @@
                             <div class="game-card">
 
                                 <div class="game-card-header">
-                                    <span class="game-card-date">
-                                        {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
+                                    <span>
+                                        <span class="game-card-number">#{{ loop.index }}</span>
+                                        <span class="game-card-date">
+                                            {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
+                                        </span>
                                     </span>
                                     <span>
                                         {% if g.result == 'Win' %}
