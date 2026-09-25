@@ -264,10 +264,13 @@
                                             data-game-id="{{ g.game_id }}"
                                             data-state="{{ state }}"
                                             title="Анализ партии через DeepSeek">
-                                        {% if state == 'running' %}⏳
-                                        {% elif state == 'done' %}✅
-                                        {% elif state == 'error' %}❌
-                                        {% else %}🤖{% endif %}
+                                        <span class="btn-analysis-icon">
+                                            {% if state == 'running' %}⏳
+                                            {% elif state == 'done' %}✅
+                                            {% elif state == 'error' %}❌
+                                            {% else %}🤖{% endif %}
+                                        </span>
+                                        <span class="btn-analysis-label">Анализ</span>
                                     </button>
                                 </div>
 
