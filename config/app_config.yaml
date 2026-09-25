@@ -57,6 +57,7 @@ statistics:
   cache_enabled: true
   cache_ttl: 3600  # секунды
   default_limit: 100
+  recent_games_limit: 25   # ← сколько последних игр показывать
 
 # Настройки валидации
 validation:

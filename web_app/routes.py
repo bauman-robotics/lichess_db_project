@@ -919,7 +919,12 @@ def player_stats(username):
                                  exists=False)
     
     openings = get_opening_stats(username)
-    games = get_recent_games(username)
+
+    # Лимит последних игр из конфига
+    config_loader = ConfigLoader()
+    recent_limit = config_loader.get('statistics.recent_games_limit', 25)
+    games = get_recent_games(username, limit=recent_limit)
+
     rating_stats = get_rating_stats(username)
     time_stats = get_time_control_stats(username)
     move_stats = get_move_stats(username)
