@@ -57,7 +57,7 @@ statistics:
   cache_enabled: true
   cache_ttl: 3600  # секунды
   default_limit: 100
-  recent_games_limit: 25   # ← сколько последних игр показывать
+  recent_games_limit: 30   # ← сколько последних игр показывать
 
 # Настройки валидации
 validation:
@@ -70,3 +70,10 @@ validation:
     - opponent_name
     - my_rating
     - opponent_rating
+
+# Настройки DeepSeek
+deepseek:
+  # Какой промпт использовать для анализа партий.
+  # Доступные варианты — ключи из config/deepseek_prompts.yaml
+  # Примеры: game_analysis, game_analysis_sarcastic
+  prompt_key: "game_analysis_sarcastic"

@@ -99,13 +99,27 @@ def load_prompts() -> Dict[str, str]:
     except Exception as e:
         raise DeepSeekError(f"Ошибка чтения {PROMPTS_FILE}: {e}")
 
-    if not data or 'game_analysis' not in data:
-        raise DeepSeekError(f"В {PROMPTS_FILE} нет секции 'game_analysis'")
+    # Какой промпт использовать — берём из app_config.yaml
+    # (ключ deepseek.prompt_key)
+    prompt_key = "game_analysis"  # значение по умолчанию
+    try:
+        from config.config_loader import ConfigLoader
+        cfg = ConfigLoader()
+        prompt_key = cfg.get('deepseek.prompt_key', 'game_analysis') or 'game_analysis'
+    except Exception:
+        pass  # если конфиг недоступен — используем дефолт
 
-    section = data['game_analysis']
+    if not data or prompt_key not in data:
+        raise DeepSeekError(
+            f"В {PROMPTS_FILE} нет секции '{prompt_key}'. "
+            f"Проверьте deepseek.prompt_key в app_config.yaml"
+        )
+
+    section = data[prompt_key]
+
     if 'system' not in section or 'user_template' not in section:
         raise DeepSeekError(
-            f"В {PROMPTS_FILE} должны быть ключи 'system' и 'user_template'"
+            f"В секции '{prompt_key}' должны быть ключи 'system' и 'user_template'"
         )
 
     return {
