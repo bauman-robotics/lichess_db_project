@@ -237,7 +237,7 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     'opening': row[7],
                     'my_rating': row[8],
                     'opponent_rating': row[9],
-                    'analysis': row[10] or '',      # ← добавили
+                    'analysis': row[10] or ''
                 })
     
     db.table_name = original_table
