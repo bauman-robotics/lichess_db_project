@@ -113,7 +113,7 @@ def build_prompt(game: dict, prompts: dict) -> tuple:
     """Формирует system и user промпты"""
     system = prompts['system'].strip()
     user = prompts['user_template'].format(
-        player_name="Игрок",
+        player_name=username,
         player_color=game['color'],
         opponent_name=game['opponent_name'],
         opponent_rating=game['opponent_rating'],
