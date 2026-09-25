@@ -604,7 +604,8 @@
                         <div class="table-responsive desktop-table">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
-                                    <tr>
+                                    <tr>    
+                                        <th>#</th>
                                         <th>Дата</th>
                                         <th>Цвет</th>
                                         <th>Соперник</th>
@@ -618,6 +619,7 @@
                                 <tbody>
                                     {% for game in games %}
                                         <tr>
+                                            <td class="text-muted">{{ loop.index }}</td>
                                             <td>
                                                 {{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}
                                             </td>
@@ -677,6 +679,7 @@
                                 <div class="game-card">
 
                                     <div class="game-card-header">
+                                        <span class="game-card-number">#{{ loop.index }}</span>
                                         <span class="game-card-date">
                                             {{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}
                                         </span>

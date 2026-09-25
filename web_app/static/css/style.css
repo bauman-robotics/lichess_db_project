@@ -1337,3 +1337,15 @@ thead.table-light th {
         margin-left: 3px;
     }
 }
+
+/* Номер игры в карточке */
+.game-card-number {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+}
