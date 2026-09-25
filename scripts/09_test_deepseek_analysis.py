@@ -236,7 +236,7 @@ def main():
     # 4. Формирование промпта
     print("\n3️⃣  Формирование промпта...")
     prompts = load_prompts()
-    system, user = build_prompt(game, prompts)
+    system, user = build_prompt(game, prompts, player_name=args.username)
 
     print(f"   System: {len(system)} символов")
     print(f"   User: {len(user)} символов")
