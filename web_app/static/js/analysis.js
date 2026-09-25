@@ -52,10 +52,20 @@
             );
             btn.classList.add('btn-analysis-' + state);
 
-            if (state === 'none')         btn.textContent = '🤖';
-            else if (state === 'running') btn.textContent = '⏳';
-            else if (state === 'done')    btn.textContent = '✅';
-            else if (state === 'error')   btn.textContent = '❌';
+            // Определяем иконку
+            let icon = '🤖';
+            if (state === 'running')      icon = '⏳';
+            else if (state === 'done')    icon = '✅';
+            else if (state === 'error')   icon = '❌';
+
+            // Обновляем только иконку, сохраняя текстовую подпись
+            const iconEl = btn.querySelector('.btn-analysis-icon');
+            if (iconEl) {
+                iconEl.textContent = icon;
+            } else {
+                // Fallback: если span нет — обновляем весь текст
+                btn.textContent = icon;
+            }
         }
 
         function resetModal() {

@@ -1288,3 +1288,17 @@ thead.table-light th {
     background: rgba(255, 255, 255, 0.05);
     font-weight: 600;
 }
+
+.btn-analysis-label {
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* На узких экранах уменьшаем */
+@media (max-width: 480px) {
+    .btn-analysis-label {
+        font-size: 11px;
+        margin-left: 3px;
+    }
+}
