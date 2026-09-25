@@ -253,7 +253,8 @@ def cleanup_stale_running_task(task_id: str) -> bool:
     try:
         with db.connection.get_connection() as conn:
             with conn.cursor() as cur:
-                threshold = datetime.now() - timedelta(minutes=STALE_MINUTES)
+                # Используем NOW() из PostgreSQL, чтобы часовой пояс
+                # совпадал с тем, что записан в started_at
                 cur.execute("""
                     UPDATE analysis_tasks
                     SET status = 'error',
@@ -261,8 +262,8 @@ def cleanup_stale_running_task(task_id: str) -> bool:
                         error = 'Превышено время выполнения (%s минут)'
                     WHERE task_id = %s
                       AND status = 'running'
-                      AND started_at < %s
-                """, (STALE_MINUTES, task_id, threshold))
+                      AND started_at < NOW() - INTERVAL '%s minutes'
+                """, (STALE_MINUTES, task_id, STALE_MINUTES))
                 updated = cur.rowcount > 0
                 conn.commit()
                 if updated:
