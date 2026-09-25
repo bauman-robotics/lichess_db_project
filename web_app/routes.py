@@ -291,6 +291,23 @@ def get_game_for_analysis(username: str, game_id: str) -> dict:
         db.table_name = original_table
         db.close()
 
+def _game_meta(game: dict) -> dict:
+    """
+    Формирует словарь метаданных партии для модалки.
+    Используется в JSON-ответах POST /analyze и GET /analyze/status.
+    """
+    if not game:
+        return {}
+    return {
+        'date': game['game_date'].strftime('%d.%m.%Y') if game.get('game_date') else '—',
+        'color': game.get('color', '—'),
+        'opponent': game.get('opponent_name', '—'),
+        'opponent_rating': game.get('opponent_rating', ''),
+        'result': game.get('result', '—'),
+        'opening': game.get('opening_name') or '—',
+        'time_control': game.get('time_control') or '—',
+    }
+    
 def save_analysis(username: str, game_id: str, analysis: str) -> bool:
     """Сохраняет текст анализа в поле game_analysis."""
     config = ConfigLoader()
@@ -1076,6 +1093,7 @@ def analyze_status_route(username, game_id, task_id):
         return jsonify({
             'status': 'done',
             'analysis': analysis,
+            'meta': _game_meta(game) if game else {},
         })
 
     if task['status'] == 'error':

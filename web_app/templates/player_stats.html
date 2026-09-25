@@ -930,6 +930,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             );
             const data = await r.json();
+
+            // Заполняем метаданные
+            if (data.meta) {
+                elMetaDate.textContent = data.meta.date || '—';
+                elMetaResult.textContent = data.meta.result || '—';
+                elMetaOpp.textContent = data.meta.opponent
+                    ? data.meta.opponent + (data.meta.opponent_rating ? ' (' + data.meta.opponent_rating + ')' : '')
+                    : '—';
+                elMetaOpen.textContent = data.meta.opening || '—';
+            }
+
             if (data.status === 'done' && data.analysis) {
                 elContent.textContent = data.analysis;
             } else {
