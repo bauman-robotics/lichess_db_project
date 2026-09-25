@@ -1113,3 +1113,55 @@ thead.table-light th {
     color: #d0d0d0 !important;
     font-weight: 700;
 }
+
+/* ============================================
+   КНОПКИ АНАЛИЗА (4 состояния)
+   ============================================ */
+
+.btn-analysis {
+    width: 34px;
+    height: 30px;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.btn-analysis:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-analysis-none {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.btn-analysis-running {
+    background: rgba(255, 193, 7, 0.18);
+    border-color: rgba(255, 193, 7, 0.4);
+    color: #ffc107;
+    animation: pulse-analysis 1.5s ease-in-out infinite;
+}
+
+.btn-analysis-done {
+    background: rgba(40, 167, 69, 0.18);
+    border-color: rgba(40, 167, 69, 0.4);
+    color: #5cd679;
+}
+
+.btn-analysis-error {
+    background: rgba(220, 53, 69, 0.15);
+    border-color: rgba(220, 53, 69, 0.35);
+    color: #e6858f;
+}
+
+@keyframes pulse-analysis {
+    0%, 100% { opacity: 0.7; }
+    50%      { opacity: 1; }
+}

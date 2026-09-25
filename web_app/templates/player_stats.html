@@ -608,6 +608,7 @@
                                         <th>Рейтинг соп.</th>
                                         <th>Дебют</th>
                                         <th>Ссылка</th>
+                                        <th class="text-center">Анализ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -635,6 +636,15 @@
                                                 {% else %}
                                                     —
                                                 {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-analysis"
+                                                        data-username="{{ username }}"
+                                                        data-game-id="{{ game.game_id }}"
+                                                        data-state="{{ 'done' if game.analysis else 'none' }}"
+                                                        title="Анализ партии через DeepSeek">
+                                                    {% if game.analysis %}✅{% else %}🤖{% endif %}
+                                                </button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -676,6 +686,72 @@
         {% endif %}
     </div>
 </div>
+
+<!-- ============================================ -->
+<!-- МОДАЛКА АНАЛИЗА ПАРТИИ                       -->
+<!-- ============================================ -->
+<div class="modal fade" id="analysisModal" tabindex="-1" aria-labelledby="analysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="analysisModalLabel">
+                    🤖 Анализ партии <span id="analysis-game-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Метаданные -->
+                <div id="analysis-meta" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Дата</small>
+                            <div id="meta-date">—</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Результат</small>
+                            <div id="meta-result">—</div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <small class="text-muted">Соперник</small>
+                            <div id="meta-opponent">—</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Дебют</small>
+                            <div id="meta-opening">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Краткая нотация -->
+                <details class="mb-3">
+                    <summary class="text-muted" style="cursor: pointer;">
+                        📋 Краткая нотация
+                    </summary>
+                    <pre id="analysis-pgn" class="mt-2 p-2"
+                         style="background: rgba(255,255,255,0.03); border-radius: 6px;
+                                max-height: 200px; overflow-y: auto;
+                                white-space: pre-wrap; font-size: 12px;">—</pre>
+                </details>
+
+                <!-- Блок ответа -->
+                <div id="analysis-status" class="text-center py-3 d-none">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="mt-2 mb-0 text-muted">DeepSeek думает…</p>
+                </div>
+
+                <div id="analysis-error" class="alert alert-danger d-none"></div>
+
+                <div id="analysis-content"
+                     style="white-space: pre-wrap; line-height: 1.6; font-size: 14px;"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -768,6 +844,206 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});
+</script>
+
+<script>
+// ============================================
+// АНАЛИЗ ПАРТИИ ЧЕРЕЗ DEEPSEEK
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+
+    const CSRF_TOKEN = '{{ csrf_token() }}';
+
+    // Проверяем, что модалка есть на странице
+    const modalEl = document.getElementById('analysisModal');
+    if (!modalEl) {
+        console.warn('analysisModal не найден');
+        return;
+    }
+
+    const modal = new bootstrap.Modal(modalEl);
+
+    const elGameId     = document.getElementById('analysis-game-id');
+    const elMetaDate   = document.getElementById('meta-date');
+    const elMetaResult = document.getElementById('meta-result');
+    const elMetaOpp    = document.getElementById('meta-opponent');
+    const elMetaOpen   = document.getElementById('meta-opening');
+    const elPgn        = document.getElementById('analysis-pgn');
+    const elStatus     = document.getElementById('analysis-status');
+    const elError      = document.getElementById('analysis-error');
+    const elContent    = document.getElementById('analysis-content');
+
+    let currentGame = null;
+
+    // -------- Утилиты --------
+    function setButtonState(btn, state) {
+        btn.dataset.state = state;
+        btn.classList.remove('btn-analysis-none', 'btn-analysis-running',
+                             'btn-analysis-done', 'btn-analysis-error');
+        btn.classList.add('btn-analysis-' + state);
+
+        if (state === 'none')         btn.textContent = '🤖';
+        else if (state === 'running') btn.textContent = '⏳';
+        else if (state === 'done')    btn.textContent = '✅';
+        else if (state === 'error')   btn.textContent = '❌';
+    }
+
+    // Загружает краткую нотацию с сервера (только ходы)
+    async function loadPgn(username, gameId) {
+        elPgn.textContent = 'Загрузка…';
+        try {
+            const r = await fetch(
+                `/lichess-analyzer/player/${username}/game/${gameId}/pgn`,
+                { credentials: 'same-origin' }
+            );
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            elPgn.textContent = data.pgn || '—';
+        } catch (e) {
+            elPgn.textContent = 'Ошибка загрузки нотации';
+        }
+    }
+
+    // -------- Открытие модалки --------
+    async function openModal(username, gameId, button) {
+        currentGame = { username, gameId, button };
+
+        elGameId.textContent = gameId;
+        elMetaDate.textContent = '—';
+        elMetaResult.textContent = '—';
+        elMetaOpp.textContent = '—';
+        elMetaOpen.textContent = '—';
+        elPgn.textContent = '—';
+        elContent.textContent = '';
+        elError.classList.add('d-none');
+        elStatus.classList.add('d-none');
+
+        modal.show();
+
+        loadPgn(username, gameId);
+
+        if (button.dataset.state === 'none' || button.dataset.state === 'error') {
+            await startAnalysis(username, gameId, button);
+        } else if (button.dataset.state === 'done') {
+            // Уже есть — подгружаем
+            try {
+                const r = await fetch(
+                    `/lichess-analyzer/player/${username}/game/${gameId}/analyze`,
+                    {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': CSRF_TOKEN },
+                        credentials: 'same-origin',
+                    }
+                );
+                const data = await r.json();
+                if (data.status === 'done') {
+                    elContent.textContent = data.analysis;
+                } else if (data.status === 'busy') {
+                    showError(data.message);
+                } else {
+                    showError('Не удалось загрузить анализ');
+                }
+            } catch (e) {
+                showError('Ошибка: ' + e.message);
+            }
+        }
+    }
+
+    function showError(msg) {
+        elError.textContent = '❌ ' + msg;
+        elError.classList.remove('d-none');
+        elStatus.classList.add('d-none');
+    }
+
+    // -------- Запуск анализа --------
+    async function startAnalysis(username, gameId, button) {
+        elStatus.classList.remove('d-none');
+        elContent.textContent = '';
+        elError.classList.add('d-none');
+
+        try {
+            const r = await fetch(
+                `/lichess-analyzer/player/${username}/game/${gameId}/analyze`,
+                {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF_TOKEN },
+                    credentials: 'same-origin',
+                }
+            );
+            const data = await r.json();
+
+            if (data.status === 'done') {
+                setButtonState(button, 'done');
+                elContent.textContent = data.analysis;
+                elStatus.classList.add('d-none');
+                return;
+            }
+            if (data.status === 'started') {
+                setButtonState(button, 'running');
+                pollStatus(username, gameId, data.task_id, button);
+                return;
+            }
+            if (data.status === 'busy') {
+                setButtonState(button, 'error');
+                showError(data.message);
+                return;
+            }
+            setButtonState(button, 'error');
+            showError(data.message || 'Ошибка');
+        } catch (e) {
+            setButtonState(button, 'error');
+            showError('Ошибка сети: ' + e.message);
+        }
+    }
+
+    // -------- Polling статуса --------
+    async function pollStatus(username, gameId, taskId, button) {
+        const url = `/lichess-analyzer/player/${username}/game/${gameId}/analyze/status/${taskId}`;
+        let attempts = 0;
+        const maxAttempts = 60;
+
+        const tick = async () => {
+            attempts++;
+            try {
+                const r = await fetch(url, { credentials: 'same-origin' });
+                const data = await r.json();
+
+                if (data.status === 'done') {
+                    setButtonState(button, 'done');
+                    elContent.textContent = data.analysis;
+                    elStatus.classList.add('d-none');
+                    return;
+                }
+                if (data.status === 'error') {
+                    setButtonState(button, 'error');
+                    showError(data.message || 'Ошибка анализа');
+                    return;
+                }
+                if (attempts >= maxAttempts) {
+                    setButtonState(button, 'error');
+                    showError('Превышено время ожидания');
+                    return;
+                }
+                setTimeout(tick, 2000);
+            } catch (e) {
+                setButtonState(button, 'error');
+                showError('Ошибка сети: ' + e.message);
+            }
+        };
+
+        setTimeout(tick, 2000);
+    }
+
+    // -------- Обработка кликов --------
+    document.querySelectorAll('.btn-analysis').forEach(btn => {
+        setButtonState(btn, btn.dataset.state || 'none');
+
+        btn.addEventListener('click', () => {
+            openModal(btn.dataset.username, btn.dataset.gameId, btn);
+        });
+    });
 });
 </script>
 {% endblock %}

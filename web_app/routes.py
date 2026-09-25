@@ -27,8 +27,8 @@ from services.lichess_client import LichessClient
 from services.import_manager import ImportManager
 from services.pgn_parser import PGNParser
 
-from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError, DeepSeekUnavailable
 from web_app import tasks as analysis_tasks
+from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError, DeepSeekUnavailable, clean_pgn
 
 main_bp = Blueprint('main', __name__)
 
@@ -1086,3 +1086,17 @@ def analyze_status_route(username, game_id, task_id):
 
     # running
     return jsonify({'status': 'running'})    
+
+@main_bp.route('/player/<username>/game/<game_id>/pgn', methods=['GET'])
+def get_game_pgn_route(username, game_id):
+    """Возвращает краткую нотацию партии (только ходы) для модалки."""
+    game = get_game_for_analysis(username, game_id)
+    if not game:
+        return jsonify({'error': 'Партия не найдена'}), 404
+
+    # Убираем {...} — только ходы
+    pgn_clean = clean_pgn(game['pgn_moves'])
+    return jsonify({
+        'game_id': game_id,
+        'pgn': pgn_clean,
+    })    
