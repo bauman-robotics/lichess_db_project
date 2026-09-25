@@ -597,7 +597,11 @@
                         <h5 class="mb-0">📋 Последние игры</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
+
+                        <!-- ============================================ -->
+                        <!-- ТАБЛИЦА (десктоп)                            -->
+                        <!-- ============================================ -->
+                        <div class="table-responsive desktop-table">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
                                     <tr>
@@ -614,20 +618,32 @@
                                 <tbody>
                                     {% for game in games %}
                                         <tr>
-                                            <td>{{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}</td>
                                             <td>
-                                                <span class="badge {% if game.color == 'white' %}bg-light text-dark{% else %}bg-dark text-white{% endif %}">
+                                                {{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if game.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
                                                     {{ game.color }}
                                                 </span>
                                             </td>
-                                            <td>{{ game.opponent }}</td>
                                             <td>
-                                                <span class="badge {% if game.result == 'Win' %}bg-success{% elif game.result == 'Loss' %}bg-danger{% else %}bg-warning{% endif %}">
-                                                    {{ game.result }}
-                                                </span>
+                                                <a href="https://lichess.org/@/{{ game.opponent }}" target="_blank" rel="noopener">
+                                                    {{ game.opponent }} ({{ game.opponent_rating }})
+                                                </a>
+                                            </td>
+                                            <td>
+                                                {% if game.result == 'Win' %}
+                                                    <span class="badge-result badge-result-win">✅ Победа</span>
+                                                {% elif game.result == 'Loss' %}
+                                                    <span class="badge-result badge-result-loss">❌ Поражение</span>
+                                                {% elif game.result == 'Draw' %}
+                                                    <span class="badge-result badge-result-draw">➖ Ничья</span>
+                                                {% else %}
+                                                    <span class="badge-result badge-result-unknown">{{ game.result or '—' }}</span>
+                                                {% endif %}
                                             </td>
                                             <td>{{ game.opponent_rating if game.opponent_rating else '?' }}</td>
-                                            <td>{{ game.opening or '—' }}</td>
+                                            <td><small>{{ game.opening or '—' }}</small></td>
                                             <td class="text-center">
                                                 {% if game.game_id %}
                                                     {% set orientation = '/white' if game.color == 'white' else ('/black' if game.color == 'black' else '') %}
@@ -638,12 +654,13 @@
                                                 {% endif %}
                                             </td>
                                             <td class="text-center">
+                                                {% set state = 'done' if game.analysis else 'none' %}
                                                 <button class="btn btn-sm btn-analysis"
                                                         data-username="{{ username }}"
                                                         data-game-id="{{ game.game_id }}"
-                                                        data-state="{{ 'done' if game.analysis else 'none' }}"
+                                                        data-state="{{ state }}"
                                                         title="Анализ партии через DeepSeek">
-                                                    {% if game.analysis %}✅{% else %}🤖{% endif %}
+                                                    <span class="btn-analysis-icon">{% if state == 'done' %}✅{% else %}🤖{% endif %}</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -651,6 +668,84 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- ============================================ -->
+                        <!-- КАРТОЧКИ (мобильные)                         -->
+                        <!-- ============================================ -->
+                        <div class="mobile-cards">
+                            {% for game in games %}
+                                <div class="game-card">
+
+                                    <div class="game-card-header">
+                                        <span class="game-card-date">
+                                            {{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}
+                                        </span>
+                                        <span>
+                                            {% if game.result == 'Win' %}
+                                                <span class="badge-result badge-result-win">✅ Победа</span>
+                                            {% elif game.result == 'Loss' %}
+                                                <span class="badge-result badge-result-loss">❌ Поражение</span>
+                                            {% elif game.result == 'Draw' %}
+                                                <span class="badge-result badge-result-draw">➖ Ничья</span>
+                                            {% else %}
+                                                <span class="badge-result badge-result-unknown">{{ game.result or '—' }}</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <div class="game-card-body">
+                                        <div class="row-line">
+                                            <span class="label">Цвет</span>
+                                            <span>
+                                                <span class="badge {% if game.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
+                                                    {{ game.color }}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="row-line">
+                                            <span class="label">Рейтинг</span>
+                                            <span><strong>{{ game.my_rating }}</strong></span>
+                                        </div>
+                                        <div class="row-line">
+                                            <span class="label">Соперник</span>
+                                            <span>
+                                                <a href="https://lichess.org/@/{{ game.opponent }}" target="_blank" rel="noopener">
+                                                    {{ game.opponent }} ({{ game.opponent_rating }})
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <div class="row-line">
+                                            <span class="label">Дебют</span>
+                                            <span class="game-card-opening">
+                                                <small>{{ game.opening or '—' }}</small>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="game-card-footer d-flex gap-2 justify-content-end flex-wrap">
+                                        {% if game.game_id %}
+                                            {% set orientation = '/white' if game.color == 'white' else ('/black' if game.color == 'black' else '') %}
+                                            <a href="https://lichess.org/{{ game.game_id }}{{ orientation }}"
+                                               target="_blank" rel="noopener"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                ↗ Открыть
+                                            </a>
+                                        {% endif %}
+                                        {% set state = 'done' if game.analysis else 'none' %}
+                                        <button class="btn btn-sm btn-analysis btn-analysis-with-text"
+                                                data-username="{{ username }}"
+                                                data-game-id="{{ game.game_id }}"
+                                                data-state="{{ state }}"
+                                                title="Анализ партии через DeepSeek">
+                                            <span class="btn-analysis-icon">{% if state == 'done' %}✅{% else %}🤖{% endif %}</span>
+                                            <span class="btn-analysis-label">Анализ</span>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            {% endfor %}
+                        </div>
+
                     </div>
                 </div>
             {% endif %}
