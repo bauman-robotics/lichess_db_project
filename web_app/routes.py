@@ -429,7 +429,8 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
             opponent_rating,
             result,
             opening_name,
-            game_url
+            game_url,
+            game_analysis
         FROM {table_name}
         {where_sql}
         ORDER BY game_date DESC
@@ -455,6 +456,7 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
                         'result': r[8],
                         'opening': r[9],
                         'game_url': r[10],
+                        'analysis': r[11] or '',
                     })
     except Exception as e:
         print(f"❌ Ошибка get_games_filtered: {e}")
@@ -991,17 +993,21 @@ def player_openings(username):
     games = get_games_filtered(username, opening, results, color)
     popular_openings = get_popular_openings()
 
+    # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
+    running_ids = analysis_tasks.get_running_game_ids(username)
+
     return render_template(
         'player_openings.html',
         username=username,
         games=games,
         popular_openings=popular_openings,
+        running_ids=running_ids or [],
         filters={
             'opening': opening,
             'results': results or [],
             'color': color or '',
         }
-    )    
+    )   
 
 @main_bp.route('/player/<username>/game/<game_id>/analyze', methods=['POST'])
 def analyze_game_route(username, game_id):
