@@ -1132,6 +1132,41 @@ thead.table-light th {
     cursor: pointer;
 }
 
+/* ============================================
+   КНОПКИ АНАЛИЗА С ТЕКСТОМ (в карточках)
+   ============================================ */
+
+.btn-analysis-with-text {
+    width: auto !important;
+    padding: 4px 10px !important;
+    height: 30px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.btn-analysis-icon {
+    display: inline-block;
+    line-height: 1;
+    font-size: 14px;
+}
+
+.btn-analysis-label {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+@media (max-width: 480px) {
+    .btn-analysis-with-text {
+        padding: 4px 8px !important;
+    }
+    .btn-analysis-label {
+        font-size: 11px;
+    }
+}
+
 .btn-analysis:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

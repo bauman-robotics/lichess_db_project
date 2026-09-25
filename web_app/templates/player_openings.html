@@ -259,7 +259,7 @@
                                         ↗ Открыть на Lichess
                                     </a>
                                     {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
-                                    <button class="btn btn-sm btn-analysis"
+                                    <button class="btn btn-sm btn-analysis btn-analysis-with-text"
                                             data-username="{{ username }}"
                                             data-game-id="{{ g.game_id }}"
                                             data-state="{{ state }}"
