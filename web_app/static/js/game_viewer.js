@@ -74,12 +74,12 @@
             const isMobile = window.innerWidth < 768;
 
             if (isMobile) {
-                // На мобильных — доска на всю ширину экрана
-                const w = window.innerWidth;
+                // На мобильных — доска на всю ширину родителя
+                const container = elBoard.parentElement;   // .viewer-board-col
+                const w = container.clientWidth;
                 elBoard.style.width  = w + 'px';
                 elBoard.style.height = w + 'px';
             } else {
-                // На десктопе — размер из конфига
                 const cfg = getCfg();
                 elBoard.style.width  = cfg.boardSizeDesktop + 'px';
                 elBoard.style.height = cfg.boardSizeDesktop + 'px';

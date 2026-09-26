@@ -1384,13 +1384,10 @@ thead.table-light th {
     box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.7);
 }
 
-/*
-.chess-cell.last-move-from,
-.chess-cell.last-move-to {
-    box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.4);
-}
-*/
-
+/* ============================================
+   ПОДСВЕТКА ПОСЛЕДНЕГО ХОДА (зелёная)
+   ============================================ */
+   
 .chess-cell.last-move-from {
     box-shadow: inset 0 0 0 4px rgba(40, 167, 69, 0.5);
     background-color: rgba(40, 167, 69, 0.12);
@@ -1534,7 +1531,7 @@ thead.table-light th {
         max-height: none;
         padding: 12px;
         border-left: none;
-        border-top: 2px solid rgba(255, 215, 0, 0.35);   /* ← было var(--border-color) */ /* ← граница сверху */
+        border-top: 2px solid rgba(255, 215, 0, 0.35);
     }
 
     .viewer-comments {
@@ -1544,11 +1541,20 @@ thead.table-light th {
         max-height: none;
         padding: 12px;
         border-right: none;
-        border-top: 2px solid rgba(255, 215, 0, 0.35);  /* ← граница сверху */
+        border-top: 2px solid rgba(255, 215, 0, 0.35);
     }
 
-    /* На мобильных доска на всю ширину без отступов */
+    /* Мобильные: убираем все padding у modal-body */
     #viewGameModal .modal-body {
-        padding: 0;
+        padding: 0 !important;
+    }
+
+    #viewGameModal .modal-header,
+    #viewGameModal .modal-footer {
+        padding: 8px 12px;
+    }
+
+    #viewGameModal .modal-content {
+        border-radius: 0;
     }
 }
