@@ -60,6 +60,9 @@
         let playing = false;
         let timer = null;
 
+        // ---------- Комментарии к ходам ----------
+        let moveComments = {};   // { '1_d4': 'текст', '8_Bxd4': 'текст', ... }
+
         // ---------- Инициализация доски ----------
         function initBoard() {
             if (board) return;
@@ -119,14 +122,39 @@
             board.setLastMoveFromAlgebraic(pos.from, pos.to);
             renderer.render();
             highlightMoveInList(currentIndex);
-            elMoveCounter.textContent = currentIndex;
+
+            // Счётчик (десктоп)
+            if (elMoveCounter) elMoveCounter.textContent = currentIndex;
+
+            // Мобильный footer — текущий ход и номер
+            const elFooterMove = document.getElementById('viewFooterMove');
+            const elFooterNumber = document.getElementById('viewFooterMoveNumber');
+
+            if (elFooterMove) {
+                if (currentIndex === 0) {
+                    elFooterMove.textContent = 'начало';
+                } else {
+                    const color = pos.color === 'white' ? '.' : '...';
+                    elFooterMove.textContent = `${pos.move_number}${color} ${pos.san}`;
+                }
+            }
+
+            if (elFooterNumber) {
+                elFooterNumber.textContent = `Ход ${currentIndex} из ${positions.length - 1}`;
+            }
+
+            // Комментарий к текущему ходу (мобильный)
+            renderMoveComment(currentIndex);
         }
 
         // ---------- Список ходов ----------
         function buildMovesList() {
             elMovesList.innerHTML = '';
-            let i = 1; // пропускаем начальную позицию (index 0)
 
+            const mobileList = document.getElementById('viewMovesListMobile');
+            if (mobileList) mobileList.innerHTML = '';
+
+            let i = 1;
             while (i < positions.length) {
                 const white = positions[i];
                 const black = positions[i + 1];
@@ -163,32 +191,101 @@
                 }
 
                 elMovesList.appendChild(row);
+
+                // Дублируем в мобильный список
+                if (mobileList) {
+                    const rowMobile = row.cloneNode(true);
+                    rowMobile.querySelectorAll('.move-san').forEach(san => {
+                        san.onclick = function () {
+                            showPosition(parseInt(this.dataset.index, 10));
+                        };
+                    });
+                    mobileList.appendChild(rowMobile);
+                }
+
                 i += 2;
             }
 
             elMoveTotal.textContent = positions.length - 1;
         }
 
+        // ---------- Подсветка активного хода ----------
         function highlightMoveInList(index) {
-            // Снимаем активность со всех ходов
+            // Десктопный список
             elMovesList.querySelectorAll('.move-san').forEach(s => s.classList.remove('active'));
 
+            // Мобильный список
+            const mobileList = document.getElementById('viewMovesListMobile');
+            if (mobileList) {
+                mobileList.querySelectorAll('.move-san').forEach(s => s.classList.remove('active'));
+            }
+
+            // Подсветка и прокрутка — десктоп
             const san = elMovesList.querySelector(`.move-san[data-index="${index}"]`);
-            if (!san) return;
+            if (san) {
+                san.classList.add('active');
+                scrollIntoContainer(san, elMovesList.parentElement);
+            }
 
-            san.classList.add('active');
+            // Подсветка и прокрутка — мобильный
+            if (mobileList) {
+                const sanM = mobileList.querySelector(`.move-san[data-index="${index}"]`);
+                if (sanM) {
+                    sanM.classList.add('active');
+                    scrollIntoContainer(sanM, mobileList.parentElement);
+                }
+            }
+        }
 
-            // Прокручиваем ТОЛЬКО контейнер ходов, не трогая страницу
-            const container = elMovesList.parentElement;   // .viewer-moves
-            if (!container) return;
+        // Прокрутка элемента внутри контейнера (не трогая страницу)
+        function scrollIntoContainer(el, container) {
+            if (!container || !el) return;
+            const cRect = container.getBoundingClientRect();
+            const eRect = el.getBoundingClientRect();
 
-            const containerRect = container.getBoundingClientRect();
-            const sanRect = san.getBoundingClientRect();
+            if (eRect.top < cRect.top) {
+                container.scrollTop -= (cRect.top - eRect.top);
+            } else if (eRect.bottom > cRect.bottom) {
+                container.scrollTop += (eRect.bottom - cRect.bottom);
+            }
+        }
 
-            if (sanRect.top < containerRect.top) {
-                container.scrollTop -= (containerRect.top - sanRect.top);
-            } else if (sanRect.bottom > containerRect.bottom) {
-                container.scrollTop += (sanRect.bottom - containerRect.bottom);
+        // ---------- Комментарии к ходам ----------
+        function parseAnalysisComments(analysis) {
+            moveComments = {};
+            if (!analysis) return;
+
+            // Ищем паттерны вида:
+            //   **8...Bxd4??** — грубейшая ошибка
+            //   14.Bxc6+ — точнее
+            const regex = /\*?\*?(\d+)\.{0,3}\s*([A-Za-z0-9\-+#=]+)\*?\*?\s*[—\-:]\s*([^\n*]+)/g;
+            let match;
+            while ((match = regex.exec(analysis)) !== null) {
+                const num = parseInt(match[1], 10);
+                const san = match[2].replace(/[!?]+$/, '');   // убираем !! и ??
+                const comment = match[3].trim();
+                moveComments[`${num}_${san}`] = comment;
+            }
+            console.log('[comments] распарсено:', Object.keys(moveComments).length);
+        }
+
+        function renderMoveComment(index) {
+            const el = document.getElementById('viewMobileMoveComment');
+            if (!el) return;
+
+            if (index === 0 || !positions[index]) {
+                el.textContent = '';
+                return;
+            }
+
+            const pos = positions[index];
+            const key = `${pos.move_number}_${pos.san}`;
+            const comment = moveComments[key];
+
+            if (comment) {
+                el.textContent = comment;
+            } else {
+                el.textContent = '';
             }
         }
 
@@ -263,7 +360,7 @@
             }
         });
 
-        // ---------- Отображение анализа в левой колонке ----------
+        // ---------- Отображение анализа в левой колонке (десктоп) ----------
         function renderAnalysis(text) {
             const elComments = document.getElementById('viewComments');
             if (!elComments) return;
@@ -286,12 +383,37 @@
             }
         }
 
+        // ---------- Отображение анализа в мобильной вкладке «Комментарии» ----------
+        function renderMobileAnalysis(text) {
+            const elMobile = document.getElementById('viewMobileAnalysis');
+            if (!elMobile) return;
+
+            if (!text || !text.trim()) {
+                elMobile.innerHTML = '<p class="text-muted">Анализ для этой партии пока не сделан.</p>';
+                return;
+            }
+
+            try {
+                let html = marked.parse(text);
+                if (typeof DOMPurify !== 'undefined') {
+                    html = DOMPurify.sanitize(html);
+                }
+                elMobile.innerHTML = html;
+            } catch (e) {
+                console.error('Markdown error (mobile):', e);
+                elMobile.textContent = text;
+            }
+        }
+
         // ---------- Открытие модалки ----------
         async function openViewer(username, gameId) {
             initBoard();
 
             elGameId.textContent = gameId;
             elMovesList.innerHTML = '<div class="text-muted">Загрузка…</div>';
+
+            const mobileList = document.getElementById('viewMovesListMobile');
+            if (mobileList) mobileList.innerHTML = '<div class="text-muted">Загрузка…</div>';
 
             if (elOpenLichess) {
                 elOpenLichess.href = `https://lichess.org/${gameId}`;
@@ -312,6 +434,7 @@
 
                 if (!data.positions || !data.positions.length) {
                     elMovesList.innerHTML = '<div class="text-muted">Не удалось разобрать партию</div>';
+                    if (mobileList) mobileList.innerHTML = '<div class="text-muted">Не удалось разобрать партию</div>';
                     return;
                 }
 
@@ -321,8 +444,14 @@
                     board.flipped = false;
                 }
 
-                // Выводим анализ в левую колонку
+                // Выводим анализ в левую колонку (десктоп)
                 renderAnalysis(data.analysis || '');
+
+                // Выводим анализ в мобильную вкладку «Комментарии»
+                renderMobileAnalysis(data.analysis || '');
+
+                // Парсим комментарии к ходам
+                parseAnalysisComments(data.analysis || '');
 
                 positions = data.positions;
                 buildMovesList();
@@ -333,6 +462,7 @@
 
             } catch (e) {
                 elMovesList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
+                if (mobileList) mobileList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
             }
         }
 
@@ -345,6 +475,24 @@
 
         // Экспортируем функцию наружу — для кнопки «Смотреть» в модалке анализа
         window.openGameViewer = openViewer;
+
+        // ---------- Переключение вкладок (footer) ----------
+        document.querySelectorAll('.viewer-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Снимаем active со всех кнопок
+                document.querySelectorAll('.viewer-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const tabName = btn.dataset.tab;
+
+                // Скрываем все мобильные вкладки
+                document.querySelectorAll('.viewer-mobile-tab').forEach(t => t.classList.add('d-none'));
+
+                // Показываем нужную
+                const target = document.getElementById(tabName === 'moves' ? 'mobileTabMoves' : 'mobileTabComments');
+                if (target) target.classList.remove('d-none');
+            });
+        });
 
     });
 

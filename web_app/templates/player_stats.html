@@ -925,12 +925,34 @@
 
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer viewer-footer">
+                <!-- Левая часть: Lichess -->
                 <a id="viewOpenLichess" href="#" target="_blank" rel="noopener"
-                   class="btn btn-sm btn-outline-secondary">
-                    ↗ Открыть на Lichess
+                   class="btn btn-sm btn-outline-secondary viewer-footer-lichess">
+                    ↗ <span class="d-none d-sm-inline">Lichess</span>
                 </a>
-                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+
+                <!-- Переключатель вкладок (только на мобильном) -->
+                <div class="viewer-footer-tabs">
+                    <button type="button" class="viewer-tab-btn active" data-tab="moves" title="Ходы">
+                        📋 <span class="d-none d-sm-inline">Ходы</span>
+                    </button>
+                    <button type="button" class="viewer-tab-btn" data-tab="comments" title="Комментарии">
+                        📝 <span class="d-none d-sm-inline">Комментарии</span>
+                    </button>
+                </div>
+
+                <!-- Текущий ход (только на мобильном) -->
+                <div class="viewer-footer-current" id="viewFooterCurrent">
+                    <strong id="viewFooterMove">—</strong>
+                    <span id="viewFooterMoveNumber">Ход 0 из 0</span>
+                </div>
+
+                <!-- Правая часть: закрыть -->
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+                    <span class="d-none d-sm-inline">Закрыть</span>
+                    <span class="d-sm-none">×</span>
+                </button>
             </div>
         </div>
     </div>

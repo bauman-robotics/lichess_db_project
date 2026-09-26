@@ -395,7 +395,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex gap-3 align-items-start justify-content-center flex-wrap">
+                <div class="viewer-layout">
 
                     <!-- ЛЕВАЯ КОЛОНКА: комментарии -->
                     <div class="viewer-comments">
@@ -406,7 +406,7 @@
                     </div>
 
                     <!-- ЦЕНТР: доска -->
-                    <div class="text-center" style="flex: 0 0 auto;">
+                    <div class="viewer-board-col text-center">
                         <div id="viewBoard"></div>
 
                         <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
@@ -418,31 +418,72 @@
                             <button id="viewFlip"  class="btn btn-sm btn-secondary" title="Повернуть">🔄</button>
                         </div>
 
-                        <div class="mt-2 text-center">
+                        <div class="mt-2 text-center viewer-move-counter">
                             <small class="text-muted">
                                 Ход <span id="viewMoveCounter">0</span> из <span id="viewMoveTotal">0</span>
                             </small>
                             <br>
-                            <small class="text-muted">
+                            <small class="text-muted viewer-keyboard-hint">
                                 ← → перемотка, Space — play/pause
                             </small>
                         </div>
                     </div>
 
                     <!-- ПРАВАЯ КОЛОНКА: ходы -->
-                    <div style="flex: 1 1 200px; min-width: 150px; max-width: 300px; max-height: 80vh; overflow-y: auto;">
+                    <div class="viewer-moves">
                         <h6>Ходы</h6>
                         <div id="viewMovesList"></div>
                     </div>
 
                 </div>
+
+                <!-- Мобильная область: одна колонка с переключателем -->
+                <div class="viewer-mobile-content">
+
+                    <!-- Вкладка «Ходы» -->
+                    <div class="viewer-mobile-tab active" id="mobileTabMoves">
+                        <div id="viewMovesListMobile" class="viewer-mobile-scroll"></div>
+                    </div>
+
+                    <!-- Вкладка «Комментарии» -->
+                    <div class="viewer-mobile-tab d-none" id="mobileTabComments">
+                        <div class="viewer-mobile-scroll">
+                            <div id="viewMobileMoveComment" class="viewer-move-comment mb-3"></div>
+                            <div id="viewMobileAnalysis" class="markdown-body"></div>
+                        </div>
+                    </div>
+
+                </div>
+                
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer viewer-footer">
+                <!-- Левая часть: Lichess -->
                 <a id="viewOpenLichess" href="#" target="_blank" rel="noopener"
-                   class="btn btn-sm btn-outline-secondary">
-                    ↗ Открыть на Lichess
+                   class="btn btn-sm btn-outline-secondary viewer-footer-lichess">
+                    ↗ <span class="d-none d-sm-inline">Lichess</span>
                 </a>
-                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+
+                <!-- Переключатель вкладок (только на мобильном) -->
+                <div class="viewer-footer-tabs">
+                    <button type="button" class="viewer-tab-btn active" data-tab="moves" title="Ходы">
+                        📋 <span class="d-none d-sm-inline">Ходы</span>
+                    </button>
+                    <button type="button" class="viewer-tab-btn" data-tab="comments" title="Комментарии">
+                        📝 <span class="d-none d-sm-inline">Комментарии</span>
+                    </button>
+                </div>
+
+                <!-- Текущий ход (только на мобильном) -->
+                <div class="viewer-footer-current" id="viewFooterCurrent">
+                    <strong id="viewFooterMove">—</strong>
+                    <span id="viewFooterMoveNumber">Ход 0 из 0</span>
+                </div>
+
+                <!-- Правая часть: закрыть -->
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+                    <span class="d-none d-sm-inline">Закрыть</span>
+                    <span class="d-sm-none">×</span>
+                </button>
             </div>
         </div>
     </div>
