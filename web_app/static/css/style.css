@@ -1384,9 +1384,21 @@ thead.table-light th {
     box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.7);
 }
 
+/*
 .chess-cell.last-move-from,
 .chess-cell.last-move-to {
     box-shadow: inset 0 0 0 3px rgba(255, 215, 0, 0.4);
+}
+*/
+
+.chess-cell.last-move-from {
+    box-shadow: inset 0 0 0 4px rgba(40, 167, 69, 0.5);
+    background-color: rgba(40, 167, 69, 0.12);
+}
+
+.chess-cell.last-move-to {
+    box-shadow: inset 0 0 0 4px rgba(40, 167, 69, 0.7);
+    background-color: rgba(40, 167, 69, 0.22);
 }
 
 /* Список ходов */
@@ -1480,8 +1492,8 @@ thead.table-light th {
     max-width: 400px;
     max-height: 80vh;
     overflow-y: auto;
-    padding-right: 12px;
-    border-right: 1px solid var(--border-color);   /* ← граница */
+    padding-right: 16px;
+    border-right: 2px solid rgba(255, 215, 0, 0.35);   /* ← заметнее, золотистый */  /* ← граница */
 }
 
 /* Центральная колонка: доска */
@@ -1496,8 +1508,8 @@ thead.table-light th {
     max-width: 300px;
     max-height: 80vh;
     overflow-y: auto;
-    padding-left: 12px;
-    border-left: 1px solid var(--border-color);    /* ← граница */
+    padding-left: 16px;
+    border-left: 2px solid rgba(255, 215, 0, 0.35);    /* ← заметнее, золотистый */    /* ← граница */
 }
 
 /* --- Мобильные --- */
@@ -1522,7 +1534,7 @@ thead.table-light th {
         max-height: none;
         padding: 12px;
         border-left: none;
-        border-top: 1px solid var(--border-color); /* ← граница сверху */
+        border-top: 2px solid rgba(255, 215, 0, 0.35);   /* ← было var(--border-color) */ /* ← граница сверху */
     }
 
     .viewer-comments {
@@ -1532,7 +1544,7 @@ thead.table-light th {
         max-height: none;
         padding: 12px;
         border-right: none;
-        border-top: 1px solid var(--border-color); /* ← граница сверху */
+        border-top: 2px solid rgba(255, 215, 0, 0.35);  /* ← граница сверху */
     }
 
     /* На мобильных доска на всю ширину без отступов */
