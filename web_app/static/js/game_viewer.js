@@ -198,6 +198,15 @@
             }, cfg.playIntervalMs);
         };
 
+        // Убираем фокус с кнопок навигации после клика —
+        // чтобы браузер не «прыгал» к кнопке и не сдвигал модалку
+        ['viewFirst', 'viewPrev', 'viewPlay', 'viewNext', 'viewLast', 'viewFlip'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.addEventListener('click', () => btn.blur());
+            }
+        });
+
         // ---------- Клавиатура ----------
         document.addEventListener('keydown', (e) => {
             if (!modalEl.classList.contains('show')) return;
