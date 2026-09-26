@@ -1429,6 +1429,10 @@ thead.table-light th {
 .move-san {
     font-weight: 600;
     margin-right: 6px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    transition: background 0.15s ease, color 0.15s ease;
+    cursor: pointer;
 }
 
 .move-san.white {
@@ -1437,6 +1441,18 @@ thead.table-light th {
 
 .move-san.black {
     color: #a0a0a0;
+}
+
+/* Активный ход в списке — золотистое выделение */
+.move-san.active {
+    background: rgba(255, 215, 0, 0.25) !important;
+    color: var(--accent-gold) !important;
+    box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.5);
+}
+
+.move-san.white.active,
+.move-san.black.active {
+    color: var(--accent-gold) !important;
 }
 
 /* Кнопка просмотра */
