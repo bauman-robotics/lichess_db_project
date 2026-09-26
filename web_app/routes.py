@@ -10,6 +10,10 @@ import threading
 import logging
 from datetime import datetime
 
+import chess
+import chess.pgn
+from io import StringIO
+
 # Добавляем корень проекта в PYTHONPATH
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -1009,6 +1013,60 @@ def player_openings(username):
         }
     )   
 
+def parse_pgn_to_positions(pgn_moves: str) -> list:
+    """
+    Разбирает PGN на последовательность позиций.
+    Возвращает список:
+      [{'fen': '...', 'san': None, 'move_number': 0, 'color': None},  # начальная
+       {'fen': '...', 'san': 'd4', 'move_number': 1, 'color': 'white'},
+       ...]
+    """
+    positions = []
+    
+    # Очищаем PGN от аннотаций
+    pgn_clean = clean_pgn(pgn_moves)
+    
+    # Оборачиваем в PGN с заголовком
+    full_pgn = f'[Event "?"]\n[Site "?"]\n[Date "????.??.??"]\n[Round "?"]\n[White "?"]\n[Black "?"]\n[Result "*"]\n\n{pgn_clean} *'
+    
+    try:
+        game = chess.pgn.read_game(StringIO(full_pgn))
+    except Exception as e:
+        print(f"❌ Ошибка парсинга PGN: {e}")
+        return []
+    
+    if not game:
+        return []
+    
+    board = chess.Board()
+    
+    # Начальная позиция
+    positions.append({
+        'fen': board.fen(),
+        'san': None,
+        'move_number': 0,
+        'color': None,
+    })
+    
+    for move in game.mainline_moves():
+        try:
+            san = board.san(move)
+            color = 'white' if board.turn == chess.WHITE else 'black'
+            move_number = board.fullmove_number
+            board.push(move)
+            
+            positions.append({
+                'fen': board.fen(),
+                'san': san,
+                'move_number': move_number,
+                'color': color,
+            })
+        except Exception as e:
+            print(f"❌ Ошибка на ходу: {e}")
+            break
+    
+    return positions
+
 @main_bp.route('/player/<username>/game/<game_id>/analyze', methods=['POST'])
 def analyze_game_route(username, game_id):
     """
@@ -1129,4 +1187,39 @@ def get_game_pgn_route(username, game_id):
     return jsonify({
         'game_id': game_id,
         'pgn': pgn_clean,
+    })    
+
+@main_bp.route('/player/<username>/game/<game_id>/view')
+def game_view_route(username, game_id):
+    """Страница просмотра партии с доской и навигацией."""
+    game = get_game_for_analysis(username, game_id)
+    if not game:
+        return "Партия не найдена", 404
+    
+    # Разбираем PGN на позиции
+    positions = parse_pgn_to_positions(game['pgn_moves'])
+    
+    if not positions:
+        return "Не удалось разобрать партию", 500
+    
+    return render_template(
+        'game_view.html',
+        username=username,
+        game=game,
+        positions=positions,
+    )    
+
+@main_bp.route('/player/<username>/game/<game_id>/positions', methods=['GET'])
+def game_positions_route(username, game_id):
+    """Возвращает JSON с позициями для модалки просмотра."""
+    game = get_game_for_analysis(username, game_id)
+    if not game:
+        return jsonify({'error': 'Партия не найдена'}), 404
+    
+    positions = parse_pgn_to_positions(game['pgn_moves'])
+    
+    return jsonify({
+        'game_id': game_id,
+        'positions': positions,
+        'meta': _game_meta(game),
     })    
