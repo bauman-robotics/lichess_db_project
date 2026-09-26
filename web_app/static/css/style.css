@@ -1588,7 +1588,8 @@ thead.table-light th {
         order: 2;
         flex: 1 1 auto;
         max-width: none;
-        max-height: none;
+        max-height: 50vh;         /* ← ограничение высоты */
+        overflow-y: auto;         /* ← свой скролл */
         padding: 12px;
         border-left: none;
         border-top: 2px solid rgba(255, 215, 0, 0.35);

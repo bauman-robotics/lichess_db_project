@@ -154,11 +154,25 @@
         }
 
         function highlightMoveInList(index) {
+            // Снимаем активность со всех ходов
             elMovesList.querySelectorAll('.move-san').forEach(s => s.classList.remove('active'));
+
             const san = elMovesList.querySelector(`.move-san[data-index="${index}"]`);
-            if (san) {
-                san.classList.add('active');
-                san.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            if (!san) return;
+
+            san.classList.add('active');
+
+            // Прокручиваем ТОЛЬКО контейнер ходов, не трогая страницу
+            const container = elMovesList.parentElement;   // .viewer-moves
+            if (!container) return;
+
+            const containerRect = container.getBoundingClientRect();
+            const sanRect = san.getBoundingClientRect();
+
+            if (sanRect.top < containerRect.top) {
+                container.scrollTop -= (containerRect.top - sanRect.top);
+            } else if (sanRect.bottom > containerRect.bottom) {
+                container.scrollTop += (sanRect.bottom - containerRect.bottom);
             }
         }
 
