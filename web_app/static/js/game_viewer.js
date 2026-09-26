@@ -71,10 +71,19 @@
         }
 
         function applyBoardSize() {
-            const cfg = getCfg();
-            const w = window.innerWidth < 768 ? cfg.boardSizeMobile : cfg.boardSizeDesktop;
-            elBoard.style.width = w + 'px';
-            elBoard.style.height = w + 'px';
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                // На мобильных — доска на всю ширину экрана
+                const w = window.innerWidth;
+                elBoard.style.width  = w + 'px';
+                elBoard.style.height = w + 'px';
+            } else {
+                // На десктопе — размер из конфига
+                const cfg = getCfg();
+                elBoard.style.width  = cfg.boardSizeDesktop + 'px';
+                elBoard.style.height = cfg.boardSizeDesktop + 'px';
+            }
         }
         window.addEventListener('resize', applyBoardSize);
 

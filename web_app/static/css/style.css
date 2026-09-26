@@ -1461,31 +1461,82 @@ thead.table-light th {
     white-space: nowrap;
 }
 
-/* Разделители между колонками в модалке просмотра */
-#viewComments {
+/* ============================================
+   МОДАЛКА ПРОСМОТРА ПАРТИИ
+   ============================================ */
+
+/* Общий контейнер — три колонки */
+.viewer-layout {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* Левая колонка: комментарии */
+.viewer-comments {
+    flex: 1 1 250px;
+    min-width: 200px;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
     padding-right: 12px;
-    border-right: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);   /* ← граница */
 }
 
-#viewMovesList {
+/* Центральная колонка: доска */
+.viewer-board-col {
+    flex: 0 0 auto;
+}
+
+/* Правая колонка: ходы */
+.viewer-moves {
+    flex: 1 1 200px;
+    min-width: 150px;
+    max-width: 300px;
+    max-height: 80vh;
+    overflow-y: auto;
     padding-left: 12px;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);    /* ← граница */
 }
 
-/* На мобильных — убираем боковые границы */
+/* --- Мобильные --- */
 @media (max-width: 768px) {
-    #viewComments {
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding-right: 0;
-        padding-bottom: 12px;
-        margin-bottom: 12px;
+    .viewer-layout {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
     }
 
-    #viewMovesList {
+    .viewer-board-col {
+        order: 1;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .viewer-moves {
+        order: 2;
+        flex: 1 1 auto;
+        max-width: none;
+        max-height: none;
+        padding: 12px;
         border-left: none;
-        border-top: 1px solid var(--border-color);
-        padding-left: 0;
-        padding-top: 12px;
+        border-top: 1px solid var(--border-color); /* ← граница сверху */
+    }
+
+    .viewer-comments {
+        order: 3;
+        flex: 1 1 auto;
+        max-width: none;
+        max-height: none;
+        padding: 12px;
+        border-right: none;
+        border-top: 1px solid var(--border-color); /* ← граница сверху */
+    }
+
+    /* На мобильных доска на всю ширину без отступов */
+    #viewGameModal .modal-body {
+        padding: 0;
     }
 }

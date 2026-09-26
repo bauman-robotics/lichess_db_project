@@ -883,19 +883,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex gap-3 align-items-start justify-content-center flex-wrap">
+                <div class="viewer-layout">
 
                     <!-- ЛЕВАЯ КОЛОНКА: комментарии -->
-                    <div style="flex: 1 1 250px; min-width: 200px; max-width: 400px; max-height: 80vh; overflow-y: auto;">
+                    <div class="viewer-comments">
                         <h6>📝 Комментарии</h6>
                         <div id="viewComments" class="text-muted">
-                            <!-- Сюда позже будут выводиться комментарии к ходам -->
                             <p>Комментарии к ходам появятся здесь.</p>
                         </div>
                     </div>
 
                     <!-- ЦЕНТР: доска -->
-                    <div class="text-center" style="flex: 0 0 auto;">
+                    <div class="viewer-board-col text-center">
                         <div id="viewBoard"></div>
 
                         <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
@@ -919,7 +918,7 @@
                     </div>
 
                     <!-- ПРАВАЯ КОЛОНКА: ходы -->
-                    <div style="flex: 1 1 200px; min-width: 150px; max-width: 300px; max-height: 80vh; overflow-y: auto;">
+                    <div class="viewer-moves">
                         <h6>Ходы</h6>
                         <div id="viewMovesList"></div>
                     </div>
