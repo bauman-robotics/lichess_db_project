@@ -128,7 +128,9 @@
                 sanW.textContent = white.san;
                 sanW.dataset.index = i;
                 sanW.style.cursor = 'pointer';
-                sanW.onclick = () => showPosition(i);
+                sanW.onclick = function () {
+                    showPosition(parseInt(this.dataset.index, 10));
+                };
                 row.appendChild(sanW);
 
                 if (black) {
@@ -138,7 +140,9 @@
                     sanB.dataset.index = i + 1;
                     sanB.style.cursor = 'pointer';
                     sanB.style.marginLeft = '8px';
-                    sanB.onclick = () => showPosition(i + 1);
+                    sanB.onclick = function () {
+                        showPosition(parseInt(this.dataset.index, 10));
+                    };
                     row.appendChild(sanB);
                 }
 
