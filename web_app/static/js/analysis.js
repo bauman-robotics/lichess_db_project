@@ -9,6 +9,7 @@
 //   - модалку с id="analysisModal" на странице
 //   - кнопки с классом .btn-analysis
 //   - библиотеки marked.js и DOMPurify в base.html
+//   - опционально: game_viewer.js для кнопки «Смотреть партию»
 // ============================================
 
 (function () {
@@ -18,7 +19,6 @@
 
         const modalEl = document.getElementById('analysisModal');
         if (!modalEl) {
-            // На этой странице модалки нет — выходим
             return;
         }
 
@@ -40,6 +40,9 @@
         const elError      = document.getElementById('analysis-error');
         const elContent    = document.getElementById('analysis-content');
 
+        // ---------- Состояние ----------
+        let currentGame = null;  // { username, gameId }
+
         // ---------- Утилиты ----------
 
         function setButtonState(btn, state) {
@@ -52,18 +55,15 @@
             );
             btn.classList.add('btn-analysis-' + state);
 
-            // Определяем иконку
             let icon = '🤖';
             if (state === 'running')      icon = '⏳';
             else if (state === 'done')    icon = '✅';
             else if (state === 'error')   icon = '❌';
 
-            // Обновляем только иконку, сохраняя текстовую подпись
             const iconEl = btn.querySelector('.btn-analysis-icon');
             if (iconEl) {
                 iconEl.textContent = icon;
             } else {
-                // Fallback: если span нет — обновляем весь текст
                 btn.textContent = icon;
             }
         }
@@ -121,6 +121,8 @@
         // ---------- Открытие модалки с готовым результатом ----------
 
         async function openModalWithResult(username, gameId) {
+            currentGame = { username, gameId };
+
             resetModal();
             elGameId.textContent = gameId;
             modal.show();
@@ -137,7 +139,6 @@
                 );
                 const data = await r.json();
 
-                // Заполняем метаданные
                 if (data.meta) {
                     elMetaDate.textContent = data.meta.date || '—';
                     elMetaResult.textContent = data.meta.result || '—';
@@ -233,10 +234,27 @@
             setTimeout(tick, 2000);
         }
 
-        // ---------- Обработка кликов ----------
+        // ---------- Кнопка «Смотреть партию» в модалке анализа ----------
+        document.getElementById('viewFromAnalysisBtn')?.addEventListener('click', () => {
+            if (!currentGame) return;
+
+            const { username, gameId } = currentGame;
+
+            // Закрываем модалку анализа
+            modal.hide();
+
+            // Открываем модалку просмотра
+            if (typeof window.openGameViewer === 'function') {
+                window.openGameViewer(username, gameId);
+            } else {
+                console.warn('openGameViewer недоступен — game_viewer.js не загружен');
+                window.open(`https://lichess.org/${gameId}`, '_blank');
+            }
+        });
+
+        // ---------- Обработка кликов по кнопкам анализа ----------
 
         document.querySelectorAll('.btn-analysis').forEach(btn => {
-            // Ставим начальное состояние по data-state
             setButtonState(btn, btn.dataset.state || 'none');
 
             btn.addEventListener('click', () => {
@@ -252,7 +270,6 @@
                     alert('Анализ уже выполняется. Дождитесь ответа.');
                     return;
                 }
-                // none или error — запускаем
                 startAnalysis(username, gameId, btn);
             });
         });

@@ -133,6 +133,7 @@
                                     <th>Соперник</th>
                                     <th>Дебют</th>
                                     <th>Ссылка</th>
+                                    <th class="text-center">Смотреть</th>
                                     <th class="text-center">Анализ</th>
                                 </tr>
                             </thead>
@@ -172,6 +173,14 @@
                                             {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
                                             {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
                                             <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
+                                        </td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-view-game"
+                                                    data-username="{{ username }}"
+                                                    data-game-id="{{ g.game_id }}"
+                                                    title="Смотреть партию">
+                                                👁
+                                            </button>
                                         </td>
                                         <td class="text-center">
                                             {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
@@ -264,6 +273,13 @@
                                         ↗ Открыть на Lichess
                                     </a>
                                     {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
+                                    <button class="btn btn-sm btn-view-game btn-view-game-with-text"
+                                            data-username="{{ username }}"
+                                            data-game-id="{{ g.game_id }}"
+                                            title="Смотреть партию">
+                                        <span class="btn-analysis-icon">👁</span>
+                                        <span class="btn-analysis-label">Смотреть</span>
+                                    </button>
                                     <button class="btn btn-sm btn-analysis btn-analysis-with-text"
                                             data-username="{{ username }}"
                                             data-game-id="{{ g.game_id }}"
@@ -353,11 +369,82 @@
 
                 <div id="analysis-error" class="alert alert-danger d-none"></div>
 
+                <!-- Кнопка «Смотреть партию» -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-primary" id="viewFromAnalysisBtn">
+                        👁 Смотреть партию
+                    </button>
+                </div>
+
                 <div id="analysis-content" class="markdown-body"></div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- ============================================ -->
+<!-- МОДАЛКА ПРОСМОТРА ПАРТИИ                     -->
+<!-- ============================================ -->
+<div class="modal fade" id="viewGameModal" tabindex="-1" aria-labelledby="viewGameModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewGameModalLabel">
+                    ♟️ Просмотр партии <span id="view-game-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7 text-center">
+                        <div id="viewBoard" style="margin: 0 auto;"></div>
+
+                        <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+                            <button id="viewFirst" class="btn btn-sm btn-secondary">⏮</button>
+                            <button id="viewPrev"  class="btn btn-sm btn-secondary">◀</button>
+                            <button id="viewPlay"  class="btn btn-sm btn-primary">▶</button>
+                            <button id="viewNext"  class="btn btn-sm btn-secondary">▶</button>
+                            <button id="viewLast"  class="btn btn-sm btn-secondary">⏭</button>
+                            <button id="viewFlip"  class="btn btn-sm btn-secondary" title="Повернуть">🔄</button>
+                        </div>
+
+                        <div class="mt-2 text-center">
+                            <small class="text-muted">
+                                Ход <span id="viewMoveCounter">0</span> из <span id="viewMoveTotal">0</span>
+                            </small>
+                            <br>
+                            <small class="text-muted">
+                                ← → перемотка, Space — play/pause
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <h6>Ходы</h6>
+                        <div id="viewMovesList" style="max-height: 500px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="viewOpenLichess" href="#" target="_blank" rel="noopener"
+                   class="btn btn-sm btn-outline-secondary">
+                    ↗ Открыть на Lichess
+                </a>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Скрытый CSRF-токен для JS (POST /analyze) -->
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+window.VIEWER_CONFIG = {
+    boardSizeDesktop: {{ viewer_config.board_size_desktop }},
+    boardSizeMobile:  {{ viewer_config.board_size_mobile }},
+    playIntervalMs:   {{ viewer_config.play_interval_ms }},
+};
+</script>
 {% endblock %}

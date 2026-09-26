@@ -598,13 +598,11 @@
                     </div>
                     <div class="card-body">
 
-                        <!-- ============================================ -->
-                        <!-- ТАБЛИЦА (десктоп)                            -->
-                        <!-- ============================================ -->
+                        <!-- ТАБЛИЦА (десктоп) -->
                         <div class="table-responsive desktop-table">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
-                                    <tr>    
+                                    <tr>
                                         <th>#</th>
                                         <th>Дата</th>
                                         <th>Цвет</th>
@@ -657,7 +655,7 @@
                                                 {% endif %}
                                             </td>
                                             <td class="text-center">
-                                            <button class="btn btn-sm btn-view-game"
+                                                <button class="btn btn-sm btn-view-game"
                                                         data-username="{{ username }}"
                                                         data-game-id="{{ game.game_id }}"
                                                         title="Смотреть партию">
@@ -680,17 +678,17 @@
                             </table>
                         </div>
 
-                        <!-- ============================================ -->
-                        <!-- КАРТОЧКИ (мобильные)                         -->
-                        <!-- ============================================ -->
+                        <!-- КАРТОЧКИ (мобильные) -->
                         <div class="mobile-cards">
                             {% for game in games %}
                                 <div class="game-card">
 
                                     <div class="game-card-header">
-                                        <span class="game-card-number">#{{ loop.index }}</span>
-                                        <span class="game-card-date">
-                                            {{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}
+                                        <span>
+                                            <span class="game-card-number">#{{ loop.index }}</span>
+                                            <span class="game-card-date">
+                                                {{ game.date.strftime('%d.%m.%Y') if game.date is not string else game.date }}
+                                            </span>
                                         </span>
                                         <span>
                                             {% if game.result == 'Win' %}
@@ -858,8 +856,68 @@
 
                 <div id="analysis-error" class="alert alert-danger d-none"></div>
 
+                <!-- Кнопка «Смотреть партию» -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-primary" id="viewFromAnalysisBtn">
+                        👁 Смотреть партию
+                    </button>
+                </div>
+
                 <div id="analysis-content" class="markdown-body"></div>
 
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- МОДАЛКА ПРОСМОТРА ПАРТИИ                     -->
+<!-- ============================================ -->
+<div class="modal fade" id="viewGameModal" tabindex="-1" aria-labelledby="viewGameModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewGameModalLabel">
+                    ♟️ Просмотр партии <span id="view-game-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7 text-center">
+                        <div id="viewBoard" style="margin: 0 auto;"></div>
+
+                        <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+                            <button id="viewFirst" class="btn btn-sm btn-secondary">⏮</button>
+                            <button id="viewPrev"  class="btn btn-sm btn-secondary">◀</button>
+                            <button id="viewPlay"  class="btn btn-sm btn-primary">▶</button>
+                            <button id="viewNext"  class="btn btn-sm btn-secondary">▶</button>
+                            <button id="viewLast"  class="btn btn-sm btn-secondary">⏭</button>
+                            <button id="viewFlip"  class="btn btn-sm btn-secondary" title="Повернуть">🔄</button>
+                        </div>
+
+                        <div class="mt-2 text-center">
+                            <small class="text-muted">
+                                Ход <span id="viewMoveCounter">0</span> из <span id="viewMoveTotal">0</span>
+                            </small>
+                            <br>
+                            <small class="text-muted">
+                                ← → перемотка, Space — play/pause
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <h6>Ходы</h6>
+                        <div id="viewMovesList" style="max-height: 500px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="viewOpenLichess" href="#" target="_blank" rel="noopener"
+                   class="btn btn-sm btn-outline-secondary">
+                    ↗ Открыть на Lichess
+                </a>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Закрыть</button>
             </div>
         </div>
     </div>
@@ -869,6 +927,14 @@
 
 {% block scripts %}
 {{ super() }}
+<script>
+window.VIEWER_CONFIG = {
+    boardSizeDesktop: {{ viewer_config.board_size_desktop }},
+    boardSizeMobile:  {{ viewer_config.board_size_mobile }},
+    playIntervalMs:   {{ viewer_config.play_interval_ms }},
+};
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -959,45 +1025,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-<!-- ============================================ -->
-<!-- МОДАЛКА ПРОСМОТРА ПАРТИИ                     -->
-<!-- ============================================ -->
-<div class="modal fade" id="viewGameModal" tabindex="-1" aria-labelledby="viewGameModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewGameModalLabel">
-                    ♟️ Просмотр партии <span id="view-game-id"></span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-7">
-                        <div id="viewBoard" style="width: 100%; max-width: 500px; aspect-ratio: 1; margin: 0 auto;"></div>
-                        
-                        <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
-                            <button id="viewFirst" class="btn btn-sm btn-secondary">⏮</button>
-                            <button id="viewPrev" class="btn btn-sm btn-secondary">◀</button>
-                            <button id="viewPlay" class="btn btn-sm btn-primary">▶</button>
-                            <button id="viewNext" class="btn btn-sm btn-secondary">▶</button>
-                            <button id="viewLast" class="btn btn-sm btn-secondary">⏭</button>
-                        </div>
-                        
-                        <div class="mt-2 text-center">
-                            <small class="text-muted">
-                                Ход <span id="viewMoveCounter">0</span> из <span id="viewMoveTotal">0</span>
-                            </small>
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <h6>Ходы</h6>
-                        <div id="viewMovesList" style="max-height: 500px; overflow-y: auto;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

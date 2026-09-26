@@ -95,6 +95,20 @@ class ChessBoard {
         this.lastMove = { from: null, to: null };
     }
 
+    setLastMoveFromAlgebraic(fromSq, toSq) {
+        if (!fromSq || !toSq) {
+            this.lastMove = { from: null, to: null };
+            return;
+        }
+        // 'e2' → col=4, row=6  (шахматная нотация → индексы 8×8)
+        const parse = (sq) => ({
+            col: sq.charCodeAt(0) - 97,           // 'a'=0, 'b'=1, ...
+            row: 8 - parseInt(sq[1]),              // '8'=0, '1'=7
+        });
+        this.lastMove.from = parse(fromSq);
+        this.lastMove.to = parse(toSq);
+    }
+
 }
 
 // Экспортируем экземпляр

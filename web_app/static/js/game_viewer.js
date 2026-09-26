@@ -1,21 +1,53 @@
 // ============================================
 // ПРОСМОТР ПАРТИИ С ДОСКОЙ
 // ============================================
+// Использует:
+//   - ChessBoard    (chessboard/board.js)
+//   - BoardRenderer (chessboard/renderer.js)
+//   - PIECES_SVG    (chessboard/pieces.js)
+//
+// Требует на странице:
+//   - модалку #viewGameModal
+//   - кнопки .btn-view-game с data-username и data-game-id
+//   - window.VIEWER_CONFIG (опционально)
+// ============================================
+
 (function () {
     'use strict';
 
+    // Дефолтные значения (если VIEWER_CONFIG не задан)
+    const DEFAULT_CFG = {
+        boardSizeDesktop: 500,
+        boardSizeMobile: 320,
+        playIntervalMs: 800,
+    };
+
+    // Возвращает актуальный конфиг при каждом вызове.
+    // Нужно потому, что window.VIEWER_CONFIG может быть установлен
+    // ПОСЛЕ загрузки game_viewer.js (в {% block scripts %}).
+    function getCfg() {
+        return Object.assign({}, DEFAULT_CFG, window.VIEWER_CONFIG || {});
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+
         const modalEl = document.getElementById('viewGameModal');
-        if (!modalEl) return;
+        if (!modalEl) {
+            // На этой странице нет модалки просмотра — выходим
+            return;
+        }
 
         const modal = new bootstrap.Modal(modalEl);
 
-        const elGameId = document.getElementById('view-game-id');
-        const elBoard = document.getElementById('viewBoard');
+        // ---------- Элементы ----------
+        const elGameId      = document.getElementById('view-game-id');
+        const elBoard       = document.getElementById('viewBoard');
         const elMoveCounter = document.getElementById('viewMoveCounter');
-        const elMoveTotal = document.getElementById('viewMoveTotal');
-        const elMovesList = document.getElementById('viewMovesList');
+        const elMoveTotal   = document.getElementById('viewMoveTotal');
+        const elMovesList   = document.getElementById('viewMovesList');
+        const elOpenLichess = document.getElementById('viewOpenLichess');
 
+        // ---------- Состояние ----------
         let board = null;
         let renderer = null;
         let positions = [];
@@ -30,13 +62,21 @@
             board = new ChessBoard();
             renderer = new BoardRenderer(board, null);
 
-            // Подменяем getElementById в renderer — он ищет 'chessBoard'
-            // Временно присваиваем id нашему контейнеру
+            // renderer ищет элемент с id="chessBoard"
             elBoard.id = 'chessBoard';
 
             board.init();
             renderer.render();
+            applyBoardSize();
         }
+
+        function applyBoardSize() {
+            const cfg = getCfg();
+            const w = window.innerWidth < 768 ? cfg.boardSizeMobile : cfg.boardSizeDesktop;
+            elBoard.style.width = w + 'px';
+            elBoard.style.height = w + 'px';
+        }
+        window.addEventListener('resize', applyBoardSize);
 
         // ---------- Показ позиции ----------
         function showPosition(index) {
@@ -46,14 +86,7 @@
             const pos = positions[currentIndex];
 
             board.loadFromFEN(pos.fen);
-
-            // Подсветка последнего хода
-            if (currentIndex > 0) {
-                // Восстанавливаем lastMove по предыдущему ходу
-                // (FEN не содержит, откуда пришёл ход — можно вычислить,
-                //  но для простоты пока пропустим)
-            }
-
+            board.setLastMoveFromAlgebraic(pos.from, pos.to);
             renderer.render();
             highlightMoveInList(currentIndex);
             elMoveCounter.textContent = currentIndex;
@@ -62,16 +95,14 @@
         // ---------- Список ходов ----------
         function buildMovesList() {
             elMovesList.innerHTML = '';
-
-            // Группируем по номерам: 1. d4 d5, 2. c4 e6, ...
             let i = 1; // пропускаем начальную позицию (index 0)
+
             while (i < positions.length) {
                 const white = positions[i];
                 const black = positions[i + 1];
 
                 const row = document.createElement('div');
                 row.className = 'move-row';
-                row.dataset.index = i;
 
                 const num = document.createElement('span');
                 num.className = 'move-number';
@@ -105,9 +136,7 @@
         }
 
         function highlightMoveInList(index) {
-            elMovesList.querySelectorAll('.move-row').forEach(r => r.classList.remove('active'));
             elMovesList.querySelectorAll('.move-san').forEach(s => s.classList.remove('active'));
-
             const san = elMovesList.querySelector(`.move-san[data-index="${index}"]`);
             if (san) {
                 san.classList.add('active');
@@ -117,9 +146,15 @@
 
         // ---------- Кнопки навигации ----------
         document.getElementById('viewFirst').onclick = () => showPosition(0);
-        document.getElementById('viewPrev').onclick = () => showPosition(currentIndex - 1);
-        document.getElementById('viewNext').onclick = () => showPosition(currentIndex + 1);
-        document.getElementById('viewLast').onclick = () => showPosition(positions.length - 1);
+        document.getElementById('viewPrev').onclick  = () => showPosition(currentIndex - 1);
+        document.getElementById('viewNext').onclick  = () => showPosition(currentIndex + 1);
+        document.getElementById('viewLast').onclick  = () => showPosition(positions.length - 1);
+
+        document.getElementById('viewFlip').onclick = () => {
+            if (!board) return;
+            board.flipped = !board.flipped;
+            renderer.render();
+        };
 
         document.getElementById('viewPlay').onclick = function () {
             if (playing) {
@@ -133,6 +168,8 @@
                 currentIndex = 0;
             }
 
+            const cfg = getCfg();
+
             playing = true;
             this.textContent = '⏸';
 
@@ -144,8 +181,30 @@
                     return;
                 }
                 showPosition(currentIndex + 1);
-            }, 800);
+            }, cfg.playIntervalMs);
         };
+
+        // ---------- Клавиатура ----------
+        document.addEventListener('keydown', (e) => {
+            if (!modalEl.classList.contains('show')) return;
+
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                showPosition(currentIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                showPosition(currentIndex + 1);
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('viewPlay').click();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showPosition(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showPosition(positions.length - 1);
+            }
+        });
 
         // ---------- Открытие модалки ----------
         async function openViewer(username, gameId) {
@@ -153,6 +212,10 @@
 
             elGameId.textContent = gameId;
             elMovesList.innerHTML = '<div class="text-muted">Загрузка…</div>';
+
+            if (elOpenLichess) {
+                elOpenLichess.href = `https://lichess.org/${gameId}`;
+            }
 
             modal.show();
 
@@ -162,6 +225,7 @@
                     { credentials: 'same-origin' }
                 );
                 if (!r.ok) throw new Error('HTTP ' + r.status);
+
                 const data = await r.json();
 
                 if (!data.positions || !data.positions.length) {
@@ -169,19 +233,32 @@
                     return;
                 }
 
+                // Ориентация: если игрок играл чёрными — переворачиваем
+                if (data.meta && data.meta.color === 'black') {
+                    board.flipped = true;
+                } else {
+                    board.flipped = false;
+                }
+
                 positions = data.positions;
                 buildMovesList();
                 showPosition(0);
+
             } catch (e) {
                 elMovesList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
             }
         }
 
-        // ---------- Обработка кликов по кнопкам ----------
+        // ---------- Обработка кликов по кнопкам .btn-view-game ----------
         document.querySelectorAll('.btn-view-game').forEach(btn => {
             btn.addEventListener('click', () => {
                 openViewer(btn.dataset.username, btn.dataset.gameId);
             });
         });
+
+        // Экспортируем функцию наружу — для кнопки «Смотреть» в модалке анализа
+        window.openGameViewer = openViewer;
+
     });
+
 })();

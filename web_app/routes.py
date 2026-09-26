@@ -949,6 +949,13 @@ def player_stats(username):
             'time_control': game.get('time_control', '—')
         }
         rating_progression_json.append(json_game)
+
+    # Конфиг просмотрщика партии
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+    }        
     
     return render_template('player_stats.html',
                          username=username,
@@ -960,7 +967,8 @@ def player_stats(username):
                          time_stats=time_stats,
                          move_stats=move_stats,
                          rating_progression=rating_progression,
-                         rating_progression_json=rating_progression_json)
+                         rating_progression_json=rating_progression_json,
+                         viewer_config=viewer_config)   
 
 
 @main_bp.route('/player/<username>/delete', methods=['POST'])
@@ -1000,12 +1008,20 @@ def player_openings(username):
     # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
     running_ids = analysis_tasks.get_running_game_ids(username)
 
+    config_loader = ConfigLoader()
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+    }
+
     return render_template(
         'player_openings.html',
         username=username,
         games=games,
         popular_openings=popular_openings,
         running_ids=running_ids or [],
+        viewer_config=viewer_config,
         filters={
             'opening': opening,
             'results': results or [],
@@ -1014,38 +1030,26 @@ def player_openings(username):
     )   
 
 def parse_pgn_to_positions(pgn_moves: str) -> list:
-    """
-    Разбирает PGN на последовательность позиций.
-    Возвращает список:
-      [{'fen': '...', 'san': None, 'move_number': 0, 'color': None},  # начальная
-       {'fen': '...', 'san': 'd4', 'move_number': 1, 'color': 'white'},
-       ...]
-    """
     positions = []
-    
-    # Очищаем PGN от аннотаций
     pgn_clean = clean_pgn(pgn_moves)
-    
-    # Оборачиваем в PGN с заголовком
-    full_pgn = f'[Event "?"]\n[Site "?"]\n[Date "????.??.??"]\n[Round "?"]\n[White "?"]\n[Black "?"]\n[Result "*"]\n\n{pgn_clean} *'
+    full_pgn = f'[Event "?"]\n\n{pgn_clean} *'
     
     try:
         game = chess.pgn.read_game(StringIO(full_pgn))
-    except Exception as e:
-        print(f"❌ Ошибка парсинга PGN: {e}")
+    except Exception:
         return []
-    
     if not game:
         return []
     
     board = chess.Board()
     
-    # Начальная позиция
     positions.append({
         'fen': board.fen(),
         'san': None,
         'move_number': 0,
         'color': None,
+        'from': None,
+        'to': None,
     })
     
     for move in game.mainline_moves():
@@ -1053,6 +1057,11 @@ def parse_pgn_to_positions(pgn_moves: str) -> list:
             san = board.san(move)
             color = 'white' if board.turn == chess.WHITE else 'black'
             move_number = board.fullmove_number
+            
+            # Координаты хода в алгебраической нотации (e2, e4)
+            from_sq = chess.square_name(move.from_square)  # 'e2'
+            to_sq = chess.square_name(move.to_square)      # 'e4'
+            
             board.push(move)
             
             positions.append({
@@ -1060,9 +1069,10 @@ def parse_pgn_to_positions(pgn_moves: str) -> list:
                 'san': san,
                 'move_number': move_number,
                 'color': color,
+                'from': from_sq,
+                'to': to_sq,
             })
-        except Exception as e:
-            print(f"❌ Ошибка на ходу: {e}")
+        except Exception:
             break
     
     return positions
