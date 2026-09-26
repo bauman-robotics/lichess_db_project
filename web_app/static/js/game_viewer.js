@@ -77,17 +77,33 @@
 
         function applyBoardSize() {
             const isMobile = window.innerWidth < 768;
+            const cfg = getCfg();
 
             if (isMobile) {
-                // На мобильных — доска на всю ширину родителя
-                const container = elBoard.parentElement;   // .viewer-board-col
+                const container = elBoard.parentElement;
                 const w = container.clientWidth;
                 elBoard.style.width  = w + 'px';
                 elBoard.style.height = w + 'px';
             } else {
-                const cfg = getCfg();
                 elBoard.style.width  = cfg.boardSizeDesktop + 'px';
                 elBoard.style.height = cfg.boardSizeDesktop + 'px';
+            }
+
+            // На десктопе — список ходов и комментарии высотой с доску
+            if (!isMobile) {
+                const boardHeight = elBoard.offsetHeight;   // реальная высота доски в px
+
+                const comments = document.querySelector('.viewer-comments');
+                const moves = document.querySelector('.viewer-moves');
+
+                if (comments) comments.style.maxHeight = boardHeight + 'px';
+                if (moves)    moves.style.maxHeight    = boardHeight + 'px';
+            } else {
+                // На мобильных — сбрасываем inline max-height
+                const comments = document.querySelector('.viewer-comments');
+                const moves = document.querySelector('.viewer-moves');
+                if (comments) comments.style.maxHeight = '';
+                if (moves)    moves.style.maxHeight    = '';
             }
         }
         window.addEventListener('resize', applyBoardSize);
