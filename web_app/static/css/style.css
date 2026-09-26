@@ -1623,4 +1623,11 @@ thead.table-light th {
     #viewMovesList {
         font-size: 14px;
     }
+
+    /* Скрываем счётчик и подсказки клавиатуры на мобильном —
+       текущий ход виден в заголовке панели */
+    .viewer-move-counter {
+        display: none !important;
+    }
+}
 }
