@@ -232,7 +232,7 @@
                 const sanM = mobileList.querySelector(`.move-san[data-index="${index}"]`);
                 if (sanM) {
                     sanM.classList.add('active');
-                    scrollIntoContainer(sanM, mobileList.parentElement);
+                    scrollIntoContainer(sanM, mobileList);   // ← было mobileList.parentElement
                 }
             }
         }
@@ -258,7 +258,8 @@
             // Ищем паттерны вида:
             //   **8...Bxd4??** — грубейшая ошибка
             //   14.Bxc6+ — точнее
-            const regex = /\*?\*?(\d+)\.{0,3}\s*([A-Za-z0-9\-+#=]+)\*?\*?\s*[—\-:]\s*([^\n*]+)/g;
+            //const regex = /\*?\*?(\d+)\.{0,3}\s*([A-Za-z0-9\-+#=]+)\*?\*?\s*[—\-:]\s*([^\n*]+)/g;
+            const regex = /\*?\*?(\d+)\.{0,3}\s*([A-Za-z0-9\-+#=]+)[!?]*\*?\*?\s*[—\-:]\s*([^\n*]+)/g;
             let match;
             while ((match = regex.exec(analysis)) !== null) {
                 const num = parseInt(match[1], 10);

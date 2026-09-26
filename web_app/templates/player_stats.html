@@ -882,18 +882,22 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body viewer-modal-body">
+
+                <!-- ============================================ -->
+                <!-- LAYOUT: доска видна всегда, колонки — только десктоп -->
+                <!-- ============================================ -->
                 <div class="viewer-layout">
 
-                    <!-- ЛЕВАЯ КОЛОНКА: комментарии -->
-                    <div class="viewer-comments">
+                    <!-- ЛЕВАЯ КОЛОНКА: комментарии (только десктоп) -->
+                    <div class="viewer-comments viewer-desktop-only">
                         <h6>📝 Комментарии</h6>
                         <div id="viewComments" class="markdown-body text-muted">
                             <p>Комментарии к ходам появятся здесь.</p>
                         </div>
                     </div>
 
-                    <!-- ЦЕНТР: доска -->
+                    <!-- ЦЕНТР: доска (видна всегда) -->
                     <div class="viewer-board-col text-center">
                         <div id="viewBoard"></div>
 
@@ -917,13 +921,35 @@
                         </div>
                     </div>
 
-                    <!-- ПРАВАЯ КОЛОНКА: ходы -->
-                    <div class="viewer-moves">
+                    <!-- ПРАВАЯ КОЛОНКА: ходы (только десктоп) -->
+                    <div class="viewer-moves viewer-desktop-only">
                         <h6>Ходы</h6>
                         <div id="viewMovesList"></div>
                     </div>
 
                 </div>
+
+                <!-- ============================================ -->
+                <!-- МОБИЛЬНАЯ ОБЛАСТЬ: ходы / комментарии       -->
+                <!-- Показывается только на мобильном             -->
+                <!-- ============================================ -->
+                <div class="viewer-mobile-content">
+
+                    <!-- Вкладка «Ходы» -->
+                    <div class="viewer-mobile-tab" id="mobileTabMoves">
+                        <div id="viewMovesListMobile" class="viewer-mobile-scroll"></div>
+                    </div>
+
+                    <!-- Вкладка «Комментарии» -->
+                    <div class="viewer-mobile-tab d-none" id="mobileTabComments">
+                        <div class="viewer-mobile-scroll">
+                            <div id="viewMobileMoveComment" class="viewer-move-comment mb-3"></div>
+                            <div id="viewMobileAnalysis" class="markdown-body"></div>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
             <div class="modal-footer viewer-footer">
                 <!-- Левая часть: Lichess -->
@@ -957,7 +983,6 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
