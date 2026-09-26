@@ -1558,6 +1558,8 @@ thead.table-light th {
         font-size: 16px;
         min-width: 0;
         min-height: 44px;
+        justify-content: center;   /* ← центрируем по горизонтали */
+        align-items: center;       /* ← центрируем по вертикали */
     }
 
     /* Кнопка Play — чуть крупнее */
