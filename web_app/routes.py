@@ -1232,4 +1232,5 @@ def game_positions_route(username, game_id):
         'game_id': game_id,
         'positions': positions,
         'meta': _game_meta(game),
-    })    
+        'analysis': game.get('game_analysis') or '',   # ← новое
+    })

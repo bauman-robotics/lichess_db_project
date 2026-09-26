@@ -263,6 +263,29 @@
             }
         });
 
+        // ---------- Отображение анализа в левой колонке ----------
+        function renderAnalysis(text) {
+            const elComments = document.getElementById('viewComments');
+            if (!elComments) return;
+
+            if (!text || !text.trim()) {
+                elComments.innerHTML = '<p class="text-muted">Анализ для этой партии пока не сделан.</p>';
+                return;
+            }
+
+            // Markdown → HTML (marked + DOMPurify)
+            try {
+                let html = marked.parse(text);
+                if (typeof DOMPurify !== 'undefined') {
+                    html = DOMPurify.sanitize(html);
+                }
+                elComments.innerHTML = html;
+            } catch (e) {
+                console.error('Markdown error:', e);
+                elComments.textContent = text;
+            }
+        }
+
         // ---------- Открытие модалки ----------
         async function openViewer(username, gameId) {
             initBoard();
@@ -297,6 +320,9 @@
                 } else {
                     board.flipped = false;
                 }
+
+                // Выводим анализ в левую колонку
+                renderAnalysis(data.analysis || '');
 
                 positions = data.positions;
                 buildMovesList();
