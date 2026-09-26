@@ -39,6 +39,11 @@
 
         const modal = new bootstrap.Modal(modalEl);
 
+        // Пересчитываем размер доски после отрисовки модалки
+        modalEl.addEventListener('shown.bs.modal', () => {
+            applyBoardSize();
+        });
+
         // ---------- Элементы ----------
         const elGameId      = document.getElementById('view-game-id');
         const elBoard       = document.getElementById('viewBoard');
@@ -228,13 +233,15 @@
 
             modal.show();
 
+            // Пересчитываем размер доски ПОСЛЕ отрисовки модалки
+            setTimeout(applyBoardSize, 100);
+
             try {
                 const r = await fetch(
                     `/lichess-analyzer/player/${username}/game/${gameId}/positions`,
                     { credentials: 'same-origin' }
                 );
                 if (!r.ok) throw new Error('HTTP ' + r.status);
-
                 const data = await r.json();
 
                 if (!data.positions || !data.positions.length) {
@@ -242,7 +249,6 @@
                     return;
                 }
 
-                // Ориентация: если игрок играл чёрными — переворачиваем
                 if (data.meta && data.meta.color === 'black') {
                     board.flipped = true;
                 } else {
@@ -252,6 +258,9 @@
                 positions = data.positions;
                 buildMovesList();
                 showPosition(0);
+
+                // Ещё раз — на случай, если размер контейнера изменился
+                applyBoardSize();
 
             } catch (e) {
                 elMovesList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
