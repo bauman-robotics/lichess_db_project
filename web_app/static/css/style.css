@@ -1460,3 +1460,32 @@ thead.table-light th {
     gap: 4px;
     white-space: nowrap;
 }
+
+/* Разделители между колонками в модалке просмотра */
+#viewComments {
+    padding-right: 12px;
+    border-right: 1px solid var(--border-color);
+}
+
+#viewMovesList {
+    padding-left: 12px;
+    border-left: 1px solid var(--border-color);
+}
+
+/* На мобильных — убираем боковые границы */
+@media (max-width: 768px) {
+    #viewComments {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding-right: 0;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+    }
+
+    #viewMovesList {
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        padding-left: 0;
+        padding-top: 12px;
+    }
+}
