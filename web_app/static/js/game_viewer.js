@@ -174,7 +174,7 @@
             if (playing) {
                 clearInterval(timer);
                 playing = false;
-                this.textContent = '▶';
+                this.textContent = '⏯';
                 return;
             }
 
@@ -191,7 +191,7 @@
                 if (currentIndex >= positions.length - 1) {
                     clearInterval(timer);
                     playing = false;
-                    document.getElementById('viewPlay').textContent = '▶';
+                    document.getElementById('viewPlay').textContent = '⏯';
                     return;
                 }
                 showPosition(currentIndex + 1);
