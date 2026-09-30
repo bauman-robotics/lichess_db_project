@@ -951,7 +951,7 @@ thead.table-light th {
 }
 
 /* ============================================
-   МОБИЛЬНЫЙ РЕЖИМ ПРОСМОТРА ПАРТИИ (один блок!)
+   МОБИЛЬНЫЙ РЕЖИМ ПРОСМОТРА ПАРТИИ
    ============================================ */
 
 @media (max-width: 768px) {
@@ -969,14 +969,16 @@ thead.table-light th {
         flex-direction: column;
         min-height: 0;
         overflow: hidden;
+        /* НЕ убираем padding полностью — оставляем по бокам */
+        padding: 0 8px 8px 8px !important;
     }
 
-    /* --- Layout: доска сверху, остальное — ниже. НЕ скрываем! --- */
+    /* --- Layout: доска сверху, остальное — ниже --- */
     .viewer-layout {
         display: flex !important;
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 8px;
         flex: 0 0 auto;
     }
 
@@ -997,7 +999,7 @@ thead.table-light th {
         display: flex;
         gap: 6px;
         width: 100%;
-        padding: 8px 4px;
+        padding: 8px 4px 4px 4px;
     }
     .viewer-board-col .mt-3.d-flex .btn {
         flex: 1 1 auto;
@@ -1018,13 +1020,13 @@ thead.table-light th {
         display: flex;
         flex-direction: column;
         flex: 1 1 auto;
-        min-height: 0;
-        overflow: hidden;
+        min-height: 0;              /* ← критично для скролла */
+        overflow: hidden;           /* ← критично: не даёт контенту вылезти */
     }
     .viewer-mobile-tab {
         flex: 1 1 auto;
-        min-height: 0;
-        overflow: hidden;
+        min-height: 0;              /* ← критично */
+        overflow: hidden;           /* ← критично */
     }
     .viewer-mobile-tab.d-none { display: none !important; }
     .viewer-mobile-tab:not(.d-none) {
@@ -1033,11 +1035,12 @@ thead.table-light th {
     }
     .viewer-mobile-scroll {
         flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
+        min-height: 0;              /* ← критично */
+        overflow-y: auto;           /* ← сам скролл */
         overflow-x: hidden;
         padding: 12px;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;   /* ← скролл не «прыгает» на страницу */
     }
 
     /* Комментарий к текущему ходу */
@@ -1051,8 +1054,7 @@ thead.table-light th {
     }
     .viewer-move-comment:empty { display: none; }
 
-    /* Модалка на мобильном — без padding у body */
-    #viewGameModal .modal-body { padding: 0 !important; }
+    /* Модалка на мобильном */
     #viewGameModal .modal-header,
     #viewGameModal .modal-footer { padding: 8px 12px; }
     #viewGameModal .modal-content { border-radius: 0; }
