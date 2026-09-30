@@ -956,37 +956,44 @@ thead.table-light th {
 
 @media (max-width: 768px) {
 
-    /* --- Footer модалки: вкладки и текущий ход --- */
+    /* --- Footer модалки --- */
     .viewer-footer-tabs,
     .viewer-footer-current { display: flex; }
-
     .viewer-footer { padding: 6px 8px; gap: 6px; }
     .viewer-footer-lichess .d-none.d-sm-inline { display: none !important; }
 
-    /* --- Modal body как flex-колонка --- */
+    /* --- Modal content: вся высота экрана, без внешнего скролла --- */
+    #viewGameModal .modal-content {
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100vh;
+        max-height: 100dvh;
+        overflow: hidden;                /* ← внешний скролл выключен */
+        border-radius: 0;
+    }
+
+    /* --- Modal body: flex-колонка, ограничена высотой --- */
     .viewer-modal-body {
         display: flex;
         flex-direction: column;
-        min-height: 0;
-        overflow: hidden;
-        /* НЕ убираем padding полностью — оставляем по бокам */
+        flex: 1 1 auto;                  /* ← занимает всё место между header и footer */
+        min-height: 0;                   /* ← критично для скролла */
+        overflow: hidden;                /* ← скролл внутри, не снаружи */
         padding: 0 8px 8px 8px !important;
     }
 
-    /* --- Layout: доска сверху, остальное — ниже --- */
+    /* --- Layout: доска сверху, компактно --- */
     .viewer-layout {
         display: flex !important;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-        flex: 0 0 auto;
+        flex: 0 0 auto;                  /* ← не сжимается, не растягивается */
     }
 
-    /* Скрываем только колонки комментариев и ходов */
     .viewer-comments,
     .viewer-moves { display: none !important; }
 
-    /* Доска на всю ширину */
     .viewer-board-col {
         order: 1;
         width: 100%;
@@ -994,7 +1001,6 @@ thead.table-light th {
         margin: 0;
     }
 
-    /* Кнопки навигации — растягиваются */
     .viewer-board-col .mt-3.d-flex {
         display: flex;
         gap: 6px;
@@ -1012,21 +1018,20 @@ thead.table-light th {
     }
     .viewer-board-col .mt-3.d-flex #viewPlay { flex: 1.4 1 auto; }
 
-    /* Счётчик под доской скрыт — дублируется в футере */
     .viewer-move-counter { display: none !important; }
 
-    /* --- Мобильный блок: ходы / комментарии --- */
+    /* --- Мобильный блок: занимает остаток высоты --- */
     .viewer-mobile-content {
         display: flex;
         flex-direction: column;
-        flex: 1 1 auto;
-        min-height: 0;              /* ← критично для скролла */
-        overflow: hidden;           /* ← критично: не даёт контенту вылезти */
+        flex: 1 1 auto;                  /* ← забирает оставшееся место */
+        min-height: 0;                   /* ← критично */
+        overflow: hidden;                /* ← критично */
     }
     .viewer-mobile-tab {
         flex: 1 1 auto;
-        min-height: 0;              /* ← критично */
-        overflow: hidden;           /* ← критично */
+        min-height: 0;
+        overflow: hidden;
     }
     .viewer-mobile-tab.d-none { display: none !important; }
     .viewer-mobile-tab:not(.d-none) {
@@ -1035,15 +1040,14 @@ thead.table-light th {
     }
     .viewer-mobile-scroll {
         flex: 1 1 auto;
-        min-height: 0;              /* ← критично */
-        overflow-y: auto;           /* ← сам скролл */
+        min-height: 0;
+        overflow-y: auto;
         overflow-x: hidden;
         padding: 12px;
         -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;   /* ← скролл не «прыгает» на страницу */
+        overscroll-behavior: contain;
     }
 
-    /* Комментарий к текущему ходу */
     .viewer-move-comment {
         padding: 8px 12px;
         background: rgba(255, 215, 0, 0.08);
@@ -1054,9 +1058,7 @@ thead.table-light th {
     }
     .viewer-move-comment:empty { display: none; }
 
-    /* Модалка на мобильном */
     #viewGameModal .modal-header,
     #viewGameModal .modal-footer { padding: 8px 12px; }
-    #viewGameModal .modal-content { border-radius: 0; }
     #viewMovesList { font-size: 14px; }
 }
