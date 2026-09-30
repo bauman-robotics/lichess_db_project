@@ -956,10 +956,10 @@ thead.table-light th {
 
 .viewer-dialog {
     width: calc(100% - 24px);
-    max-width: 1200px;
+    max-width: 1600px;
     height: calc(100vh - 24px);
     height: calc(100dvh - 24px);
-    /*margin: 12px auto; */
+    margin: 12px auto; 
 }
 
 .viewer-content {
@@ -995,11 +995,11 @@ thead.table-light th {
 
 .viewer-comments,
 .viewer-moves {
-    flex: 1 1 220px;
-    min-width: 160px;
-    max-width: 360px;
+    flex: 0 1 320px;            /* ← было 1 1 220px */
+    min-width: 240px;            /* ← было 160px */
+    max-width: 380px;            /* ← было 360px */
     height: 100%;
-    overflow-y: auto;              /* свой скролл на десктопе */
+    overflow-y: auto;
     padding: 0 12px;
 }
 .viewer-comments { border-right: 2px solid rgba(255, 215, 0, 0.35); }
