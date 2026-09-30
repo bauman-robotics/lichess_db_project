@@ -20,6 +20,7 @@
         boardSizeDesktop: 500,
         boardSizeMobile: 320,
         playIntervalMs: 800,
+        defaultTab: 'comments',   // fallback, если не задан в VIEWER_CONFIG
     };
 
     // Возвращает актуальный конфиг при каждом вызове.
@@ -409,6 +410,21 @@
         // ---------- Открытие модалки ----------
         async function openViewer(username, gameId) {
             initBoard();
+
+            // Сброс активной вкладки к дефолтной из конфига
+            (function resetViewerTabs() {
+                const defaultTab = getCfg().defaultTab || 'comments';
+                document.querySelectorAll('.viewer-tab-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tab === defaultTab);
+                });
+                document.querySelectorAll('.viewer-mobile-tab').forEach(t => {
+                    t.classList.add('d-none');
+                });
+                const target = document.getElementById(
+                    defaultTab === 'moves' ? 'mobileTabMoves' : 'mobileTabComments'
+                );
+                if (target) target.classList.remove('d-none');
+            })();            
 
             elGameId.textContent = gameId;
             elMovesList.innerHTML = '<div class="text-muted">Загрузка…</div>';

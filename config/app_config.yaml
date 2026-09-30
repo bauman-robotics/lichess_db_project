@@ -79,9 +79,8 @@ deepseek:
   prompt_key: "game_analysis_sarcastic"
 
 viewer:
- # board_size_desktop: 500   # px
- # board_size_mobile: 320    # px
   board_size_desktop: 900   # px
-  board_size_mobile: 320    # px  
+  board_size_mobile: 320    # px
   play_interval_ms: 800     # мс между ходами в автопрокрутке
-  default_flipped: false    # или true для игры за чёрных  
+  default_flipped: false    # или true для игры за чёрных
+  default_tab: comments     # 'moves' или 'comments' — какая вкладка открывается первой на мобильном

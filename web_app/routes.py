@@ -951,12 +951,17 @@ def player_stats(username):
         rating_progression_json.append(json_game)
 
     # Конфиг просмотрщика партии
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
     viewer_config = {
         'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
         'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
         'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
     }        
-    
+        
     return render_template('player_stats.html',
                          username=username,
                          stats=stats,
@@ -1009,10 +1014,15 @@ def player_openings(username):
     running_ids = analysis_tasks.get_running_game_ids(username)
 
     config_loader = ConfigLoader()
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
     viewer_config = {
         'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
         'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
         'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
     }
 
     return render_template(
