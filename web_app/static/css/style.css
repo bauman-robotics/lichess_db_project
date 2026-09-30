@@ -1109,3 +1109,45 @@ thead.table-light th {
     .viewer-footer-current { display: flex; }
     .viewer-footer-lichess .d-none.d-sm-inline { display: none !important; }
 }
+
+/* ============================================
+   КООРДИНАТЫ КЛЕТОК (a-h, 1-8)
+   ============================================ */
+
+.chess-cell {
+    position: relative;   /* на всякий случай — нужно для absolute детей */
+}
+
+.chess-cell .cell-coord {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    z-index: 3;           /* поверх фигур */
+    opacity: 0.85;
+}
+
+/* Буквы — правый нижний угол клетки */
+.chess-cell .cell-coord-file {
+    bottom: 2px;
+    right: 3px;
+}
+
+/* Цифры — левый верхний угол клетки */
+.chess-cell .cell-coord-rank {
+    top: 2px;
+    left: 3px;
+}
+
+/* Цвет координат — контрастный к клетке */
+.chess-cell.white .cell-coord { color: #b58863; }
+.chess-cell.black .cell-coord { color: #f0d9b5; }
+
+/* На мобильных — чуть крупнее, чтобы читалось */
+@media (max-width: 768px) {
+    .chess-cell .cell-coord {
+        font-size: 9px;
+    }
+}

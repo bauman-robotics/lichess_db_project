@@ -21,6 +21,7 @@
         boardSizeMobile: 320,
         playIntervalMs: 800,
         defaultTab: 'comments',   // fallback, если не задан в VIEWER_CONFIG
+        showCoords: true,   // ← новое
     };
 
     // Возвращает актуальный конфиг при каждом вызове.
@@ -69,9 +70,12 @@
             if (board) return;
 
             board = new ChessBoard();
-            renderer = new BoardRenderer(board, null);
 
-            // renderer ищет элемент с id="chessBoard"
+            // Показ координат из конфига (передаём до render())
+            const cfg = getCfg();
+            board.showCoords = cfg.showCoords !== false;
+
+            renderer = new BoardRenderer(board, null);
             elBoard.id = 'chessBoard';
 
             board.init();

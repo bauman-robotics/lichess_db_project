@@ -6,6 +6,7 @@ class ChessBoard {
         this.selectedCell = null;
         this.lastMove = { from: null, to: null };
         this.flipped = false;
+        his.showCoords = true;   // ← новое
     }
     
     init() {

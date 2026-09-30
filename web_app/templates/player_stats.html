@@ -988,6 +988,8 @@ window.VIEWER_CONFIG = {
     boardSizeDesktop: {{ viewer_config.board_size_desktop }},
     boardSizeMobile:  {{ viewer_config.board_size_mobile }},
     playIntervalMs:   {{ viewer_config.play_interval_ms }},
+    defaultTab:       {{ viewer_config.default_tab|tojson }},
+    showCoords:       {{ viewer_config.show_coords|tojson }},   {# ← новое #}
 };
 </script>
 

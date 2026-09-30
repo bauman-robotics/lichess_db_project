@@ -15,11 +15,34 @@ class BoardRenderer {
         const rows = this.board.flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
         const cols = this.board.flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
         
+        const showCoords = this.board.showCoords !== false;   // по умолчанию true
+        const files = 'abcdefgh';
+        const ranks = '87654321';
+
         for (let ri = 0; ri < 8; ri++) {
             const r = rows[ri];
             for (let ci = 0; ci < 8; ci++) {
                 const c = cols[ci];
                 const cell = this.createCell(r, c);
+
+                // Координаты клеток (как на Lichess)
+                if (showCoords) {
+                    // Цифра ранга — на крайнем левом столбце (визуально)
+                    if (ci === 0) {
+                        const rankEl = document.createElement('span');
+                        rankEl.className = 'cell-coord cell-coord-rank';
+                        rankEl.textContent = ranks[r];      // r=0 → '8', r=7 → '1'
+                        cell.appendChild(rankEl);
+                    }
+                    // Буква файла — на нижней строке (визуально)
+                    if (ri === 7) {
+                        const fileEl = document.createElement('span');
+                        fileEl.className = 'cell-coord cell-coord-file';
+                        fileEl.textContent = files[c];      // c=0 → 'a', c=7 → 'h'
+                        cell.appendChild(fileEl);
+                    }
+                }
+
                 boardEl.appendChild(cell);
             }
         }

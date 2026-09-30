@@ -84,3 +84,4 @@ viewer:
   play_interval_ms: 800     # мс между ходами в автопрокрутке
   default_flipped: false    # или true для игры за чёрных
   default_tab: comments     # 'moves' или 'comments' — какая вкладка открывается первой на мобильном
+  show_coords: true         # ← показывать координаты клеток a-h, 1-8

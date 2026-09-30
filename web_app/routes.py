@@ -960,6 +960,7 @@ def player_stats(username):
         'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
         'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
         'default_tab':        _default_tab,
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
     }        
         
     return render_template('player_stats.html',
@@ -1023,7 +1024,8 @@ def player_openings(username):
         'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
         'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
         'default_tab':        _default_tab,
-    }
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
+        }
 
     return render_template(
         'player_openings.html',
