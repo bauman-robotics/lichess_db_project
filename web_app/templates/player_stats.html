@@ -870,26 +870,24 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- МОДАЛКА ПРОСМОТРА ПАРТИИ                     -->
-<!-- ============================================ -->
 <div class="modal fade" id="viewGameModal" tabindex="-1" aria-labelledby="viewGameModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal-dialog viewer-dialog" role="document">
+        <div class="modal-content viewer-content">
+
+            <div class="modal-header viewer-header">
                 <h5 class="modal-title" id="viewGameModalLabel">
                     ♟️ Просмотр партии <span id="view-game-id"></span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
-            <div class="modal-body viewer-modal-body">
+
+            <div class="viewer-body">
 
                 <!-- ============================================ -->
-                <!-- LAYOUT: доска видна всегда, колонки — только десктоп -->
+                <!-- DESKTOP LAYOUT                               -->
                 <!-- ============================================ -->
                 <div class="viewer-layout">
 
-                    <!-- ЛЕВАЯ КОЛОНКА: комментарии (только десктоп) -->
                     <div class="viewer-comments viewer-desktop-only">
                         <h6>📝 Комментарии</h6>
                         <div id="viewComments" class="markdown-body text-muted">
@@ -897,7 +895,6 @@
                         </div>
                     </div>
 
-                    <!-- ЦЕНТР: доска (видна всегда) -->
                     <div class="viewer-board-col text-center">
                         <div id="viewBoard"></div>
 
@@ -921,7 +918,6 @@
                         </div>
                     </div>
 
-                    <!-- ПРАВАЯ КОЛОНКА: ходы (только десктоп) -->
                     <div class="viewer-moves viewer-desktop-only">
                         <h6>Ходы</h6>
                         <div id="viewMovesList"></div>
@@ -930,17 +926,14 @@
                 </div>
 
                 <!-- ============================================ -->
-                <!-- МОБИЛЬНАЯ ОБЛАСТЬ: ходы / комментарии       -->
-                <!-- Показывается только на мобильном             -->
+                <!-- MOBILE LAYOUT                                -->
                 <!-- ============================================ -->
                 <div class="viewer-mobile-content">
 
-                    <!-- Вкладка «Ходы» -->
                     <div class="viewer-mobile-tab" id="mobileTabMoves">
                         <div id="viewMovesListMobile" class="viewer-mobile-scroll"></div>
                     </div>
 
-                    <!-- Вкладка «Комментарии» -->
                     <div class="viewer-mobile-tab d-none" id="mobileTabComments">
                         <div class="viewer-mobile-scroll">
                             <div id="viewMobileMoveComment" class="viewer-move-comment mb-3"></div>
@@ -950,15 +943,14 @@
 
                 </div>
 
-            </div>
+            </div><!-- /.viewer-body -->
+
             <div class="modal-footer viewer-footer">
-                <!-- Левая часть: Lichess -->
                 <a id="viewOpenLichess" href="#" target="_blank" rel="noopener"
                    class="btn btn-sm btn-outline-secondary viewer-footer-lichess">
                     ↗ <span class="d-none d-sm-inline">Lichess</span>
                 </a>
 
-                <!-- Переключатель вкладок (только на мобильном) -->
                 <div class="viewer-footer-tabs">
                     <button type="button" class="viewer-tab-btn active" data-tab="moves" title="Ходы">
                         📋 <span class="d-none d-sm-inline">Ходы</span>
@@ -968,18 +960,17 @@
                     </button>
                 </div>
 
-                <!-- Текущий ход (только на мобильном) -->
                 <div class="viewer-footer-current" id="viewFooterCurrent">
                     <strong id="viewFooterMove">—</strong>
                     <span id="viewFooterMoveNumber">Ход 0 из 0</span>
                 </div>
 
-                <!-- Правая часть: закрыть -->
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
                     <span class="d-none d-sm-inline">Закрыть</span>
                     <span class="d-sm-none">×</span>
                 </button>
             </div>
+
         </div>
     </div>
 </div>

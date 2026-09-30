@@ -951,58 +951,59 @@ thead.table-light th {
 }
 
 /* ============================================
-   МОДАЛКА ПРОСМОТРА ПАРТИИ — УПРАВЛЕНИЕ ВЫСОТОЙ
+   МОДАЛКА ПРОСМОТРА ПАРТИИ
    ============================================ */
 
-/* Диалог занимает почти весь экран */
 .viewer-dialog {
-    max-width: 1200px;
     width: calc(100% - 24px);
+    max-width: 1200px;
     height: calc(100vh - 24px);
     height: calc(100dvh - 24px);
     margin: 12px auto;
 }
 
-.viewer-dialog .modal-content {
+.viewer-content {
     height: 100%;
     max-height: 100%;
-    overflow: hidden;             /* внешнего скролла нет */
     display: flex;
     flex-direction: column;
+    overflow: hidden;              /* внешнего скролла нет */
 }
 
-/* Body — flex-колонка, занимает остаток между header и footer */
-.viewer-modal-body {
+/* .viewer-body — flex-колонка, забирает остаток высоты между header и footer */
+.viewer-body {
+    flex: 1 1 auto;
+    min-height: 0;                 /* ← критично */
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;                /* критично: разрешает сжатие */
-    overflow: hidden;             /* внешнего скролла нет */
+    overflow: hidden;              /* внешнего скролла нет */
     padding: 12px;
 }
 
-/* ------------------------------
-   ДЕСКТОП: три колонки
-   ------------------------------ */
+/* ---------------------------------------------
+   DESKTOP
+   --------------------------------------------- */
+
 .viewer-layout {
     display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    justify-content: center;
+    gap: 16px;
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
+    align-items: stretch;
 }
 
-.viewer-comments {
-    flex: 1 1 250px;
-    min-width: 200px;
-    max-width: 400px;
+.viewer-comments,
+.viewer-moves {
+    flex: 1 1 220px;
+    min-width: 160px;
+    max-width: 360px;
     height: 100%;
-    overflow-y: auto;
-    padding-right: 16px;
-    border-right: 2px solid rgba(255, 215, 0, 0.35);
+    overflow-y: auto;              /* свой скролл на десктопе */
+    padding: 0 12px;
 }
+.viewer-comments { border-right: 2px solid rgba(255, 215, 0, 0.35); }
+.viewer-moves    { border-left:  2px solid rgba(255, 215, 0, 0.35); }
 
 .viewer-board-col {
     flex: 0 0 auto;
@@ -1011,25 +1012,15 @@ thead.table-light th {
     align-items: center;
 }
 
-.viewer-moves {
-    flex: 1 1 200px;
-    min-width: 150px;
-    max-width: 300px;
-    height: 100%;
-    overflow-y: auto;
-    padding-left: 16px;
-    border-left: 2px solid rgba(255, 215, 0, 0.35);
-}
-
-/* Мобильная область на десктопе скрыта */
+/* Мобильный блок на десктопе скрыт */
 .viewer-mobile-content { display: none; }
 
-/* ------------------------------
-   МОБИЛЬНЫЙ: доска + табы со скроллом
-   ------------------------------ */
+/* ---------------------------------------------
+   MOBILE
+   --------------------------------------------- */
+
 @media (max-width: 768px) {
 
-    /* Диалог — на весь экран */
     .viewer-dialog {
         width: 100%;
         height: 100vh;
@@ -1037,35 +1028,23 @@ thead.table-light th {
         max-width: none;
         margin: 0;
     }
-    .viewer-dialog .modal-content {
-        border-radius: 0;
-    }
+    .viewer-content { border-radius: 0; }
+    .viewer-body    { padding: 8px; }
 
-    .viewer-modal-body {
-        padding: 8px;
-    }
-
-    /* Layout: доска сверху (неподвижна), мобильный блок — снизу */
+    /* Доска сверху, не растягивается */
     .viewer-layout {
         display: flex !important;
         flex-direction: column;
         gap: 8px;
-        flex: 0 0 auto;           /* НЕ растягивается — занимает только нужное */
+        flex: 0 0 auto;            /* ← занимает только нужное */
         overflow: visible;
     }
 
-    /* Скрываем только колонки */
-    .viewer-comments,
-    .viewer-moves { display: none !important; }
+    /* Скрываем только колонки на мобильном */
+    .viewer-desktop-only { display: none !important; }
 
-    .viewer-board-col {
-        order: 1;
-        width: 100%;
-        padding: 0;
-        margin: 0;
-    }
+    .viewer-board-col { width: 100%; padding: 0; margin: 0; }
 
-    /* Кнопки навигации */
     .viewer-board-col .mt-3.d-flex {
         display: flex;
         gap: 6px;
@@ -1085,13 +1064,13 @@ thead.table-light th {
 
     .viewer-move-counter { display: none !important; }
 
-    /* Мобильный блок: забирает остаток высоты после доски */
+    /* Мобильный блок забирает остаток высоты */
     .viewer-mobile-content {
         display: flex;
         flex-direction: column;
-        flex: 1 1 auto;           /* ← забирает ВСЁ, что осталось */
-        min-height: 0;            /* ← разрешает сжатие */
-        overflow: hidden;         /* ← внешнего скролла нет */
+        flex: 1 1 auto;            /* ← забирает остаток */
+        min-height: 0;             /* ← критично */
+        overflow: hidden;
     }
     .viewer-mobile-tab {
         flex: 1 1 auto;
@@ -1103,7 +1082,8 @@ thead.table-light th {
         display: flex;
         flex-direction: column;
     }
-    /* СКРОЛЛ ЗДЕСЬ */
+
+    /* СКРОЛЛ ЗДЕСЬ — только в этой области */
     .viewer-mobile-scroll {
         flex: 1 1 auto;
         min-height: 0;
@@ -1124,7 +1104,6 @@ thead.table-light th {
     }
     .viewer-move-comment:empty { display: none; }
 
-    /* Footer — компактный */
     .viewer-footer { padding: 6px 8px; gap: 6px; }
     .viewer-footer-tabs,
     .viewer-footer-current { display: flex; }
