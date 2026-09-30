@@ -959,7 +959,7 @@ thead.table-light th {
     max-width: 1200px;
     height: calc(100vh - 24px);
     height: calc(100dvh - 24px);
-    margin: 12px auto;
+    /*margin: 12px auto; */
 }
 
 .viewer-content {
