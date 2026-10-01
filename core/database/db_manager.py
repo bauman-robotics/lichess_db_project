@@ -175,59 +175,69 @@ class DatabaseManager:
     
     def insert_games(self, games: List[Game]) -> int:
         """
-        Вставляет игры в таблицу
+        Вставляет игры в таблицу.
+        Использует SAVEPOINT для каждой игры, чтобы ошибка одной
+        не абортила всю транзакцию.
         """
         if not games:
             return 0
-        
+
         if not self.table_exists():
             raise TableNotFoundError(f"Таблица {self.table_name} не существует")
-        
-        # Получаем маппинг полей
+
         field_mapping = self.schema_loader.get_field_mapping('pgn')
-        
+
         inserted = 0
         errors = []
-        
+
         try:
             with self.connection.get_connection() as conn:
                 with conn.cursor() as cur:
-                    for game in games:
+                    for idx, game in enumerate(games):
                         try:
-                            # Преобразуем Game в словарь для БД
+                            # SAVEPOINT для этой игры — можно откатить точечно
+                            savepoint_name = f"sp_game_{idx}"
+                            cur.execute(f"SAVEPOINT {savepoint_name}")
+
                             data = self._game_to_db_dict_fixed(game, field_mapping)
-                            
-                            # Строим INSERT запрос динамически
+
                             columns = list(data.keys())
                             values = [data[col] for col in columns]
-                            
+
                             columns_str = ', '.join([f'"{col}"' for col in columns])
                             placeholders = ', '.join(['%s'] * len(values))
-                            
+
                             query = f'INSERT INTO "{self.table_name}" ({columns_str}) VALUES ({placeholders})'
-                            
+
                             cur.execute(query, values)
+                            cur.execute(f"RELEASE SAVEPOINT {savepoint_name}")
                             inserted += 1
-                            
+
                         except Exception as e:
+                            # Откат только к savepoint — транзакция живёт
+                            try:
+                                cur.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
+                            except Exception:
+                                pass
+
                             errors.append(f"Ошибка вставки игры {game.game_id}: {e}")
-                            if len(errors) <= 3:  # Логируем только первые 3 ошибки
+                            if len(errors) <= 3:
                                 self.logger.debug(f"Данные вызвавшие ошибку: {data if 'data' in locals() else 'N/A'}")
                             continue
-                    
+
                     conn.commit()
-                    
+
         except Exception as e:
             self.logger.error(f"Ошибка вставки данных: {e}")
             if 'conn' in locals():
                 conn.rollback()
             return 0
-        
+
         if errors:
             self.logger.warning(f"Ошибок при вставке: {len(errors)}")
             for error in errors[:5]:
                 self.logger.warning(error)
-        
+
         self.logger.info(f"Вставлено {inserted} игр из {len(games)}")
         return inserted
 
