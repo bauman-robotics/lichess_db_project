@@ -23,6 +23,13 @@
 
     {% if show_actions %}
     <div class="d-flex gap-2 flex-wrap">
+        <form method="POST" action="/lichess-analyzer/player/{{ username }}/refresh" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-primary"
+                    onclick="this.disabled=true; this.innerHTML='⏳ Загрузка…'; this.form.submit();">
+                🔄 Обновить игры
+            </button>
+        </form>
         <form method="POST" action="/lichess-analyzer/player/{{ username }}/delete"
               onsubmit="return confirm('Удалить все игры игрока {{ username }}? Это действие необратимо.');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

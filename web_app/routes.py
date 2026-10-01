@@ -826,6 +826,103 @@ def get_move_stats(username: str) -> dict:
         'longest': longest,
     }
 
+def refresh_player_games(username: str) -> dict:
+    """
+    Скачивает только новые игры игрока (с даты последней игры в БД).
+    Не удаляет существующие игры, добавляет только новые.
+    """
+    try:
+        config = ConfigLoader()
+        db = DatabaseManager(config, 'local')
+        table_name = get_safe_table_name(username)
+        original_table = db.table_name
+        db.table_name = table_name
+
+        if not db.table_exists():
+            db.table_name = original_table
+            db.close()
+            return {'success': False, 'error': f'Таблица {table_name} не найдена'}
+
+        # 1. Дата последней игры
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT MAX(game_date) FROM {table_name}")
+                last_date = cur.fetchone()[0]
+
+        db.table_name = original_table
+        db.close()
+
+        if not last_date:
+            # Нет игр — скачиваем всё
+            return download_player_games(username, limit=1000)
+
+        # 2. Вычитаем 1 день (на всякий случай, чтобы не пропустить)
+        from datetime import timedelta
+        since_date = last_date - timedelta(days=1)
+        since_str = since_date.strftime('%Y-%m-%d')
+
+        logger = logging.getLogger(__name__)
+        logger.info(f"[refresh] {username}: скачиваем игры с {since_str}")
+
+        # 3. Скачиваем новые игры
+        lichess = LichessClient(config)
+        pgn_content = lichess.download_games(
+            username=username,
+            max_games=1000,
+            since=since_str,
+        )
+
+        if not pgn_content or not pgn_content.strip():
+            return {'success': True, 'saved': 0, 'total': 0, 'message': 'Новых игр нет'}
+
+        # 4. Сохраняем во временный файл
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"data/downloads/{username}_refresh_{timestamp}.pgn"
+        Path("data/downloads").mkdir(parents=True, exist_ok=True)
+
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(pgn_content)
+
+        # 5. Импортируем (дубликаты пропустятся благодаря UNIQUE game_id)
+        db = DatabaseManager(config, 'local')
+        import_manager = ImportManager(config, db)
+
+        original_table = db.table_name
+        db.table_name = table_name
+
+        # Убедимся, что таблица существует
+        if not db.table_exists():
+            db.table_name = original_table
+            db.close()
+            return {'success': False, 'error': f'Таблица {table_name} не найдена'}
+
+        result = import_manager.import_from_file(
+            file_path=filename,
+            player_name=username,
+            delete_after_import=True,
+        )
+
+        db.table_name = original_table
+        db.close()
+
+        saved = result.get('saved_games', 0)
+        total = result.get('total_parsed', 0)
+        message = f'Добавлено {saved} новых игр (из {total} загруженных)' if saved else 'Новых игр нет'
+
+        logger.info(f"[refresh] {username}: {message}")
+
+        return {
+            'success': True,
+            'saved': saved,
+            'total': total,
+            'message': message,
+        }
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': str(e)}
+
 def download_player_games(username: str, limit: int = 1000) -> dict:
     """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока"""
     try:
@@ -1001,6 +1098,21 @@ def player_stats(username):
                            games=games,
                            viewer_config=viewer_config,
                            current_section='games')
+
+@main_bp.route('/player/<username>/refresh', methods=['POST'])
+def player_refresh(username):
+    """Обновляет игры игрока (добавляет новые с Lichess)."""
+    result = refresh_player_games(username)
+
+    if result.get('success'):
+        if result.get('saved', 0) > 0:
+            flash(f'✅ {result["message"]}', 'success')
+        else:
+            flash(f'ℹ️ {result.get("message", "Новых игр нет")}', 'info')
+    else:
+        flash(f'❌ Ошибка обновления: {result.get("error", "Неизвестная")}', 'danger')
+
+    return redirect(f'/lichess-analyzer/player/{username}')
 
 @main_bp.route('/player/<username>/delete', methods=['POST'])
 def delete_player(username):
