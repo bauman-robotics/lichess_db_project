@@ -1130,9 +1130,10 @@ thead.table-light th {
    ============================================ */
 
 .game-view-page {
-    max-width: 1600px;      /* на 1920px окне даст 1600px ширины */
+    max-width: 1600px;
     margin: 0 auto;
     padding: 0 12px;
+    margin-top: -16px;   /* ← компенсирует main mt-4 */
 }
 
 .game-view-header {
@@ -1321,4 +1322,44 @@ thead.table-light th {
         text-overflow: ellipsis;
         max-width: 100%;
     }
+}
+
+/* Метаданные партии в левой колонке */
+.viewer-game-meta {
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 12px;
+}
+
+.viewer-game-meta h5 {
+    font-size: 16px;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.viewer-game-info {
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.viewer-game-info > div {
+    margin-bottom: 2px;
+}
+
+.viewer-game-meta hr {
+    display: none;      /* hr не нужен, разделитель — border-bottom */
+}
+
+/* Компактный заголовок для мобильного */
+.viewer-mobile-header {
+    padding: 0 8px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 8px;
+}
+.viewer-mobile-header strong {
+    font-size: 15px;
+}
+.viewer-mobile-header .small {
+    font-size: 12px;
+    line-height: 1.3;
 }
