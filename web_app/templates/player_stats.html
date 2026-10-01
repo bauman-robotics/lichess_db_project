@@ -655,12 +655,11 @@
                                                 {% endif %}
                                             </td>
                                             <td class="text-center">
-                                                <button class="btn btn-sm btn-view-game"
-                                                        data-username="{{ username }}"
-                                                        data-game-id="{{ game.game_id }}"
-                                                        title="Смотреть партию">
+                                                <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                                                   class="btn btn-sm btn-view-game"
+                                                   title="Смотреть партию">
                                                     👁
-                                                </button>
+                                                </a>
                                             </td>
                                             <td class="text-center">
                                                 {% set state = 'done' if game.analysis else 'none' %}
@@ -858,9 +857,11 @@
 
                 <!-- Кнопка «Смотреть партию» -->
                 <div class="mb-3">
-                    <button type="button" class="btn btn-sm btn-primary" id="viewFromAnalysisBtn">
-                        👁 Смотреть партию
-                    </button>
+                    <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                       class="btn btn-sm btn-view-game"
+                       title="Смотреть партию">
+                        👁
+                    </a>
                 </div>
 
                 <div id="analysis-content" class="markdown-body"></div>

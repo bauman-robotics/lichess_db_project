@@ -175,12 +175,11 @@
                                             <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
                                         </td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-view-game"
-                                                    data-username="{{ username }}"
-                                                    data-game-id="{{ g.game_id }}"
-                                                    title="Смотреть партию">
+                                            <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                                               class="btn btn-sm btn-view-game"
+                                               title="Смотреть партию">
                                                 👁
-                                            </button>
+                                            </a>
                                         </td>
                                         <td class="text-center">
                                             {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
@@ -371,9 +370,11 @@
 
                 <!-- Кнопка «Смотреть партию» -->
                 <div class="mb-3">
-                    <button type="button" class="btn btn-sm btn-primary" id="viewFromAnalysisBtn">
-                        👁 Смотреть партию
-                    </button>
+                    <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                       class="btn btn-sm btn-view-game"
+                       title="Смотреть партию">
+                        👁
+                    </a>
                 </div>
 
                 <div id="analysis-content" class="markdown-body"></div>
