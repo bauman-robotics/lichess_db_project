@@ -1394,6 +1394,9 @@ thead.table-light th {
     font-size: 14px;
     transition: background 0.15s, color 0.15s;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .player-nav a:hover {
@@ -1406,17 +1409,40 @@ thead.table-light th {
     color: #1a1a2e;
 }
 
-/* На мобильном — скролл по горизонтали */
+/* Короткие названия по умолчанию скрыты */
+.player-nav .nav-label-short { display: none; }
+.player-nav .nav-label-long  { display: inline; }
+
+/* ---- Мобильный режим ---- */
 @media (max-width: 768px) {
     .player-nav {
+        display: flex;
         flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        gap: 4px;
+        overflow: hidden;
         padding-bottom: 6px;
+        justify-content: space-between;
     }
+
     .player-nav a {
-        font-size: 13px;
-        padding: 6px 12px;
-        flex-shrink: 0;
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 6px 4px;
+        font-size: 11px;
+        justify-content: center;
+        gap: 3px;
+    }
+
+    /* Показываем короткие названия, скрываем длинные */
+    .player-nav .nav-label-long  { display: none; }
+    .player-nav .nav-label-short { display: inline; }
+}
+
+/* ---- Очень узкий экран ---- */
+@media (max-width: 400px) {
+    .player-nav a {
+        font-size: 10px;
+        padding: 5px 2px;
+        gap: 2px;
     }
 }
