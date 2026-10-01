@@ -91,8 +91,21 @@
                 elBoard.style.width  = w + 'px';
                 elBoard.style.height = w + 'px';
             } else {
-                elBoard.style.width  = cfg.boardSizeDesktop + 'px';
-                elBoard.style.height = cfg.boardSizeDesktop + 'px';
+                // Десктоп: доска адаптируется под доступную высоту layout
+                const layout = document.querySelector('.viewer-layout');
+                let availableHeight = 900;   // fallback
+                
+                if (layout && layout.clientHeight > 0) {
+                    // Резерв: кнопки под доской (56) + счётчик (48) + запас (16) = 120
+                    availableHeight = layout.clientHeight - 120;
+                } else {
+                    // Если layout ещё не отрисован — считаем от окна
+                    availableHeight = window.innerHeight - 250;
+                }
+                
+                const size = Math.max(320, Math.min(cfg.boardSizeDesktop, availableHeight));
+                elBoard.style.width  = size + 'px';
+                elBoard.style.height = size + 'px';
             }
 
             // В режиме модалки ограничиваем высоту боковых колонок высотой доски.

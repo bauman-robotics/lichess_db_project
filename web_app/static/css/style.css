@@ -1157,7 +1157,6 @@ thead.table-light th {
         padding-bottom: 0;
     }
 
-    /* Viewer занимает остаток высоты */
     .game-view-page .viewer-layout {
         display: grid;
         grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
@@ -1165,23 +1164,28 @@ thead.table-light th {
         align-items: stretch;
         flex: 1 1 auto;
         min-height: 0;
+        height: 100%;              /* ← новое: layout забирает всю высоту */
         overflow: hidden;
     }
 
-    /* Доска — по центру, фиксирована */
-    .game-view-page .viewer-board-col {
-        align-self: start;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Колонки — свой скролл, высота = высота layout */
+    /* Все три колонки — 100% высоты layout */
+    .game-view-page .viewer-board-col,
     .game-view-page .viewer-comments,
     .game-view-page .viewer-moves {
         height: 100%;
-        max-height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
+        min-height: 0;
+        overflow: hidden;          /* ← важно: обрезать, если не влезает */
+    }
+
+    .game-view-page .viewer-board-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;       /* доска по центру */
+    }
+
+    .game-view-page .viewer-comments,
+    .game-view-page .viewer-moves {
+        overflow-y: auto;          /* ← свой скролл */
         padding: 0 12px;
         border: none;
     }
