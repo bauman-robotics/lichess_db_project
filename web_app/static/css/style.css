@@ -1534,3 +1534,137 @@ thead.table-light th {
         padding: 5px 2px !important;
     }
 }
+
+/* ============================================
+   КОМПАКТНАЯ КАРТОЧКА ИГРЫ (мобильная)
+   ============================================ */
+
+.game-card-compact {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    transition: border-color 0.15s;
+}
+
+.game-card-compact:hover {
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* --- Строка 1: метаданные --- */
+.game-card-compact .gc-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.game-card-compact .gc-num {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.game-card-compact .gc-date {
+    color: var(--text-primary);
+}
+
+.game-card-compact .gc-color {
+    font-size: 14px;
+}
+
+.game-card-compact .gc-rating {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.game-card-compact .gc-header .badge-result {
+    margin-left: auto;   /* прижать к правому краю */
+    font-size: 10px;
+    padding: 1px 5px;
+}
+
+/* --- Строка 2: соперник --- */
+.game-card-compact .gc-opponent {
+    font-size: 13px;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.game-card-compact .gc-opponent a {
+    color: var(--accent-gold);
+    text-decoration: none;
+}
+
+.game-card-compact .gc-opponent a:hover {
+    text-decoration: underline;
+}
+
+.game-card-compact .gc-opponent small {
+    color: var(--text-muted);
+    margin-left: 2px;
+    font-size: 11px;
+}
+
+/* --- Строка 3: дебют --- */
+.game-card-compact .gc-opening {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Строка 4: кнопки --- */
+.game-card-compact .gc-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+}
+
+.game-card-compact .gc-actions .btn {
+    font-size: 11px;
+    padding: 3px 8px;
+    min-height: 26px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+}
+
+.game-card-compact .gc-actions .btn-analysis-with-text {
+    padding: 3px 8px !important;
+    height: 26px !important;
+}
+
+.game-card-compact .gc-actions .btn-analysis-icon {
+    font-size: 12px;
+}
+
+.game-card-compact .gc-actions .btn-analysis-label {
+    font-size: 11px;
+}
+
+/* --- Очень узкий экран --- */
+@media (max-width: 400px) {
+    .game-card-compact {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    .game-card-compact .gc-header {
+        font-size: 11px;
+    }
+    .game-card-compact .gc-actions .btn {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
