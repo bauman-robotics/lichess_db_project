@@ -708,8 +708,11 @@
             {% endif %}
 
             <div class="mt-3 d-flex gap-2 flex-wrap">
-                <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-primary">
-                    📖 Анализ по дебютам
+                <a href="/lichess-analyzer/player/{{ username }}/debuts" class="btn btn-primary">
+                    📖 Дебюты
+                </a>
+                <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-secondary">
+                    🔍 Партии по дебютам
                 </a>
                 <form method="POST" action="/lichess-analyzer/player/{{ username }}/delete"
                       onsubmit="return confirm('Удалить все игры игрока {{ username }}? Это действие необратимо.');">
