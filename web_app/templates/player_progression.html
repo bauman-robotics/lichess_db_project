@@ -9,34 +9,7 @@
     <div class="col-12">
 
         {% include "player_header.html" %}
-
-        <!-- БАЗОВАЯ СТАТИСТИКА (краткая) -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Всего игр</div>
-                    <div class="stat-number">{{ stats.total }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Средний рейтинг</div>
-                    <div class="stat-number">{{ rating_stats.avg_rating|round(0) if rating_stats.avg_rating else '—' }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Макс. рейтинг</div>
-                    <div class="stat-number">{{ rating_stats.max_rating|round(0) if rating_stats.max_rating else '—' }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Ср. рейтинг соперников</div>
-                    <div class="stat-number">{{ rating_stats.avg_opponent_rating|round(0) if rating_stats.avg_opponent_rating else '—' }}</div>
-                </div>
-            </div>
-        </div>
+        {% include "player_summary.html" %}
 
         <!-- ПРОГРЕСС РЕЙТИНГА (график) -->
         {% if rating_progression and rating_progression|length > 0 %}
