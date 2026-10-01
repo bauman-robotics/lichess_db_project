@@ -1499,3 +1499,38 @@ thead.table-light th {
         font-size: 12px;
     }
 }
+
+/* ============================================
+   НИЖНЯЯ НАВИГАЦИЯ (footer) — на мобильном
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Контейнер нижней навигации */
+    .player-footer-nav .d-flex {
+        flex-wrap: nowrap !important;
+        gap: 3px !important;
+        overflow: hidden;
+        justify-content: space-between;
+    }
+
+    /* Кнопки нижней навигации — как top-nav */
+    .player-footer-nav .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 6px 3px !important;
+        font-size: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        white-space: nowrap;
+    }
+}
+
+/* Очень узкий экран */
+@media (max-width: 400px) {
+    .player-footer-nav .btn {
+        font-size: 10px;
+        padding: 5px 2px !important;
+    }
+}
