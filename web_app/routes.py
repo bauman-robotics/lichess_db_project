@@ -437,7 +437,7 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
             game_analysis
         FROM {table_name}
         {where_sql}
-        ORDER BY game_date DESC
+        ORDER BY game_date DESC, id DESC
         LIMIT %s;
     """
     params.append(limit)
