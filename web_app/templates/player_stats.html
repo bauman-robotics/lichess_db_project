@@ -118,53 +118,6 @@
                 </div>
             </div>
 
-            <!-- КОНТРОЛЬ ВРЕМЕНИ -->
-            {% if time_stats and time_stats|length > 0 %}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">⏰ Статистика по контролю времени</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Контроль</th>
-                                        <th>Игры</th>
-                                        <th>Победы</th>
-                                        <th>% побед</th>
-                                        <th>Точность</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in time_stats %}
-                                        <tr>
-                                            <td><code>{{ item.time_control }}</code></td>
-                                            <td>{{ item.games }}</td>
-                                            <td>{{ item.wins }}</td>
-                                            <td>
-                                                {% set win_rate = item.win_rate|float if item.win_rate is defined and item.win_rate is not none else 0 %}
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
-                                                         role="progressbar"
-                                                         style="width: {{ win_rate }}%;"
-                                                         aria-valuenow="{{ win_rate }}"
-                                                         aria-valuemin="0"
-                                                         aria-valuemax="100">
-                                                        {{ win_rate|round(1) }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ item.accuracy|round(1) if item.accuracy else 'Н/Д' }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-
             <!-- ДЛИНА ПАРТИЙ -->
             {% if move_stats %}
                 <div class="card shadow-sm mb-4">

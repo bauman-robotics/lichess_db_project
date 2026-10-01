@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ username }} — Контроль времени
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+
+        {% include "player_header.html" %}
+
+        <!-- БАЗОВАЯ СТАТИСТИКА (краткая) -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Всего игр</div>
+                    <div class="stat-number">{{ stats.total }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Победы</div>
+                    <div class="stat-number">{{ stats.results.get('Win', 0) }}</div>
+                    <small class="text-muted">
+                        {{ (stats.results.get('Win', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Поражения</div>
+                    <div class="stat-number">{{ stats.results.get('Loss', 0) }}</div>
+                    <small class="text-muted">
+                        {{ (stats.results.get('Loss', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Ничьи</div>
+                    <div class="stat-number">{{ stats.results.get('Draw', 0) }}</div>
+                    <small class="text-muted">
+                        {{ (stats.results.get('Draw', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТАТИСТИКА ПО КОНТРОЛЮ ВРЕМЕНИ -->
+        {% if time_stats and time_stats|length > 0 %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">⏰ Статистика по контролю времени</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Контроль</th>
+                                    <th>Игры</th>
+                                    <th>Победы</th>
+                                    <th>% побед</th>
+                                    <th>Точность</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in time_stats %}
+                                    <tr>
+                                        <td><code>{{ item.time_control }}</code></td>
+                                        <td>{{ item.games }}</td>
+                                        <td>{{ item.wins }}</td>
+                                        <td>
+                                            {% set win_rate = item.win_rate|float if item.win_rate is defined and item.win_rate is not none else 0 %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ win_rate }}%;"
+                                                     aria-valuenow="{{ win_rate }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                    {{ win_rate|round(1) }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ item.accuracy|round(1) if item.accuracy else 'Н/Д' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center text-muted py-4">
+                    <p>Нет данных о контроле времени для игрока {{ username }}.</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% include "player_footer_nav.html" %}
+
+    </div>
+</div>
+{% endblock %}

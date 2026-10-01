@@ -7,6 +7,10 @@
        class="{% if current_section == 'progression' %}active{% endif %}">
         📈 Прогресс
     </a>
+    <a href="/lichess-analyzer/player/{{ username }}/time-control"
+       class="{% if current_section == 'time-control' %}active{% endif %}">
+        ⏰ Контроль
+    </a>
     <a href="/lichess-analyzer/player/{{ username }}/debuts"
        class="{% if current_section == 'debuts' %}active{% endif %}">
         📖 Топ дебютов

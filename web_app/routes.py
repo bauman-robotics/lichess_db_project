@@ -930,7 +930,6 @@ def player_stats(username):
     recent_limit = config_loader.get('statistics.recent_games_limit', 25)
     games = get_recent_games(username, limit=recent_limit)
 
-    time_stats = get_time_control_stats(username)
     move_stats = get_move_stats(username)
 
     # Конфиг просмотрщика партии
@@ -951,7 +950,6 @@ def player_stats(username):
                            stats=stats,
                            exists=True,
                            games=games,
-                           time_stats=time_stats,
                            move_stats=move_stats,
                            viewer_config=viewer_config,
                            current_section='games')
@@ -1313,4 +1311,37 @@ def player_progression(username):
         rating_progression_json=rating_progression_json,
         viewer_config=viewer_config,
         current_section='progression',
+    )    
+
+
+@main_bp.route('/player/<username>/time-control')
+def player_time_control(username):
+    """Страница статистики по контролю времени."""
+    stats = get_player_stats(username)
+    if not stats.get('exists'):
+        flash(f'Игрок {username} не найден.', 'warning')
+        return redirect(f'/lichess-analyzer/player/{username}')
+
+    time_stats = get_time_control_stats(username)
+
+    config_loader = ConfigLoader()
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
+    }
+
+    return render_template(
+        'player_time_control.html',
+        username=username,
+        stats=stats,
+        time_stats=time_stats,
+        viewer_config=viewer_config,
+        current_section='time-control',
     )    
