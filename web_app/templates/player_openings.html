@@ -498,6 +498,10 @@
 
 <!-- Скрытый CSRF-токен для JS (POST /analyze) -->
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+<!-- Нижняя навигация -->
+{% include "player_footer_nav.html" %}
+
 {% endblock %}
 {% block scripts %}
 {{ super() }}
