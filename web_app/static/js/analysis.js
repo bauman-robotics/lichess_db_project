@@ -121,6 +121,9 @@
         // ---------- Открытие модалки с готовым результатом ----------
 
         async function openModalWithResult(username, gameId) {
+            console.log('[analysis] openModalWithResult ВЫЗВАНА');
+            console.log('[analysis]   username:', username);
+            console.log('[analysis]   gameId:', gameId);
             currentGame = { username, gameId };
 
             // Обновить ссылку «Смотреть партию» под текущую партию
@@ -249,6 +252,11 @@
                 const state = btn.dataset.state;
                 const username = btn.dataset.username;
                 const gameId = btn.dataset.gameId;
+
+                console.log('[analysis] КЛИК по .btn-analysis');
+                console.log('[analysis]   state:', state);
+                console.log('[analysis]   username:', username);
+                console.log('[analysis]   gameId:', gameId);
 
                 if (state === 'done') {
                     openModalWithResult(username, gameId);
