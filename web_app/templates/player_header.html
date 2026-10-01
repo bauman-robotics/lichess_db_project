@@ -1,22 +1,22 @@
 <nav class="player-nav mb-4">
     <a href="/lichess-analyzer/player/{{ username }}"
        class="{% if current_section == 'games' %}active{% endif %}">
-        📋 Игры
+        📋 <span class="nav-label nav-label-long">Игры</span><span class="nav-label nav-label-short">Игры</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/progression"
        class="{% if current_section == 'progression' %}active{% endif %}">
-        📈 Прогресс
+        📈 <span class="nav-label nav-label-long">Прогресс</span><span class="nav-label nav-label-short">Прогресс</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/time-control"
        class="{% if current_section == 'time-control' %}active{% endif %}">
-        ⏰ Контроль
+        ⏰ <span class="nav-label nav-label-long">Контроль</span><span class="nav-label nav-label-short">Время</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/debuts"
        class="{% if current_section == 'debuts' %}active{% endif %}">
-        📖 Топ дебютов
+        📖 <span class="nav-label nav-label-long">Топ дебютов</span><span class="nav-label nav-label-short">Топ</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/openings"
        class="{% if current_section == 'openings' %}active{% endif %}">
-        🔍 Партии по дебютам
+        🔍 <span class="nav-label nav-label-long">Партии по дебютам</span><span class="nav-label nav-label-short">Поиск</span>
     </a>
 </nav>
