@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block main_class %}container-fluid{% endblock %}
+{% block main_class %}container-fluid mt-2{% endblock %}
 
 {% block title %}
 {{ username }} — просмотр партии
@@ -10,7 +10,7 @@
     <div class="container-fluid game-view-page">
 
     <!-- Кнопки действий — над доской, по центру -->
-    <div class="d-flex gap-2 mb-3 flex-wrap justify-content-center">
+    <div class="d-flex gap-2 mb-2 flex-wrap justify-content-center">
         <a href="/lichess-analyzer/player/{{ username }}"
            class="btn btn-sm btn-outline-secondary" title="К игроку">
             ← К игроку
