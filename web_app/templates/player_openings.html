@@ -175,7 +175,7 @@
                                             <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
                                         </td>
                                         <td class="text-center">
-                                            <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                                            <a href="/lichess-analyzer/player/{{ username }}/game/{{ game.game_id }}/view"
                                                class="btn btn-sm btn-view-game"
                                                title="Смотреть партию">
                                                 👁
@@ -272,13 +272,12 @@
                                         ↗ Открыть на Lichess
                                     </a>
                                     {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
-                                    <button class="btn btn-sm btn-view-game btn-view-game-with-text"
-                                            data-username="{{ username }}"
-                                            data-game-id="{{ g.game_id }}"
-                                            title="Смотреть партию">
+                                    <a href="/lichess-analyzer/player/{{ username }}/game/{{ game.game_id }}/view"
+                                       class="btn btn-sm btn-view-game btn-view-game-with-text"
+                                       title="Смотреть партию">
                                         <span class="btn-analysis-icon">👁</span>
                                         <span class="btn-analysis-label">Смотреть</span>
-                                    </button>
+                                    </a>
                                     <button class="btn btn-sm btn-analysis btn-analysis-with-text"
                                             data-username="{{ username }}"
                                             data-game-id="{{ g.game_id }}"
