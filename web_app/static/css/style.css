@@ -1446,3 +1446,56 @@ thead.table-light th {
         gap: 2px;
     }
 }
+
+/* ============================================
+   КРАТКАЯ СВОДКА СТАТИСТИКИ
+   ============================================ */
+
+.player-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.player-summary .ps-item {
+    white-space: nowrap;
+}
+
+.player-summary .ps-item small {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-left: 2px;
+}
+
+.player-summary .ps-sep {
+    color: var(--text-muted);
+    user-select: none;
+}
+
+.player-summary .ps-win  { color: #5cd679; }
+.player-summary .ps-loss { color: #e6858f; }
+.player-summary .ps-draw { color: #e6c15c; }
+.player-summary .ps-period { color: var(--text-secondary); font-size: 13px; }
+
+/* Мобильный — компактнее, разделители скрываем */
+@media (max-width: 576px) {
+    .player-summary {
+        font-size: 13px;
+        padding: 8px 10px;
+        gap: 4px 8px;
+    }
+    .player-summary .ps-sep {
+        display: none;
+    }
+    .player-summary .ps-period {
+        font-size: 12px;
+    }
+}

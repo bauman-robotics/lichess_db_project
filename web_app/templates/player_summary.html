@@ -1,0 +1,34 @@
+<!-- Краткая сводка статистики -->
+<div class="player-summary">
+    <span class="ps-item">
+        📊 <strong>{{ stats.total }}</strong> игр
+    </span>
+    <span class="ps-sep">·</span>
+    <span class="ps-item ps-win">
+        ✅ <strong>{{ stats.results.get('Win', 0) }}</strong>
+        <small>({{ (stats.results.get('Win', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%)</small>
+    </span>
+    <span class="ps-sep">·</span>
+    <span class="ps-item ps-loss">
+        ❌ <strong>{{ stats.results.get('Loss', 0) }}</strong>
+        <small>({{ (stats.results.get('Loss', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%)</small>
+    </span>
+    <span class="ps-sep">·</span>
+    <span class="ps-item ps-draw">
+        ➖ <strong>{{ stats.results.get('Draw', 0) }}</strong>
+        <small>({{ (stats.results.get('Draw', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%)</small>
+    </span>
+    {% if stats.opponents %}
+        <span class="ps-sep">·</span>
+        <span class="ps-item">
+            👥 <strong>{{ stats.opponents }}</strong> соперников
+        </span>
+    {% endif %}
+    {% if stats.first_game and stats.last_game %}
+        <span class="ps-sep">·</span>
+        <span class="ps-item ps-period">
+            📅 {{ stats.first_game.strftime('%d.%m.%y') if stats.first_game is not string else stats.first_game }}
+            — {{ stats.last_game.strftime('%d.%m.%y') if stats.last_game is not string else stats.last_game }}
+        </span>
+    {% endif %}
+</div>
