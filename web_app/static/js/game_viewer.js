@@ -285,7 +285,7 @@
                 const comment = match[3].trim();
                 moveComments[`${num}_${san}`] = comment;
             }
-            console.log('[comments] распарсено:', Object.keys(moveComments).length);
+            //console.log('[comments] распарсено:', Object.keys(moveComments).length);
         }
 
         function renderMoveComment(index) {
