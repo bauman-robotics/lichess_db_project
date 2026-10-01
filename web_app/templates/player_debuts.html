@@ -9,43 +9,7 @@
     <div class="col-12">
 
         {% include "player_header.html" %}
-
-        <!-- БАЗОВАЯ СТАТИСТИКА -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Всего игр</div>
-                    <div class="stat-number">{{ stats.total }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Победы</div>
-                    <div class="stat-number">{{ stats.results.get('Win', 0) }}</div>
-                    <small class="text-muted">
-                        {{ (stats.results.get('Win', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
-                    </small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Поражения</div>
-                    <div class="stat-number">{{ stats.results.get('Loss', 0) }}</div>
-                    <small class="text-muted">
-                        {{ (stats.results.get('Loss', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
-                    </small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-label">Ничьи</div>
-                    <div class="stat-number">{{ stats.results.get('Draw', 0) }}</div>
-                    <small class="text-muted">
-                        {{ (stats.results.get('Draw', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
-                    </small>
-                </div>
-            </div>
-        </div>
+        {% include "player_summary.html" %}
 
         <!-- ТОП ДЕБЮТОВ -->
         <div class="card shadow-sm">
