@@ -218,36 +218,8 @@
                 </div>
             {% endif %}
 
-            <!-- Навигация по разделам (внизу) -->
-            <div class="mt-4 pt-3 border-top">
-                <div class="d-flex gap-2 flex-wrap mb-3">
-                    <a href="/lichess-analyzer/player/{{ username }}" class="btn btn-sm btn-outline-secondary">
-                        📋 Игры
-                    </a>
-                    <a href="/lichess-analyzer/player/{{ username }}/progression" class="btn btn-sm btn-outline-secondary">
-                        📈 Прогресс
-                    </a>
-                    <a href="/lichess-analyzer/player/{{ username }}/debuts" class="btn btn-sm btn-outline-secondary">
-                        📖 Топ дебютов
-                    </a>
-                    <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-sm btn-outline-secondary">
-                        🔍 Партии по дебютам
-                    </a>
-                </div>
-
-                <div class="d-flex gap-2 flex-wrap">
-                    <form method="POST" action="/lichess-analyzer/player/{{ username }}/delete"
-                          onsubmit="return confirm('Удалить все игры игрока {{ username }}? Это действие необратимо.');">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-sm btn-danger">
-                            🗑️ Удалить игры
-                        </button>
-                    </form>
-                    <a href="/lichess-analyzer/search" class="btn btn-sm btn-secondary">
-                        🔍 Новый поиск
-                    </a>
-                </div>
-            </div>
+            {% set show_actions = true %}
+            {% include "player_footer_nav.html" %}
 
         {% else %}
             <div class="alert alert-warning">
