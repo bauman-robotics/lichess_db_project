@@ -224,7 +224,7 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     opponent_rating,
                     game_analysis
                 FROM {table_name}
-                ORDER BY game_date DESC
+                ORDER BY game_date DESC, id DESC
                 LIMIT %s;
             """, (limit,))
             
@@ -676,7 +676,7 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
                         COALESCE(player_color, '—') as player_color,
                         COALESCE(time_control, '—') as time_control
                     FROM {table_name}
-                    ORDER BY game_date DESC
+                    ORDER BY game_date DESC, id DESC
                     LIMIT %s
                 """, (limit,))
                 
