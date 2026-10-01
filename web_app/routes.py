@@ -18,7 +18,7 @@ from io import StringIO
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SubmitField
 
@@ -1216,20 +1216,27 @@ def game_view_route(username, game_id):
     """Страница просмотра партии с доской и навигацией."""
     game = get_game_for_analysis(username, game_id)
     if not game:
-        return "Партия не найдена", 404
-    
-    # Разбираем PGN на позиции
-    positions = parse_pgn_to_positions(game['pgn_moves'])
-    
-    if not positions:
-        return "Не удалось разобрать партию", 500
-    
+        abort(404)
+
+    config_loader = ConfigLoader()
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
+    }
+
     return render_template(
         'game_view.html',
         username=username,
         game=game,
-        positions=positions,
-    )    
+        viewer_config=viewer_config,
+    )  
 
 @main_bp.route('/player/<username>/game/<game_id>/positions', methods=['GET'])
 def game_positions_route(username, game_id):

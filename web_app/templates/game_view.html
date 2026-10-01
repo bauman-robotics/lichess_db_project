@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ username }} — просмотр партии
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid game-view-page">
+
+    <!-- Навигация назад -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <a href="/lichess-analyzer/player/{{ username }}" class="btn btn-secondary">
+            ← К игроку {{ username }}
+        </a>
+        <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-secondary">
+            📖 К дебютам
+        </a>
+    </div>
+
+    <!-- Заголовок партии -->
+    <div class="game-view-header mb-3">
+        <h2 class="mb-1">
+            ♟️ {{ username }} — {{ game.opponent_name }}
+        </h2>
+        <p class="text-muted mb-0">
+            {% if game.game_date %}
+                {{ game.game_date.strftime('%d.%m.%Y') if game.game_date is not string else game.game_date }}
+            {% endif %}
+            · {{ game.time_control or '—' }}
+            · <strong>{{ game.result or '—' }}</strong>
+            · {{ game.opening_name or '—' }}
+        </p>
+    </div>
+
+    <!-- Ссылка на Lichess -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <a href="https://lichess.org/{{ game.game_id }}"
+           target="_blank" rel="noopener"
+           class="btn btn-sm btn-outline-secondary">
+            ↗ Открыть на Lichess
+        </a>
+    </div>
+
+    <!-- Основной layout -->
+    <div class="viewer-layout">
+
+        <!-- ЛЕВАЯ: комментарии -->
+        <div class="viewer-comments viewer-desktop-only">
+            <h6>📝 Комментарии</h6>
+            <div id="viewComments" class="markdown-body text-muted">
+                <p>Загрузка…</p>
+            </div>
+        </div>
+
+        <!-- ЦЕНТР: доска -->
+        <div class="viewer-board-col text-center">
+            <div id="viewBoard"></div>
+
+            <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+                <button id="viewFlip"  class="btn btn-sm btn-secondary" title="Повернуть">🔄</button>
+                <button id="viewFirst" class="btn btn-sm btn-secondary" title="В начало">⏮</button>
+                <button id="viewPlay"  class="btn btn-sm btn-primary" title="Играть / Пауза">⏯</button>
+                <button id="viewLast"  class="btn btn-sm btn-secondary" title="В конец">⏭</button>
+                <button id="viewPrev"  class="btn btn-sm btn-secondary" title="Назад">◀</button>
+                <button id="viewNext"  class="btn btn-sm btn-secondary" title="Вперёд">▶</button>
+            </div>
+
+            <div class="mt-2 text-center viewer-move-counter">
+                <small class="text-muted">
+                    Ход <span id="viewMoveCounter">0</span> из <span id="viewMoveTotal">0</span>
+                </small>
+                <br>
+                <small class="text-muted viewer-keyboard-hint">
+                    ← → перемотка, Space — play/pause
+                </small>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ: ходы -->
+        <div class="viewer-moves viewer-desktop-only">
+            <h6>Ходы</h6>
+            <div id="viewMovesList"></div>
+        </div>
+
+    </div>
+
+    <!-- Мобильный блок: табы -->
+    {% set _tab = viewer_config.default_tab|default('comments') %}
+    <div class="viewer-mobile-content">
+
+        <div class="viewer-mobile-tab {% if _tab != 'moves' %}d-none{% endif %}" id="mobileTabMoves">
+            <div id="viewMovesListMobile" class="viewer-mobile-scroll"></div>
+        </div>
+
+        <div class="viewer-mobile-tab {% if _tab != 'comments' %}d-none{% endif %}" id="mobileTabComments">
+            <div class="viewer-mobile-scroll">
+                <div id="viewMobileMoveComment" class="viewer-move-comment mb-3"></div>
+                <div id="viewMobileAnalysis" class="markdown-body"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+window.VIEWER_CONFIG = {
+    boardSizeDesktop: {{ viewer_config.board_size_desktop }},
+    boardSizeMobile:  {{ viewer_config.board_size_mobile }},
+    playIntervalMs:   {{ viewer_config.play_interval_ms }},
+    defaultTab:       {{ viewer_config.default_tab|tojson }},
+    showCoords:       {{ viewer_config.show_coords|tojson }},
+};
+window.GAME_CONTEXT = {
+    username: {{ username|tojson }},
+    gameId:   {{ game.game_id|tojson }},
+};
+</script>
+{% endblock %}
