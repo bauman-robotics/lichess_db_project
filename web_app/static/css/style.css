@@ -1130,7 +1130,7 @@ thead.table-light th {
    ============================================ */
 
 .game-view-page {
-    max-width: 1400px;
+    max-width: 1600px;      /* на 1920px окне даст 1600px ширины */
     margin: 0 auto;
     padding: 0 12px;
 }
@@ -1146,10 +1146,10 @@ thead.table-light th {
 
 /* ---------- Десктоп: три колонки, доска sticky ---------- */
 @media (min-width: 769px) {
-
+    
     .game-view-page .viewer-layout {
         display: grid;
-        grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+        grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr);
         gap: 24px;
         align-items: start;
     }
