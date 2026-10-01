@@ -34,17 +34,15 @@
     document.addEventListener('DOMContentLoaded', function () {
 
         const modalEl = document.getElementById('viewGameModal');
-        if (!modalEl) {
-            // На этой странице нет модалки просмотра — выходим
-            return;
+        const isPageMode = !modalEl;   // true, если модалки нет — значит, мы на странице
+
+        let modal = null;
+        if (!isPageMode) {
+            modal = new bootstrap.Modal(modalEl);
+            modalEl.addEventListener('shown.bs.modal', () => {
+                applyBoardSize();
+            });
         }
-
-        const modal = new bootstrap.Modal(modalEl);
-
-        // Пересчитываем размер доски после отрисовки модалки
-        modalEl.addEventListener('shown.bs.modal', () => {
-            applyBoardSize();
-        });
 
         // ---------- Элементы ----------
         const elGameId      = document.getElementById('view-game-id');
@@ -97,17 +95,17 @@
                 elBoard.style.height = cfg.boardSizeDesktop + 'px';
             }
 
-            // На десктопе — список ходов и комментарии высотой с доску
-            if (!isMobile) {
-                const boardHeight = elBoard.offsetHeight;   // реальная высота доски в px
+            // В режиме модалки ограничиваем высоту боковых колонок высотой доски.
+            // В режиме страницы — не ограничиваем: там скроллит сама страница.
+            if (!isMobile && !isPageMode) {
+                const boardHeight = elBoard.offsetHeight;
 
                 const comments = document.querySelector('.viewer-comments');
                 const moves = document.querySelector('.viewer-moves');
 
                 if (comments) comments.style.maxHeight = boardHeight + 'px';
                 if (moves)    moves.style.maxHeight    = boardHeight + 'px';
-            } else {
-                // На мобильных — сбрасываем inline max-height
+            } else if (isMobile) {
                 const comments = document.querySelector('.viewer-comments');
                 const moves = document.querySelector('.viewer-moves');
                 if (comments) comments.style.maxHeight = '';
@@ -346,7 +344,8 @@
 
         // ---------- Клавиатура ----------
         document.addEventListener('keydown', (e) => {
-            if (!modalEl.classList.contains('show')) return;
+            // В режиме модалки — только когда открыта. В режиме страницы — всегда.
+            if (!isPageMode && !modalEl.classList.contains('show')) return;
 
             if (e.key === 'ArrowLeft') {
                 e.preventDefault();
@@ -440,10 +439,15 @@
                 elOpenLichess.href = `https://lichess.org/${gameId}`;
             }
 
-            modal.show();
-
-            // Пересчитываем размер доски ПОСЛЕ отрисовки модалки
-            setTimeout(applyBoardSize, 100);
+            if (!isPageMode) {
+                modal.show();
+                // Пересчитываем размер доски ПОСЛЕ отрисовки модалки
+                setTimeout(applyBoardSize, 100);
+            } else {
+                // В режиме страницы доска уже в DOM — считаем сразу и с задержкой
+                requestAnimationFrame(applyBoardSize);
+                setTimeout(applyBoardSize, 200);
+            }
 
             try {
                 const r = await fetch(
@@ -514,6 +518,11 @@
                 if (target) target.classList.remove('d-none');
             });
         });
+
+        // ---------- Автозапуск в режиме страницы ----------
+        if (isPageMode && window.GAME_CONTEXT) {
+            openViewer(window.GAME_CONTEXT.username, window.GAME_CONTEXT.gameId);
+        }
 
     });
 
