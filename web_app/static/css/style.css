@@ -660,7 +660,7 @@ thead.table-light th {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    aspect-ratio: 1;           /* ← ДОБАВЛЕНО: доска всегда квадрат */
+    /* aspect-ratio: 1; */          /* ← ДОБАВЛЕНО: доска всегда квадрат */
     background: #b58863;
     border-radius: 4px;
     overflow: hidden;
