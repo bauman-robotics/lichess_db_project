@@ -904,27 +904,26 @@ def search():
 
 @main_bp.route('/player/<username>')
 def player_stats(username):
-    """Страница статистики игрока"""
+    """Страница статистики игрока: последние игры + базовая статистика."""
     # Получаем лимит из URL (если есть)
     limit = request.args.get('limit', 1000, type=int)
-    
+
     stats = get_player_stats(username)
-    
+
     if not stats.get('exists'):
         flash(f'Игрок {username} не найден. Скачиваем игры...', 'info')
         result = download_player_games(username, limit=limit)
-        
+
         if result.get('success'):
             flash(f'✅ Загружено {result["saved"]} игр для {username}', 'success')
             return redirect(f'/lichess-analyzer/player/{username}')
         else:
             flash(f'❌ Ошибка загрузки: {result.get("error")}', 'danger')
-            return render_template('player_stats.html', 
-                                 username=username, 
-                                 stats=None,
-                                 exists=False)
-    
-    openings = get_opening_stats(username)
+            return render_template('player_stats.html',
+                                   username=username,
+                                   stats=None,
+                                   exists=False,
+                                   current_section='games')
 
     # Лимит последних игр из конфига
     config_loader = ConfigLoader()
@@ -935,7 +934,7 @@ def player_stats(username):
     time_stats = get_time_control_stats(username)
     move_stats = get_move_stats(username)
     rating_progression = get_rating_progression(username, limit=30)
-    
+
     # Преобразуем данные для графика
     rating_progression_json = []
     for game in rating_progression:
@@ -946,7 +945,7 @@ def player_stats(username):
             'result': game.get('result', '—'),
             'opening': game.get('opening', '—'),
             'color': game.get('color', '—'),
-            'time_control': game.get('time_control', '—')
+            'time_control': game.get('time_control', '—'),
         }
         rating_progression_json.append(json_game)
 
@@ -961,21 +960,20 @@ def player_stats(username):
         'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
         'default_tab':        _default_tab,
         'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
-    }        
-        
-    return render_template('player_stats.html',
-                         username=username,
-                         stats=stats,
-                         exists=True,
-                         openings=openings,
-                         games=games,
-                         rating_stats=rating_stats,
-                         time_stats=time_stats,
-                         move_stats=move_stats,
-                         rating_progression=rating_progression,
-                         rating_progression_json=rating_progression_json,
-                         viewer_config=viewer_config)   
+    }
 
+    return render_template('player_stats.html',
+                           username=username,
+                           stats=stats,
+                           exists=True,
+                           games=games,
+                           rating_stats=rating_stats,
+                           time_stats=time_stats,
+                           move_stats=move_stats,
+                           rating_progression=rating_progression,
+                           rating_progression_json=rating_progression_json,
+                           viewer_config=viewer_config,
+                           current_section='games')
 
 @main_bp.route('/player/<username>/delete', methods=['POST'])
 def delete_player(username):
@@ -1034,12 +1032,13 @@ def player_openings(username):
         popular_openings=popular_openings,
         running_ids=running_ids or [],
         viewer_config=viewer_config,
+        current_section='openings',
         filters={
             'opening': opening,
             'results': results or [],
             'color': color or '',
         }
-    )   
+    )
 
 def parse_pgn_to_positions(pgn_moves: str) -> list:
     positions = []
@@ -1253,3 +1252,35 @@ def game_positions_route(username, game_id):
         'meta': _game_meta(game),
         'analysis': game.get('game_analysis') or '',   # ← новое
     })
+
+@main_bp.route('/player/<username>/debuts')
+def player_debuts(username):
+    """Страница статистики по дебютам (топ дебютов)."""
+    stats = get_player_stats(username)
+    if not stats.get('exists'):
+        flash(f'Игрок {username} не найден.', 'warning')
+        return redirect(f'/lichess-analyzer/player/{username}')
+
+    openings = get_opening_stats(username, limit=50)
+
+    config_loader = ConfigLoader()
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
+    }
+
+    return render_template(
+        'player_debuts.html',
+        username=username,
+        stats=stats,
+        openings=openings,
+        viewer_config=viewer_config,
+        current_section='debuts',
+    )

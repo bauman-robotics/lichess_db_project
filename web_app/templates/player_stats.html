@@ -3,12 +3,7 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <h2 class="mb-0">♟️ Анализ игрока: {{ username }}</h2>
-            <a href="/lichess-analyzer/player/{{ username }}/openings" class="btn btn-primary">
-                📖 Анализ по дебютам
-            </a>
-        </div>
+        {% include "player_header.html" %}
 
         {% if not exists %}
             <div class="alert alert-warning">
@@ -536,59 +531,6 @@
                     </div>
                 </div>
             {% endif %}
-
-            <!-- ДЕБЮТЫ -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">📖 Топ дебютов ({{ openings|length if openings else 0 }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if openings and openings|length > 0 %}
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Дебют</th>
-                                        <th>Игры</th>
-                                        <th>Победы</th>
-                                        <th>Поражения</th>
-                                        <th>Ничьи</th>
-                                        <th>% побед</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for op in openings %}
-                                        <tr>
-                                            <td><strong>{{ op.name if op.name else 'Неизвестно' }}</strong></td>
-                                            <td>{{ op.games }}</td>
-                                            <td>{{ op.wins }}</td>
-                                            <td>{{ op.losses }}</td>
-                                            <td>{{ op.draws }}</td>
-                                            <td>
-                                                {% set win_rate = op.win_rate if op.win_rate is not none else 0 %}
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
-                                                         role="progressbar"
-                                                         style="width: {{ win_rate }}%;"
-                                                         aria-valuenow="{{ win_rate }}"
-                                                         aria-valuemin="0"
-                                                         aria-valuemax="100">
-                                                        {{ '%0.1f'|format(win_rate) }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center text-muted">
-                            <p>Нет данных о дебютах для игрока {{ username }}.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
 
             <!-- ПОСЛЕДНИЕ ИГРЫ -->
             {% if games and games|length > 0 %}

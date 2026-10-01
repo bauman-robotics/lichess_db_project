@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ username }} — Дебюты
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+
+        {% include "player_header.html" %}
+
+        <!-- БАЗОВАЯ СТАТИСТИКА -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Всего игр</div>
+                    <div class="stat-number">{{ stats.total }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Победы</div>
+                    <div class="stat-number">{{ stats.results.get('Win', 0) }}</div>
+                    <small class="text-muted">
+                        {{ (stats.results.get('Win', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Поражения</div>
+                    <div class="stat-number">{{ stats.results.get('Loss', 0) }}</div>
+                    <small class="text-muted">
+                        {{ (stats.results.get('Loss', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Ничьи</div>
+                    <div class="stat-number">{{ stats.results.get('Draw', 0) }}</div>
+                    <small class="text-muted">
+                        {{ (stats.results.get('Draw', 0) / stats.total * 100)|round(1) if stats.total > 0 else 0 }}%
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ТОП ДЕБЮТОВ -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">📖 Топ дебютов ({{ openings|length if openings else 0 }})</h5>
+            </div>
+            <div class="card-body">
+                {% if openings and openings|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дебют</th>
+                                    <th>Игры</th>
+                                    <th>Победы</th>
+                                    <th>Поражения</th>
+                                    <th>Ничьи</th>
+                                    <th>% побед</th>
+                                    <th>Смотреть партии</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for op in openings %}
+                                    <tr>
+                                        <td><strong>{{ op.name if op.name else 'Неизвестно' }}</strong></td>
+                                        <td>{{ op.games }}</td>
+                                        <td>{{ op.wins }}</td>
+                                        <td>{{ op.losses }}</td>
+                                        <td>{{ op.draws }}</td>
+                                        <td>
+                                            {% set win_rate = op.win_rate if op.win_rate is not none else 0 %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ win_rate }}%;"
+                                                     aria-valuenow="{{ win_rate }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                    {{ '%0.1f'|format(win_rate) }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="/lichess-analyzer/player/{{ username }}/openings?opening={{ op.name|urlencode }}"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                🔍 Партии
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted">
+                        <p>Нет данных о дебютах для игрока {{ username }}.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

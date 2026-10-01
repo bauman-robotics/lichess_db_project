@@ -1,0 +1,22 @@
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">♟️ Анализ игрока: {{ username }}</h2>
+    <a href="/lichess-analyzer/search" class="btn btn-sm btn-secondary">
+        🔍 Новый поиск
+    </a>
+</div>
+
+<nav class="player-nav mb-4">
+    <a href="/lichess-analyzer/player/{{ username }}"
+       class="{% if current_section == 'games' %}active{% endif %}">
+        📋 Игры
+    </a>
+    <a href="/lichess-analyzer/player/{{ username }}/debuts"
+       class="{% if current_section == 'debuts' %}active{% endif %}">
+        📖 Дебюты
+    </a>
+    <a href="/lichess-analyzer/player/{{ username }}/openings"
+       class="{% if current_section == 'openings' %}active{% endif %}">
+        🔍 Партии по дебютам
+    </a>
+    <!-- Сюда будем добавлять другие разделы (прогресс, контроль и т.д.) -->
+</nav>
