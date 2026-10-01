@@ -200,84 +200,64 @@
                     <!-- ============================================ -->
                     <div class="mobile-cards">
                         {% for g in games %}
-                            <div class="game-card">
+                            <div class="game-card-compact">
 
-                                <div class="game-card-header">
-                                    <span>
-                                        <span class="game-card-number">#{{ loop.index }}</span>
-                                        <span class="game-card-date">
-                                            {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
-                                        </span>
+                                <!-- Строка 1: №, дата, цвет, рейтинг, результат -->
+                                <div class="gc-header">
+                                    <span class="gc-num">#{{ loop.index }}</span>
+                                    <span class="gc-date">
+                                        {{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}
                                     </span>
-                                    <span>
-                                        {% if g.result == 'Win' %}
-                                            <span class="badge-result badge-result-win">✅ Победа</span>
-                                        {% elif g.result == 'Loss' %}
-                                            <span class="badge-result badge-result-loss">❌ Поражение</span>
-                                        {% elif g.result == 'Draw' %}
-                                            <span class="badge-result badge-result-draw">➖ Ничья</span>
-                                        {% else %}
-                                            <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
-                                        {% endif %}
-                                    </span>
+                                    <span class="gc-color">{% if g.color == 'white' %}⚪{% else %}⚫{% endif %}</span>
+                                    <span class="gc-rating">{{ g.my_rating }}</span>
+                                    {% if g.result == 'Win' %}
+                                        <span class="badge-result badge-result-win">✅ Победа</span>
+                                    {% elif g.result == 'Loss' %}
+                                        <span class="badge-result badge-result-loss">❌ Поражение</span>
+                                    {% elif g.result == 'Draw' %}
+                                        <span class="badge-result badge-result-draw">➖ Ничья</span>
+                                    {% else %}
+                                        <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
+                                    {% endif %}
                                 </div>
 
-                                <div class="game-card-body">
-                                    <div class="row-line">
-                                        <span class="label">Контроль</span>
-                                        <span><code>{{ g.time_control }}</code></span>
-                                    </div>
-                                    <div class="row-line">
-                                        <span class="label">Цвет</span>
-                                        <span>
-                                            <span class="badge {% if g.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
-                                                {{ g.color }}
-                                            </span>
-                                        </span>
-                                    </div>
-                                    <div class="row-line">
-                                        <span class="label">Ходов</span>
-                                        <span>{{ g.move_count }}</span>
-                                    </div>
-                                    <div class="row-line">
-                                        <span class="label">Мой рейтинг</span>
-                                        <span><strong>{{ g.my_rating }}</strong></span>
-                                    </div>
-                                    <div class="row-line">
-                                        <span class="label">Соперник</span>
-                                        <span>
-                                            <a href="https://lichess.org/@/{{ g.opponent }}" target="_blank" rel="noopener">
-                                                {{ g.opponent }} ({{ g.opponent_rating }})
-                                            </a>
-                                        </span>
-                                    </div>
-                                    <div class="row-line">
-                                        <span class="label">Дебют</span>
-                                        <span class="game-card-opening">
-                                            <small>{{ g.opening if g.opening else '—' }}</small>
-                                        </span>
-                                    </div>
+                                <!-- Строка 2: соперник + контроль + ходов -->
+                                <div class="gc-opponent">
+                                    👤 <a href="https://lichess.org/@/{{ g.opponent }}" target="_blank" rel="noopener">
+                                        {{ g.opponent }}
+                                    </a>
+                                    <small>({{ g.opponent_rating }})</small>
+                                    <span class="gc-sep">·</span>
+                                    <small>⏰ {{ g.time_control }}</small>
+                                    <span class="gc-sep">·</span>
+                                    <small>📊 {{ (g.move_count + 1) // 2 }} ходов</small>
                                 </div>
 
-                                <div class="game-card-footer d-flex gap-2 justify-content-end flex-wrap">
-                                    {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
-                                    {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
-                                    <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener"
+                                <!-- Строка 3: дебют -->
+                                {% if g.opening %}
+                                    <div class="gc-opening">📖 {{ g.opening }}</div>
+                                {% endif %}
+
+                                <!-- Строка 4: кнопки действий -->
+                                <div class="gc-actions">
+                                    {% if g.game_id %}
+                                        {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
+                                        {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
+                                        <a href="{{ base_url }}{{ orientation }}"
+                                           target="_blank" rel="noopener"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            ↗ Lichess
+                                        </a>
+                                    {% endif %}
+                                    <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
                                        class="btn btn-sm btn-outline-secondary">
-                                        ↗ Открыть на Lichess
+                                        👁 Смотреть
                                     </a>
                                     {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
-                                    <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
-                                       class="btn btn-sm btn-view-game btn-view-game-with-text"
-                                       title="Смотреть партию">
-                                        <span class="btn-analysis-icon">👁</span>
-                                        <span class="btn-analysis-label">Смотреть</span>
-                                    </a>
                                     <button class="btn btn-sm btn-analysis btn-analysis-with-text"
                                             data-username="{{ username }}"
                                             data-game-id="{{ g.game_id }}"
-                                            data-state="{{ state }}"
-                                            title="Анализ партии через DeepSeek">
+                                            data-state="{{ state }}">
                                         <span class="btn-analysis-icon">
                                             {% if state == 'running' %}⏳
                                             {% elif state == 'done' %}✅
