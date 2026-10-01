@@ -855,12 +855,14 @@
 
                 <div id="analysis-error" class="alert alert-danger d-none"></div>
 
-                <!-- Кнопка «Смотреть партию» -->
+                <!-- Ссылка «Смотреть партию» -->
                 <div class="mb-3">
-                    <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
-                       class="btn btn-sm btn-view-game"
-                       title="Смотреть партию">
-                        👁
+                    <a href="#"
+                       id="viewFromAnalysisLink"
+                       class="btn btn-sm btn-primary"
+                       target="_blank"
+                       rel="noopener">
+                        👁 Смотреть партию
                     </a>
                 </div>
 

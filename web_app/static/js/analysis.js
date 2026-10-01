@@ -123,6 +123,12 @@
         async function openModalWithResult(username, gameId) {
             currentGame = { username, gameId };
 
+            // Обновить ссылку «Смотреть партию» под текущую партию
+            const viewLink = document.getElementById('viewFromAnalysisLink');
+            if (viewLink) {
+                viewLink.href = `/lichess-analyzer/player/${username}/game/${gameId}/view`;
+            }            
+
             resetModal();
             elGameId.textContent = gameId;
             modal.show();
@@ -233,24 +239,6 @@
 
             setTimeout(tick, 2000);
         }
-
-        // ---------- Кнопка «Смотреть партию» в модалке анализа ----------
-        document.getElementById('viewFromAnalysisBtn')?.addEventListener('click', () => {
-            if (!currentGame) return;
-
-            const { username, gameId } = currentGame;
-
-            // Закрываем модалку анализа
-            modal.hide();
-
-            // Открываем модалку просмотра
-            if (typeof window.openGameViewer === 'function') {
-                window.openGameViewer(username, gameId);
-            } else {
-                console.warn('openGameViewer недоступен — game_viewer.js не загружен');
-                window.open(`https://lichess.org/${gameId}`, '_blank');
-            }
-        });
 
         // ---------- Обработка кликов по кнопкам анализа ----------
 
