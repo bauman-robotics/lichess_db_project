@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ username }} — Длина партий
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+
+        {% include "player_header.html" %}
+
+        {% include "player_summary.html" %}
+
+        <!-- КАРТОЧКИ СТАТИСТИКИ ДЛИНЫ -->
+        {% if move_stats %}
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Средняя длина</div>
+                        <div class="stat-number">
+                            {{ ((move_stats.avg_moves or 0) / 2)|round(1) }}
+                            <small class="text-muted" style="font-size: 12px;">ходов</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Мин. ходов</div>
+                        <div class="stat-number">
+                            {{ ((move_stats.min_moves or 0) + 1) // 2 }}
+                            <small class="text-muted" style="font-size: 12px;">ходов</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Макс. ходов</div>
+                        <div class="stat-number">
+                            {{ ((move_stats.max_moves or 0) + 1) // 2 }}
+                            <small class="text-muted" style="font-size: 12px;">ходов</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Медиана</div>
+                        <div class="stat-number">
+                            {{ ((move_stats.median_moves or 0) / 2)|round(0)|int }}
+                            <small class="text-muted" style="font-size: 12px;">ходов</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- РАСПРЕДЕЛЕНИЕ ПО ДЛИНЕ -->
+            {% if move_stats.distribution and move_stats.distribution|length > 0 %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Распределение по длине</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Диапазон</th>
+                                        <th>Игры</th>
+                                        <th>Победы</th>
+                                        <th>% побед</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in move_stats.distribution %}
+                                        <tr>
+                                            <td>{{ item.category }}</td>
+                                            <td>{{ item.games }}</td>
+                                            <td>{{ item.wins }}</td>
+                                            <td>
+                                                {% set win_rate = item.win_rate|float if item.win_rate is defined and item.win_rate is not none else 0 %}
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                         role="progressbar"
+                                                         style="width: {{ win_rate }}%;"
+                                                         aria-valuenow="{{ win_rate }}"
+                                                         aria-valuemin="0"
+                                                         aria-valuemax="100">
+                                                        {{ win_rate|round(1) }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- ТОП-10 КОРОТКИХ -->
+            {% if move_stats.shortest and move_stats.shortest|length > 0 %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">⚡ Топ-10 самых коротких партий</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Дата</th>
+                                        <th>Соперник</th>
+                                        <th>Цвет</th>
+                                        <th>Результат</th>
+                                        <th>Ходов</th>
+                                        <th>Контроль</th>
+                                        <th>Дебют</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for g in move_stats.shortest %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>{{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}</td>
+                                            <td>
+                                                {{ g.opponent }}
+                                                {% if g.opponent_rating %}
+                                                    <small class="text-muted">({{ g.opponent_rating }})</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if g.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
+                                                    {{ g.color }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if g.result == 'Win' %}
+                                                    <span class="badge-result badge-result-win">✅</span>
+                                                {% elif g.result == 'Loss' %}
+                                                    <span class="badge-result badge-result-loss">❌</span>
+                                                {% elif g.result == 'Draw' %}
+                                                    <span class="badge-result badge-result-draw">➖</span>
+                                                {% else %}
+                                                    <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td><strong>{{ g.full_moves }}</strong></td>
+                                            <td><small>{{ g.time_control }}</small></td>
+                                            <td><small>{{ g.opening or '—' }}</small></td>
+                                            <td>
+                                                <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                                                   class="btn btn-sm btn-outline-secondary" title="Смотреть партию">
+                                                    👁
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- ТОП-10 ДЛИННЫХ -->
+            {% if move_stats.longest and move_stats.longest|length > 0 %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🐢 Топ-10 самых длинных партий</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Дата</th>
+                                        <th>Соперник</th>
+                                        <th>Цвет</th>
+                                        <th>Результат</th>
+                                        <th>Ходов</th>
+                                        <th>Контроль</th>
+                                        <th>Дебют</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for g in move_stats.longest %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>{{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}</td>
+                                            <td>
+                                                {{ g.opponent }}
+                                                {% if g.opponent_rating %}
+                                                    <small class="text-muted">({{ g.opponent_rating }})</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if g.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
+                                                    {{ g.color }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if g.result == 'Win' %}
+                                                    <span class="badge-result badge-result-win">✅</span>
+                                                {% elif g.result == 'Loss' %}
+                                                    <span class="badge-result badge-result-loss">❌</span>
+                                                {% elif g.result == 'Draw' %}
+                                                    <span class="badge-result badge-result-draw">➖</span>
+                                                {% else %}
+                                                    <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td><strong>{{ g.full_moves }}</strong></td>
+                                            <td><small>{{ g.time_control }}</small></td>
+                                            <td><small>{{ g.opening or '—' }}</small></td>
+                                            <td>
+                                                <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+                                                   class="btn btn-sm btn-outline-secondary" title="Смотреть партию">
+                                                    👁
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        {% include "player_footer_nav.html" %}
+
+    </div>
+</div>
+{% endblock %}

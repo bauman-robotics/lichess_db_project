@@ -11,6 +11,10 @@
        class="{% if current_section == 'time-control' %}active{% endif %}">
         ⏰ <span class="nav-label nav-label-long">Контроль</span><span class="nav-label nav-label-short">Время</span>
     </a>
+    <a href="/lichess-analyzer/player/{{ username }}/move-length"
+       class="{% if current_section == 'move-length' %}active{% endif %}">
+        📏 <span class="nav-label nav-label-long">Длина партий</span><span class="nav-label nav-label-short">Длина</span>
+    </a>
     <a href="/lichess-analyzer/player/{{ username }}/debuts"
        class="{% if current_section == 'debuts' %}active{% endif %}">
         📖 <span class="nav-label nav-label-long">Топ дебютов</span><span class="nav-label nav-label-short">Топ</span>

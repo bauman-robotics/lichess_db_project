@@ -714,21 +714,22 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
 
 
 def get_move_stats(username: str) -> dict:
-    """Статистика по длине партий"""
+    """Статистика по длине партий + топ-10 коротких/длинных."""
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
-    
+
     table_name = get_safe_table_name(username)
     original_table = db.table_name
     db.table_name = table_name
-    
+
     if not db.table_exists():
         db.table_name = original_table
         db.close()
         return {}
-    
+
     with db.connection.get_connection() as conn:
         with conn.cursor() as cur:
+            # Общая статистика
             cur.execute(f"""
                 SELECT 
                     AVG(move_count) as avg_moves,
@@ -738,7 +739,7 @@ def get_move_stats(username: str) -> dict:
                 FROM {table_name}
             """)
             row = cur.fetchone()
-            
+
             # Распределение по длине
             cur.execute(f"""
                 SELECT 
@@ -753,7 +754,6 @@ def get_move_stats(username: str) -> dict:
                 FROM {table_name}
                 GROUP BY category
             """)
-            
             distribution = []
             for r in cur.fetchall():
                 distribution.append({
@@ -762,18 +762,69 @@ def get_move_stats(username: str) -> dict:
                     'wins': r[2],
                     'win_rate': (r[2] / r[1] * 100) if r[1] > 0 else 0
                 })
-    
+
+            # Топ-10 коротких партий
+            cur.execute(f"""
+                SELECT 
+                    game_id, game_date, opponent_name, opponent_rating,
+                    player_color, result, move_count, opening_name, time_control
+                FROM {table_name}
+                WHERE move_count IS NOT NULL AND move_count > 0
+                ORDER BY move_count ASC
+                LIMIT 10
+            """)
+            shortest = []
+            for r in cur.fetchall():
+                shortest.append({
+                    'game_id': r[0],
+                    'date': r[1],
+                    'opponent': r[2],
+                    'opponent_rating': r[3],
+                    'color': r[4],
+                    'result': r[5],
+                    'move_count': r[6],
+                    'full_moves': (r[6] + 1) // 2 if r[6] else 0,
+                    'opening': r[7],
+                    'time_control': r[8],
+                })
+
+            # Топ-10 длинных партий
+            cur.execute(f"""
+                SELECT 
+                    game_id, game_date, opponent_name, opponent_rating,
+                    player_color, result, move_count, opening_name, time_control
+                FROM {table_name}
+                WHERE move_count IS NOT NULL AND move_count > 0
+                ORDER BY move_count DESC
+                LIMIT 10
+            """)
+            longest = []
+            for r in cur.fetchall():
+                longest.append({
+                    'game_id': r[0],
+                    'date': r[1],
+                    'opponent': r[2],
+                    'opponent_rating': r[3],
+                    'color': r[4],
+                    'result': r[5],
+                    'move_count': r[6],
+                    'full_moves': (r[6] + 1) // 2 if r[6] else 0,
+                    'opening': r[7],
+                    'time_control': r[8],
+                })
+
     db.table_name = original_table
     db.close()
-    
+
     return {
         'avg_moves': row[0] if row else 0,
         'min_moves': row[1] if row else 0,
         'max_moves': row[2] if row else 0,
         'median_moves': row[3] if row else 0,
-        'distribution': distribution
+        'distribution': distribution,
+        'shortest': shortest,
+        'longest': longest,
     }
-
 
 def download_player_games(username: str, limit: int = 1000) -> dict:
     """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока"""
@@ -930,8 +981,6 @@ def player_stats(username):
     recent_limit = config_loader.get('statistics.recent_games_limit', 25)
     games = get_recent_games(username, limit=recent_limit)
 
-    move_stats = get_move_stats(username)
-
     # Конфиг просмотрщика партии
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
     if _default_tab not in ('moves', 'comments'):
@@ -950,7 +999,6 @@ def player_stats(username):
                            stats=stats,
                            exists=True,
                            games=games,
-                           move_stats=move_stats,
                            viewer_config=viewer_config,
                            current_section='games')
 
@@ -1344,4 +1392,36 @@ def player_time_control(username):
         time_stats=time_stats,
         viewer_config=viewer_config,
         current_section='time-control',
+    )    
+
+@main_bp.route('/player/<username>/move-length')
+def player_move_length(username):
+    """Страница статистики по длине партий + топ коротких/длинных."""
+    stats = get_player_stats(username)
+    if not stats.get('exists'):
+        flash(f'Игрок {username} не найден.', 'warning')
+        return redirect(f'/lichess-analyzer/player/{username}')
+
+    move_stats = get_move_stats(username)
+
+    config_loader = ConfigLoader()
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
+    }
+
+    return render_template(
+        'player_move_length.html',
+        username=username,
+        stats=stats,
+        move_stats=move_stats,
+        viewer_config=viewer_config,
+        current_section='move-length',
     )    
