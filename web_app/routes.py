@@ -930,24 +930,8 @@ def player_stats(username):
     recent_limit = config_loader.get('statistics.recent_games_limit', 25)
     games = get_recent_games(username, limit=recent_limit)
 
-    rating_stats = get_rating_stats(username)
     time_stats = get_time_control_stats(username)
     move_stats = get_move_stats(username)
-    rating_progression = get_rating_progression(username, limit=30)
-
-    # Преобразуем данные для графика
-    rating_progression_json = []
-    for game in rating_progression:
-        json_game = {
-            'date': game.get('date', '2000-01-01'),
-            'my_rating': int(game.get('my_rating', 0) or 0),
-            'opponent_rating': int(game.get('opponent_rating', 0) or 0),
-            'result': game.get('result', '—'),
-            'opening': game.get('opening', '—'),
-            'color': game.get('color', '—'),
-            'time_control': game.get('time_control', '—'),
-        }
-        rating_progression_json.append(json_game)
 
     # Конфиг просмотрщика партии
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
@@ -967,11 +951,8 @@ def player_stats(username):
                            stats=stats,
                            exists=True,
                            games=games,
-                           rating_stats=rating_stats,
                            time_stats=time_stats,
                            move_stats=move_stats,
-                           rating_progression=rating_progression,
-                           rating_progression_json=rating_progression_json,
                            viewer_config=viewer_config,
                            current_section='games')
 
@@ -1284,3 +1265,52 @@ def player_debuts(username):
         viewer_config=viewer_config,
         current_section='debuts',
     )
+
+@main_bp.route('/player/<username>/progression')
+def player_progression(username):
+    """Страница прогресса рейтинга и рейтинговой статистики."""
+    stats = get_player_stats(username)
+    if not stats.get('exists'):
+        flash(f'Игрок {username} не найден.', 'warning')
+        return redirect(f'/lichess-analyzer/player/{username}')
+
+    rating_stats = get_rating_stats(username)
+    rating_progression = get_rating_progression(username, limit=30)
+
+    # Преобразуем данные для графика
+    rating_progression_json = []
+    for game in rating_progression:
+        json_game = {
+            'date': game.get('date', '2000-01-01'),
+            'my_rating': int(game.get('my_rating', 0) or 0),
+            'opponent_rating': int(game.get('opponent_rating', 0) or 0),
+            'result': game.get('result', '—'),
+            'opening': game.get('opening', '—'),
+            'color': game.get('color', '—'),
+            'time_control': game.get('time_control', '—'),
+        }
+        rating_progression_json.append(json_game)
+
+    config_loader = ConfigLoader()
+    _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
+    if _default_tab not in ('moves', 'comments'):
+        _default_tab = 'comments'
+
+    viewer_config = {
+        'board_size_desktop': config_loader.get('viewer.board_size_desktop', 500),
+        'board_size_mobile':  config_loader.get('viewer.board_size_mobile', 320),
+        'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
+        'default_tab':        _default_tab,
+        'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
+    }
+
+    return render_template(
+        'player_progression.html',
+        username=username,
+        stats=stats,
+        rating_stats=rating_stats,
+        rating_progression=rating_progression,
+        rating_progression_json=rating_progression_json,
+        viewer_config=viewer_config,
+        current_section='progression',
+    )    
