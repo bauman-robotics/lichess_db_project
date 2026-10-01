@@ -1144,46 +1144,56 @@ thead.table-light th {
     font-size: 22px;
 }
 
-/* ---------- Десктоп: три колонки, доска sticky ---------- */
+/* ---------- Десктоп: фиксированный layout, свой скролл в колонках ---------- */
 @media (min-width: 769px) {
-    
+
+    /* Вся страница партии — на всю высоту viewport, без скролла */
+    .game-view-page {
+        height: calc(100vh - 100px);       /* 100px — header + navbar + отступы; подстрой под свой layout */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding-bottom: 0;
+    }
+
+    /* Viewer занимает остаток высоты */
     .game-view-page .viewer-layout {
         display: grid;
-        grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr);
+        grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
         gap: 24px;
-        align-items: start;
+        align-items: stretch;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
     }
 
+    /* Доска — по центру, фиксирована */
     .game-view-page .viewer-board-col {
-        position: sticky;
-        top: 20px;
         align-self: start;
+        display: flex;
+        flex-direction: column;
     }
 
-    /* На странице не ограничиваем высоту — скроллит сама страница */
+    /* Колонки — свой скролл, высота = высота layout */
     .game-view-page .viewer-comments,
     .game-view-page .viewer-moves {
-        max-height: none;
-        overflow: visible;
-        padding: 0;
+        height: 100%;
+        max-height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0 12px;
         border: none;
     }
     .game-view-page .viewer-comments {
         border-right: 2px solid rgba(255, 215, 0, 0.35);
-        padding-right: 12px;
     }
     .game-view-page .viewer-moves {
         border-left: 2px solid rgba(255, 215, 0, 0.35);
-        padding-left: 12px;
     }
 
-    /* На десктопе мобильные табы не нужны */
-    .game-view-page .viewer-mobile-content {
-        display: none !important;
-    }
-    .game-view-page .game-view-footer-tabs {
-        display: none !important;
-    }
+    /* Мобильные табы на десктопе не нужны */
+    .game-view-page .viewer-mobile-content { display: none !important; }
+    .game-view-page .game-view-footer-tabs { display: none !important; }
 }
 
 /* ---------- Мобильный: одна колонка ---------- */
