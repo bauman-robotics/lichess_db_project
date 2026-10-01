@@ -1410,8 +1410,8 @@ thead.table-light th {
 }
 
 /* Короткие названия по умолчанию скрыты */
-.player-nav .nav-label-short { display: none; }
-.player-nav .nav-label-long  { display: inline; }
+.nav-label-short { display: none; }
+.nav-label-long  { display: inline; }
 
 /* ---- Мобильный режим ---- */
 @media (max-width: 768px) {
@@ -1434,8 +1434,8 @@ thead.table-light th {
     }
 
     /* Показываем короткие названия, скрываем длинные */
-    .player-nav .nav-label-long  { display: none; }
-    .player-nav .nav-label-short { display: inline; }
+    .nav-label-long  { display: none; }
+    .nav-label-short { display: inline; }
 }
 
 /* ---- Очень узкий экран ---- */
