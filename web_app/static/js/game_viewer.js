@@ -152,6 +152,7 @@
 
         // ---------- Список ходов ----------
         function buildMovesList() {
+            if (!elMovesList) return;
             elMovesList.innerHTML = '';
 
             const mobileList = document.getElementById('viewMovesListMobile');
@@ -209,11 +210,12 @@
                 i += 2;
             }
 
-            elMoveTotal.textContent = positions.length - 1;
+            if (elMoveTotal) elMoveTotal.textContent = positions.length - 1;
         }
 
         // ---------- Подсветка активного хода ----------
         function highlightMoveInList(index) {
+            if (!elMovesList) return;
             // Десктопный список
             elMovesList.querySelectorAll('.move-san').forEach(s => s.classList.remove('active'));
 
@@ -294,44 +296,63 @@
         }
 
         // ---------- Кнопки навигации ----------
-        document.getElementById('viewFirst').onclick = () => showPosition(0);
-        document.getElementById('viewPrev').onclick  = () => showPosition(currentIndex - 1);
-        document.getElementById('viewNext').onclick  = () => showPosition(currentIndex + 1);
-        document.getElementById('viewLast').onclick  = () => showPosition(positions.length - 1);
+        const btnFirst = document.getElementById('viewFirst');
+        const btnPrev  = document.getElementById('viewPrev');
+        const btnNext  = document.getElementById('viewNext');
+        const btnLast  = document.getElementById('viewLast');
+        const btnFlip  = document.getElementById('viewFlip');
+        const btnPlay  = document.getElementById('viewPlay');
 
-        document.getElementById('viewFlip').onclick = () => {
-            if (!board) return;
-            board.flipped = !board.flipped;
-            renderer.render();
-        };
+        if (btnFirst) {
+            btnFirst.onclick = () => showPosition(0);
+        }
+        if (btnPrev) {
+            btnPrev.onclick = () => showPosition(currentIndex - 1);
+        }
+        if (btnNext) {
+            btnNext.onclick = () => showPosition(currentIndex + 1);
+        }
+        if (btnLast) {
+            btnLast.onclick = () => showPosition(positions.length - 1);
+        }
 
-        document.getElementById('viewPlay').onclick = function () {
-            if (playing) {
-                clearInterval(timer);
-                playing = false;
-                this.textContent = '⏯';
-                return;
-            }
+        if (btnFlip) {
+            btnFlip.onclick = () => {
+                if (!board) return;
+                board.flipped = !board.flipped;
+                renderer.render();
+            };
+        }
 
-            if (currentIndex >= positions.length - 1) {
-                currentIndex = 0;
-            }
-
-            const cfg = getCfg();
-
-            playing = true;
-            this.textContent = '⏸';
-
-            timer = setInterval(() => {
-                if (currentIndex >= positions.length - 1) {
+        if (btnPlay) {
+            btnPlay.onclick = function () {
+                if (playing) {
                     clearInterval(timer);
                     playing = false;
-                    document.getElementById('viewPlay').textContent = '⏯';
+                    this.textContent = '⏯';
                     return;
                 }
-                showPosition(currentIndex + 1);
-            }, cfg.playIntervalMs);
-        };
+
+                if (currentIndex >= positions.length - 1) {
+                    currentIndex = 0;
+                }
+
+                const cfg = getCfg();
+
+                playing = true;
+                this.textContent = '⏸';
+
+                timer = setInterval(() => {
+                    if (currentIndex >= positions.length - 1) {
+                        clearInterval(timer);
+                        playing = false;
+                        if (btnPlay) btnPlay.textContent = '⏯';
+                        return;
+                    }
+                    showPosition(currentIndex + 1);
+                }, cfg.playIntervalMs);
+            };
+        }
 
         // Убираем фокус с кнопок навигации после клика —
         // чтобы браузер не «прыгал» к кнопке и не сдвигал модалку
@@ -429,8 +450,8 @@
                 if (target) target.classList.remove('d-none');
             })();            
 
-            elGameId.textContent = gameId;
-            elMovesList.innerHTML = '<div class="text-muted">Загрузка…</div>';
+            if (elGameId) elGameId.textContent = gameId;
+            if (elMovesList) elMovesList.innerHTML = '<div class="text-muted">Загрузка…</div>';
 
             const mobileList = document.getElementById('viewMovesListMobile');
             if (mobileList) mobileList.innerHTML = '<div class="text-muted">Загрузка…</div>';
@@ -458,7 +479,7 @@
                 const data = await r.json();
 
                 if (!data.positions || !data.positions.length) {
-                    elMovesList.innerHTML = '<div class="text-muted">Не удалось разобрать партию</div>';
+                    if (elMovesList) elMovesList.innerHTML = '<div class="text-muted">Не удалось разобрать партию</div>';
                     if (mobileList) mobileList.innerHTML = '<div class="text-muted">Не удалось разобрать партию</div>';
                     return;
                 }
@@ -486,7 +507,7 @@
                 applyBoardSize();
 
             } catch (e) {
-                elMovesList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
+                if (elMovesList) elMovesList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
                 if (mobileList) mobileList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
             }
         }
