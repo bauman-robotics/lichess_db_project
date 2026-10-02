@@ -1213,7 +1213,14 @@ thead.table-light th {
 @media (max-width: 768px) {
 
     .game-view-page {
-        padding: 0 8px 80px;   /* запас снизу под футер-табы */
+        padding: 0 8px 80px;
+        height: calc(100vh - 100px);
+        height: calc(100dvh - 100px);
+        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 
     .game-view-page .viewer-layout {
