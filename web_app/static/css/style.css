@@ -1213,14 +1213,10 @@ thead.table-light th {
 @media (max-width: 768px) {
 
     .game-view-page {
-        padding: 0 8px;   /* убрали 80px снизу */
-        height: calc(100vh - 100px);
-        height: calc(100dvh - 100px);
-        max-height: calc(100vh - 100px);
-        max-height: calc(100dvh - 100px);
+        padding: 0 8px 50px;
+        /* Убрали фиксированную высоту — страница скроллится целиком */
         display: flex;
         flex-direction: column;
-        overflow: hidden;
     }
 
     .game-view-page .viewer-layout {
@@ -1261,6 +1257,7 @@ thead.table-light th {
 
     .game-view-page .viewer-move-counter { display: none !important; }
 
+
     /* Мобильный блок: табы со своим скроллом */
     .game-view-page .viewer-mobile-content {
         display: flex;
@@ -1280,15 +1277,12 @@ thead.table-light th {
         flex-direction: column;
     }
     .game-view-page .viewer-mobile-scroll {
-        flex: 1 1 auto;
-        min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
         padding: 12px;
-        padding-bottom: 60px;   /* ← запас под футер внутри скролла */
+        max-height: 50vh;      /* ← свой скролл: 50% от высоты экрана */
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
-        /* max-height: 50vh;  ← убрали */
     }
 
     /* Футер-табы — фиксируется внизу */
