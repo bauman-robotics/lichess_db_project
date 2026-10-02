@@ -1698,3 +1698,47 @@ thead.table-light th {
         /* height: 100%; ← убрать или оставить — layout и так растянется */
     }
 }
+
+/* ============================================
+   CONTROLS — мобильные стили
+   ============================================ */
+
+@media (max-width: 768px) {
+    .game-view-page .viewer-controls {
+        margin-top: 0;
+        padding: 8px 4px 4px 4px;
+        border-top: none;
+    }
+
+    /* Кнопки — растягиваются по ширине */
+    .game-view-page .viewer-controls .d-flex {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+        flex-wrap: nowrap;
+    }
+
+    .game-view-page .viewer-controls .btn {
+        flex: 1 1 auto;
+        padding: 10px 0;
+        font-size: 16px;
+        min-width: 0;
+        min-height: 44px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .game-view-page .viewer-controls #viewPlay {
+        flex: 1.4 1 auto;
+    }
+
+    /* Счётчик — как в старом board-col */
+    .game-view-page .viewer-controls .viewer-move-counter {
+        display: block;
+        margin-top: 4px;
+    }
+
+    .game-view-page .viewer-controls .viewer-keyboard-hint {
+        display: none;
+    }
+}
