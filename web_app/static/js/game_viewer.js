@@ -97,7 +97,8 @@
                 
                 if (layout && layout.clientHeight > 0) {
                     // Резерв: кнопки под доской (56) + счётчик (48) + запас (16) = 120
-                    availableHeight = layout.clientHeight - 120;
+                    //availableHeight = layout.clientHeight - 120;
+                    availableHeight = layout.clientHeight;
                 } else {
                     // Если layout ещё не отрисован — считаем от окна
                     availableHeight = window.innerHeight - 250;
