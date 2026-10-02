@@ -1670,3 +1670,31 @@ thead.table-light th {
         padding: 2px 6px;
     }
 }
+
+/* ============================================
+   КОНТРОЛЫ ПОД LAYOUT (десктоп)
+   ============================================ */
+
+@media (min-width: 769px) {
+    /* Контролы под layout — не растягиваются */
+    .game-view-page .viewer-controls {
+        flex: 0 0 auto;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 0.1);
+    }
+
+    /* Board-col теперь содержит ТОЛЬКО доску */
+    .game-view-page .viewer-board-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Layout занимает остаток, но не 100% */
+    .game-view-page .viewer-layout {
+        flex: 1 1 auto;
+        min-height: 0;
+        /* height: 100%; ← убрать или оставить — layout и так растянется */
+    }
+}
