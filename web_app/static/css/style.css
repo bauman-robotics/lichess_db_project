@@ -1679,9 +1679,9 @@ thead.table-light th {
     /* Контролы под layout — не растягиваются */
     .game-view-page .viewer-controls {
         flex: 0 0 auto;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 0.1);
+        margin-top: 0;              /* ← нет мёртвой зоны */
+        padding-top: 8px;           /* ← небольшой отступ от border-top */
+        border-top: 1px solid rgba(255, 255, 0, 0.1);
     }
 
     /* Board-col теперь содержит ТОЛЬКО доску */
