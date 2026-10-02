@@ -1213,7 +1213,7 @@ thead.table-light th {
 @media (max-width: 768px) {
 
     .game-view-page {
-        padding: 0 8px 80px;
+        padding: 0 8px;   /* убрали 80px снизу */
         height: calc(100vh - 100px);
         height: calc(100dvh - 100px);
         max-height: calc(100vh - 100px);
@@ -1285,9 +1285,10 @@ thead.table-light th {
         overflow-y: auto;
         overflow-x: hidden;
         padding: 12px;
+        padding-bottom: 60px;   /* ← запас под футер внутри скролла */
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
-        max-height: 50vh;   /* ограничиваем высоту, чтобы страница скроллилась */
+        /* max-height: 50vh;  ← убрали */
     }
 
     /* Футер-табы — фиксируется внизу */
