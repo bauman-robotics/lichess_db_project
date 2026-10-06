@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}
+О проекте — Lichess Analyzer
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto py-4">
+
+        <!-- Заголовок -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 mb-3">♟️ Lichess Analyzer</h1>
+            <p class="lead text-muted">
+                Анализ шахматных партий с Lichess: статистика, дебюты,
+                разбор через DeepSeek и просмотр партий с доской.
+            </p>
+        </div>
+
+        <!-- Видеопрезентация -->
+        <div class="card shadow-sm mb-5">
+            <div class="card-header">
+                <h5 class="mb-0">🎬 Видеопрезентация</h5>
+            </div>
+            <div class="card-body">
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://player.vimeo.com/video/1232128119?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
+                            frameborder="0"
+                            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            title="Lichess_analyzer_2026-10-01"></iframe>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    Обзор функционала: от поиска игрока до разбора партии.
+                </p>
+            </div>
+        </div>
+
+        <!-- Что умеет -->
+        <div class="card shadow-sm mb-5">
+            <div class="card-header">
+                <h5 class="mb-0">⚙️ Что умеет проект</h5>
+            </div>
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <h6>🔍 Поиск и загрузка игрока</h6>
+                        <p class="text-muted small mb-0">
+                            Введите имя игрока Lichess — проект скачает
+                            до 1000 (или больше) партий и сохранит в локальную БД.
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>📊 Полная статистика</h6>
+                        <p class="text-muted small mb-0">
+                            Победы/поражения/ничьи, рейтинг, точность,
+                            соперники, период, топ дебютов, прогресс рейтинга.
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>📈 Разделы по игроку</h6>
+                        <ul class="text-muted small mb-0 ps-3">
+                            <li><strong>Игры</strong> — список партий + обновление</li>
+                            <li><strong>Прогресс</strong> — график рейтинга + рейтинговая статистика</li>
+                            <li><strong>Контроль</strong> — по контролю времени</li>
+                            <li><strong>Длина</strong> — распределение + топ-10 коротких/длинных</li>
+                            <li><strong>Дебюты</strong> — топ дебютов</li>
+                            <li><strong>Партии по дебютам</strong> — фильтр по названию/результату/цвету</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>♟️ Просмотр партии</h6>
+                        <ul class="text-muted small mb-0 ps-3">
+                            <li>Доска с координатами и подсветкой последнего хода</li>
+                            <li>Список ходов, навигация: ◀ ▶ ⏮ ⏭ 🔄 ⏯</li>
+                            <li>Клавиатура: ← → Space Home End</li>
+                            <li>Адаптивный layout для десктопа и мобильного</li>
+                            <li><strong>Ссылка на партию</strong> — можно делиться</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>🤖 AI-разбор через DeepSeek</h6>
+                        <ul class="text-muted small mb-0 ps-3">
+                            <li>Разбор партии с указанием ошибок и ключевых ходов</li>
+                            <li>Поддержка нескольких промптов (<code>game_analysis</code>, <code>game_analysis_sarcastic</code>)</li>
+                            <li>Режимы: <strong>API</strong> (официальный DeepSeek) или <strong>Bridge</strong> (бесплатная обёртка)</li>
+                            <li>Отключение reasoning — быстро и дёшево</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>🔄 Обновление игр</h6>
+                        <p class="text-muted small mb-0">
+                            Кнопка «Обновить игры» дозагружает только новые партии
+                            с Lichess (по дате последней игры в БД).
+                            Дубликаты пропускаются через <code>SAVEPOINT</code>.
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>📱 Мобильная адаптация</h6>
+                        <p class="text-muted small mb-0">
+                            Компактные карточки игр, короткие названия вкладок,
+                            скролл страницы + внутренние скроллы вкладок,
+                            фиксированный футер с табами.
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>⚡ Производительность</h6>
+                        <p class="text-muted small mb-0">
+                            Локальная БД (PostgreSQL), gunicorn + nginx,
+                            кеш CSS/JS по версии, адаптивный размер доски.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Как это работает -->
+        <div class="card shadow-sm mb-5">
+            <div class="card-header">
+                <h5 class="mb-0">🚀 Как начать</h5>
+            </div>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li class="mb-2">
+                        <strong>Введите имя игрока</strong> на странице
+                        <a href="/lichess-analyzer/search">🔍 Поиск</a>.
+                    </li>
+                    <li class="mb-2">
+                        <strong>Дождитесь загрузки партий</strong> —
+                        проект скачает игры с Lichess и сохранит в БД.
+                    </li>
+                    <li class="mb-2">
+                        <strong>Смотрите статистику</strong> на странице игрока:
+                        вкладки «Прогресс», «Контроль», «Длина», «Дебюты».
+                    </li>
+                    <li class="mb-2">
+                        <strong>Откройте партию</strong> — клик по 👁 в списке,
+                        затем нажимайте 🤖 для AI-разбора.
+                    </li>
+                    <li class="mb-0">
+                        <strong>Обновляйте игры</strong> — кнопка «🔄 Обновить игры»
+                        дозагрузит новые партии с Lichess.
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="text-center mb-5">
+            <a href="/lichess-analyzer/search" class="btn btn-primary btn-lg">
+                🔍 Начать анализ
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

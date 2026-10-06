@@ -1024,6 +1024,10 @@ def index():
     """Главная страница"""
     return render_template('index.html')
 
+@main_bp.route('/about')
+def about():
+    """Страница с описанием проекта и видеопрезентацией."""
+    return render_template('about.html')
 
 @main_bp.route('/search', methods=['GET', 'POST'])
 def search():
