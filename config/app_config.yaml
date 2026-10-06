@@ -73,10 +73,37 @@ validation:
 
 # Настройки DeepSeek
 deepseek:
+  # Режим: bridge (Post-Bridge, бесплатно) | api (официальный DeepSeek) | disabled
+  mode: "api"
+
+  # Общие настройки (fallback)
+  system_prompt: "Ты полезный помощник. Отвечай на русском языке."
+  temperature: 0.7
+  timeout: 90
+
+  # Промпт из config/deepseek_prompts.yaml
   # Какой промпт использовать для анализа партий.
   # Доступные варианты — ключи из config/deepseek_prompts.yaml
   # Примеры: game_analysis, game_analysis_sarcastic
   prompt_key: "game_analysis_sarcastic"
+
+  # Post-Bridge (обёртка над chat.deepseek.com)
+  bridge:
+    url: "http://localhost:8001/v1/chat/completions"
+    healthz: "http://localhost:8001/v1/models"
+    model: "deepseek-chat"
+    max_tokens: 2000
+    thinking_disabled: false      # не применимо, но пусть будет
+
+  # Официальный DeepSeek API
+  api:
+    url: "https://api.deepseek.com/v1/chat/completions"
+    healthz: "https://api.deepseek.com/v1/models"
+    model: "deepseek-flash"       # или deepseek-v4-pro
+    max_tokens: 4000
+    thinking_disabled: true       # ← отключает reasoning
+
+
 
 viewer:
   board_size_desktop: 900   # px
