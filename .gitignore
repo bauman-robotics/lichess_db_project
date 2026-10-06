@@ -46,3 +46,5 @@ htmlcov/
 *.bak
 
 Info_lichess_analyzer_private/
+
+web_app/static/video/
