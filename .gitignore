@@ -48,3 +48,5 @@ htmlcov/
 Info_lichess_analyzer_private/
 
 web_app/static/video/
+# ai-coder output
+.ai-out/
