@@ -50,3 +50,18 @@ Info_lichess_analyzer_private/
 web_app/static/video/
 # ai-coder output
 .ai-out/
+
+# Бэкапы
+*.bak
+*.bak[0-9]*
+
+# Env-файлы с ключами
+.env
+.env.*
+
+# Сырьё транскрипций (воспроизводимо из *_punctuated.txt)
+data/chess_transcripts/cleaned/
+data/chess_transcripts/*_punctuated.txt
+
+# Дубликаты
+data/chess_transcripts/markers (Copy)/

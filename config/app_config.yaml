@@ -85,7 +85,7 @@ deepseek:
   # Какой промпт использовать для анализа партий.
   # Доступные варианты — ключи из config/deepseek_prompts.yaml
   # Примеры: game_analysis, game_analysis_sarcastic
-  prompt_key: "game_analysis_sarcastic"
+  prompt_key: "game_analysis_shahmaty_eto_kruto"
 
   # Post-Bridge (обёртка над chat.deepseek.com)
   bridge:

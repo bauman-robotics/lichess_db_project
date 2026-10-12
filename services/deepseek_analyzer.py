@@ -45,6 +45,9 @@ DEFAULT_API_TOKENS    = 4000
 VALID_MODES = ("bridge", "api", "disabled")
 
 PROMPTS_FILE = Path(__file__).parent.parent / 'config' / 'deepseek_prompts.yaml'
+STYLE_GUIDE_FILE = (
+    Path(__file__).parent.parent / 'data' / 'chess_transcripts' / 'style_guide.md'
+)
 
 
 # ============================================================
@@ -222,18 +225,53 @@ def clean_pgn(pgn: str) -> str:
 # ФОРМИРОВАНИЕ ПРОМПТА
 # ============================================================
 
-def build_prompt(game: Dict, prompts: Dict[str, str], player_name: str) -> Tuple[str, str]:
-    """Формирует system и user промпты."""
+def load_style_guide() -> str | None:
+    """Читает style_guide.md, если он есть. Иначе None."""
+    if not STYLE_GUIDE_FILE.exists():
+        return None
+    try:
+        return STYLE_GUIDE_FILE.read_text(encoding="utf-8").strip()
+    except Exception as e:
+        logger.warning(f"Не удалось прочитать {STYLE_GUIDE_FILE}: {e}")
+        return None
+
+
+def build_prompt(
+    game: Dict,
+    prompts: Dict[str, str],
+    player_name: str,
+    style_guide: str | None = None,
+) -> Tuple[str, str]:
+    """Формирует system и user промпты.
+
+    style_guide — опциональный текст справочника стиля (вставляется
+    в начало user-промпта как {style_guide_block}).
+    """
     system = prompts['system'].strip()
 
     opening         = game.get('opening_name')    or '—'
     opponent_rating = game.get('opponent_rating') or '?'
     time_control    = game.get('time_control')    or '—'
-    move_count      = game.get('move_count')      or 0
+
+    # move_count в БД = полуходы; в промпт отдаём полные ходы
+    plies = game.get('move_count') or 0
+    move_count = (plies + 1) // 2 if plies else 0
+
+    # color: из БД идёт player_color, fallback на старый color
+    player_color = game.get('color') or game.get('player_color') or '?'
+
+    style_guide_block = ""
+    if style_guide:
+        style_guide_block = (
+            "СПРАВОЧНИК СТИЛЯ КАНАЛА "
+            "(выбирай подходящие приёмы под конкретную партию):\n\n"
+            + style_guide
+            + "\n\n---\n\n"
+        )
 
     user = prompts['user_template'].format(
         player_name=player_name,
-        player_color=game.get('color', '?'),
+        player_color=player_color,
         opponent_name=game.get('opponent_name', '?'),
         opponent_rating=opponent_rating,
         result=game.get('result', '?'),
@@ -241,6 +279,7 @@ def build_prompt(game: Dict, prompts: Dict[str, str], player_name: str) -> Tuple
         time_control=time_control,
         move_count=move_count,
         pgn=strip_clk(game.get('pgn_moves', '')),
+        style_guide_block=style_guide_block,
     ).strip()
 
     return system, user
@@ -374,7 +413,10 @@ def analyze_game(game: Dict, player_name: str) -> str:
         )
 
     prompts = load_prompts()
-    system, user = build_prompt(game, prompts, player_name)
+    style_guide = load_style_guide()
+    system, user = build_prompt(
+        game, prompts, player_name, style_guide=style_guide
+    )
 
     logger.info(
         f"Анализ партии {game.get('game_id')} для {player_name} "
