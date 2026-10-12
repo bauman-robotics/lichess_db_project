@@ -65,3 +65,6 @@ data/chess_transcripts/*_punctuated.txt
 
 # Дубликаты
 data/chess_transcripts/markers (Copy)/
+
+# Bundle для нового чата — генерируется
+docs/bundle/bundle.md
