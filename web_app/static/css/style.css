@@ -2913,3 +2913,45 @@ thead.table-light th {
         flex-basis: 22px;
     }
 }
+
+/* ============================================
+   ВАРИАНТЫ ПРОМПТА АНАЛИЗА
+   ============================================ */
+
+.analysis-prompt-bar {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+}
+
+.analysis-prompt-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.analysis-prompt-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.analysis-prompt-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-gold);
+}
+
+.analysis-prompt-btn.active {
+    color: #1a1a2e;
+    background: var(--accent-gold);
+    border-color: var(--accent-gold);
+}
+
+#analysisRerunBtn:disabled {
+    opacity: 0.55;
+}

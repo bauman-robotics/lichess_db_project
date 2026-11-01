@@ -1,3 +1,9 @@
+# Подписи для кнопок выбора варианта разбора.
+prompt_variants:
+  game_analysis: "Обычный разбор"
+  game_analysis_sarcastic: "Саркастичный разбор"
+  game_analysis_shahmaty_eto_kruto: "Шахматы — это Круто"
+
 game_analysis:
   system: |
     Ты — шахматный тренер. Анализируй партии игроков клубного уровня

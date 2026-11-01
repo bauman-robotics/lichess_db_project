@@ -33,6 +33,23 @@
                     </div>
                 </div>
 
+                <!-- Вариант промпта и повторный анализ -->
+                <div class="analysis-prompt-bar mb-3">
+                    <div class="small text-muted mb-2">Вариант разбора:</div>
+                    <div class="analysis-prompt-buttons" id="analysisPromptButtons">
+                        {% for key, label in prompt_variants.items() %}
+                            <button type="button"
+                                    class="analysis-prompt-btn{% if loop.first %} active{% endif %}"
+                                    data-prompt-key="{{ key }}">
+                                {{ label }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary mt-2" id="analysisRerunBtn">
+                        🔄 Повторить анализ
+                    </button>
+                </div>
+
                 <!-- Краткая нотация -->
                 <details class="mb-3">
                     <summary class="text-muted" style="cursor: pointer;">

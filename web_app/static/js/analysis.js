@@ -40,13 +40,45 @@
         const elStatus     = document.getElementById('analysis-status');
         const elError      = document.getElementById('analysis-error');
         const elContent    = document.getElementById('analysis-content');
+        const elPromptButtons = Array.from(
+            document.querySelectorAll('.analysis-prompt-btn')
+        );
+        const elRerunBtn = document.getElementById('analysisRerunBtn');
 
         // ---------- Состояние ----------
         let currentGame = null;  // { username, gameId }
+        let selectedPrompt = '';
+
+        function selectPrompt(key) {
+            selectedPrompt = key || '';
+            elPromptButtons.forEach(function (button) {
+                button.classList.toggle('active', button.dataset.promptKey === selectedPrompt);
+            });
+            try {
+                if (selectedPrompt) {
+                    localStorage.setItem('analysis_prompt', selectedPrompt);
+                }
+            } catch (e) { /* localStorage может быть недоступен */ }
+        }
+
+        if (elPromptButtons.length) {
+            let savedPrompt = '';
+            try { savedPrompt = localStorage.getItem('analysis_prompt') || ''; } catch (e) {}
+            const hasSaved = elPromptButtons.some(function (b) {
+                return b.dataset.promptKey === savedPrompt;
+            });
+            selectPrompt(hasSaved ? savedPrompt : elPromptButtons[0].dataset.promptKey);
+            elPromptButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    selectPrompt(button.dataset.promptKey);
+                });
+            });
+        }
 
         // ---------- Утилиты ----------
 
         function setButtonState(btn, state) {
+            if (!btn) return;
             btn.dataset.state = state;
             btn.classList.remove(
                 'btn-analysis-none',
@@ -170,22 +202,28 @@
 
         // ---------- Запуск анализа (без открытия модалки) ----------
 
-        async function startAnalysis(username, gameId, button) {
+        async function startAnalysis(username, gameId, button, options) {
             setButtonState(button, 'running');
+            if (elRerunBtn) elRerunBtn.disabled = true;
 
             try {
                 const r = await fetch(
                     `/lichess-analyzer/player/${username}/game/${gameId}/analyze`,
                     {
                         method: 'POST',
-                        headers: { 'X-CSRFToken': CSRF_TOKEN },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': CSRF_TOKEN,
+                        },
                         credentials: 'same-origin',
+                        body: JSON.stringify(options || {}),
                     }
                 );
                 const data = await r.json();
 
                 if (data.status === 'done') {
                     setButtonState(button, 'done');
+                    if (elRerunBtn) elRerunBtn.disabled = false;
                     openModalWithResult(username, gameId);
                     return;
                 }
@@ -195,14 +233,17 @@
                 }
                 if (data.status === 'busy') {
                     setButtonState(button, 'none');
+                    if (elRerunBtn) elRerunBtn.disabled = false;
                     alert(data.message || 'Дождитесь окончания текущего анализа');
                     return;
                 }
                 setButtonState(button, 'error');
                 alert(data.message || 'Ошибка анализа');
+                if (elRerunBtn) elRerunBtn.disabled = false;
             } catch (e) {
                 setButtonState(button, 'error');
                 alert('Ошибка сети: ' + e.message);
+                if (elRerunBtn) elRerunBtn.disabled = false;
             }
         }
 
@@ -221,27 +262,46 @@
 
                     if (data.status === 'done') {
                         setButtonState(button, 'done');
+                        if (elRerunBtn) elRerunBtn.disabled = false;
                         openModalWithResult(username, gameId);
                         return;
                     }
                     if (data.status === 'error') {
                         setButtonState(button, 'error');
+                        if (elRerunBtn) elRerunBtn.disabled = false;
                         alert(data.message || 'Ошибка анализа');
                         return;
                     }
                     if (attempts >= maxAttempts) {
                         setButtonState(button, 'error');
+                        if (elRerunBtn) elRerunBtn.disabled = false;
                         alert('Превышено время ожидания');
                         return;
                     }
                     setTimeout(tick, 2000);
                 } catch (e) {
                     setButtonState(button, 'error');
+                    if (elRerunBtn) elRerunBtn.disabled = false;
                     alert('Ошибка сети: ' + e.message);
                 }
             };
 
             setTimeout(tick, 2000);
+        }
+
+        if (elRerunBtn) {
+            elRerunBtn.addEventListener('click', function () {
+                if (!currentGame) return;
+                elContent.textContent = '';
+                elError.classList.add('d-none');
+                elStatus.classList.remove('d-none');
+                startAnalysis(
+                    currentGame.username,
+                    currentGame.gameId,
+                    null,
+                    { force: true, prompt_key: selectedPrompt }
+                );
+            });
         }
 
         // ---------- Обработка кликов по кнопкам анализа ----------

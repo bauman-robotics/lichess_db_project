@@ -50,7 +50,10 @@ from services.streamers import get_streamer_cards, streamer_table_names
 
 from web_app import tasks as analysis_tasks
 from web_app.import_tasks import create_import_task, get_import_task
-from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError, DeepSeekUnavailable, clean_pgn
+from services.deepseek_analyzer import (
+    analyze_game, check_health, clean_pgn, list_prompt_variants,
+    DeepSeekError, DeepSeekUnavailable,
+)
 
 main_bp = Blueprint('main', __name__)
 
@@ -998,7 +1001,8 @@ def save_analysis(username: str, game_id: str, analysis: str) -> bool:
         db.table_name = original_table
         db.close()
 
-def _run_analysis_task(task_id: str, username: str, game_id: str):
+def _run_analysis_task(task_id: str, username: str, game_id: str,
+                       prompt_key: str | None = None):
     """
     Выполняется в фоновом потоке.
     Загружает партию, вызывает DeepSeek, сохраняет результат.
@@ -1013,7 +1017,7 @@ def _run_analysis_task(task_id: str, username: str, game_id: str):
             raise DeepSeekError(f"Партия {game_id} не найдена")
 
         # 2. Вызываем DeepSeek
-        analysis = analyze_game(game, player_name=username)
+        analysis = analyze_game(game, player_name=username, prompt_key=prompt_key)
         logger.info(f"[task {task_id}] Ответ получен, {len(analysis)} символов")
 
         # 3. Сохраняем в БД
@@ -2446,12 +2450,23 @@ def analyze_game_route(username, game_id):
     """
     Запускает анализ партии через DeepSeek.
 
+    JSON body (необязательно):
+      prompt_key — вариант промпта
+      force — перезапустить, даже если анализ уже есть
+
     Возвращает JSON:
       - {status: "done", analysis: "..."} — если анализ уже есть
       - {status: "started", task_id: "..."} — если задача запущена
       - {status: "busy", message: "..."} — если идёт другой анализ
       - {status: "error", message: "..."} — ошибка
     """
+    data = request.get_json(silent=True) or {}
+    variants = list_prompt_variants()
+    prompt_key = str(data.get('prompt_key') or '').strip() or None
+    if prompt_key and prompt_key not in variants:
+        return jsonify({'status': 'error', 'message': 'Неизвестный вариант промпта'}), 400
+    force = bool(data.get('force'))
+
     # 1. Проверяем, есть ли уже анализ
     game = get_game_for_analysis(username, game_id)
     if not game:
@@ -2460,7 +2475,7 @@ def analyze_game_route(username, game_id):
             'message': f'Партия {game_id} не найдена',
         }), 404
 
-    if game['game_analysis']:
+    if game['game_analysis'] and not force:
         return jsonify({
             'status': 'done',
             'analysis': game['game_analysis'],
@@ -2470,6 +2485,11 @@ def analyze_game_route(username, game_id):
     # 2. Проверяем, есть ли running-задача для этой пары
     running = analysis_tasks.get_running_task_for(username, game_id)
     if running:
+        if force:
+            return jsonify({
+                'status': 'busy',
+                'message': 'Анализ уже выполняется. Дождитесь ответа.',
+            })
         return jsonify({
             'status': 'started',
             'task_id': running['task_id'],
@@ -2493,7 +2513,7 @@ def analyze_game_route(username, game_id):
     # 5. Запускаем фоновый поток
     t = threading.Thread(
         target=_run_analysis_task,
-        args=(task_id, username, game_id),
+        args=(task_id, username, game_id, prompt_key),
         daemon=True,
     )
     t.start()
@@ -2501,7 +2521,9 @@ def analyze_game_route(username, game_id):
     return jsonify({
         'status': 'started',
         'task_id': task_id,
-    })    
+        'prompt_key': prompt_key,
+    })
+
 
 @main_bp.route('/player/<username>/game/<game_id>/analyze/status/<task_id>', methods=['GET'])
 def analyze_status_route(username, game_id, task_id):

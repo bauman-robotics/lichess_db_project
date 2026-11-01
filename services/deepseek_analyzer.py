@@ -166,25 +166,47 @@ def check_health() -> bool:
 # ПРОМПТ
 # ============================================================
 
-def load_prompts() -> Dict[str, str]:
-    """
-    Загружает промпты из config/deepseek_prompts.yaml.
-    """
+def _read_prompts_file() -> dict:
     if not PROMPTS_FILE.exists():
         raise DeepSeekError(f"Файл промптов не найден: {PROMPTS_FILE}")
-
     try:
         with open(PROMPTS_FILE, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f)
+            return yaml.safe_load(f) or {}
     except Exception as e:
         raise DeepSeekError(f"Ошибка чтения {PROMPTS_FILE}: {e}")
 
-    prompt_key = "game_analysis"
+
+def list_prompt_variants() -> Dict[str, str]:
+    """Возвращает доступные варианты промпта: {key: подпись}."""
     try:
-        cfg = _load_config()
-        prompt_key = cfg.get('deepseek.prompt_key', 'game_analysis') or 'game_analysis'
-    except Exception:
-        pass
+        data = _read_prompts_file()
+    except DeepSeekError:
+        return {}
+    labels = data.get('prompt_variants') or {}
+    variants = {}
+    for key, section in data.items():
+        if key == 'prompt_variants' or not isinstance(section, dict):
+            continue
+        if 'system' in section and 'user_template' in section:
+            variants[key] = str(labels.get(key) or key)
+    return variants
+
+
+def load_prompts(prompt_key: str | None = None) -> Dict[str, str]:
+    """
+    Загружает промпты из config/deepseek_prompts.yaml.
+
+    prompt_key — конкретный вариант; иначе deepseek.prompt_key из конфига.
+    """
+    data = _read_prompts_file()
+
+    if prompt_key is None:
+        prompt_key = "game_analysis"
+        try:
+            cfg = _load_config()
+            prompt_key = cfg.get('deepseek.prompt_key', 'game_analysis') or 'game_analysis'
+        except Exception:
+            pass
 
     if not data or prompt_key not in data:
         raise DeepSeekError(
@@ -394,7 +416,7 @@ def _call_deepseek(system: str, user: str) -> str:
 # ГЛАВНАЯ ФУНКЦИЯ
 # ============================================================
 
-def analyze_game(game: Dict, player_name: str) -> str:
+def analyze_game(game: Dict, player_name: str, prompt_key: str | None = None) -> str:
     """
     Синхронно анализирует партию через DeepSeek.
 
@@ -412,7 +434,7 @@ def analyze_game(game: Dict, player_name: str) -> str:
             f"DeepSeek API недоступен (mode={cfg['mode']}, url={cfg['url']})"
         )
 
-    prompts = load_prompts()
+    prompts = load_prompts(prompt_key)
     style_guide = load_style_guide()
     system, user = build_prompt(
         game, prompts, player_name, style_guide=style_guide
@@ -420,7 +442,7 @@ def analyze_game(game: Dict, player_name: str) -> str:
 
     logger.info(
         f"Анализ партии {game.get('game_id')} для {player_name} "
-        f"[mode={cfg['mode']}, model={cfg['model']}]: "
+        f"[mode={cfg['mode']}, model={cfg['model']}, prompt={prompt_key or 'default'}]: "
         f"system={len(system)} символов, user={len(user)} символов"
     )
 
