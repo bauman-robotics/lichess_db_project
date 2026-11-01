@@ -3803,3 +3803,33 @@ thead.table-light th {
         padding: 5px 2px !important;
     }
 }
+
+/* Верхняя навигация разделов на мобильном: 3 кнопки в ряд, два ряда */
+@media (max-width: 768px) {
+    .player-nav {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px !important;
+        overflow: visible !important;
+        padding-bottom: 0 !important;
+        scroll-snap-type: none !important;
+    }
+
+    .player-nav a {
+        width: 100%;
+        min-width: 0;
+        padding: 8px 4px !important;
+        font-size: 11px;
+        justify-content: center;
+        gap: 3px;
+        white-space: nowrap;
+        scroll-snap-align: none;
+    }
+}
+
+@media (max-width: 400px) {
+    .player-nav a {
+        font-size: 10px;
+        padding: 7px 2px !important;
+    }
+}
