@@ -31,7 +31,7 @@
            title="Открыть фильтр партий{% if game.opening_name %} с этим дебютом{% endif %}">
             🔍 <span class="action-label">Фильтр партий</span>
         </a>
-        <button type="button" class="btn btn-sm btn-outline-secondary" id="copyLinkBtn" title="Скопировать ссылку">
+        <button type="button" class="btn btn-sm btn-outline-secondary js-copy-link" id="copyLinkBtn" title="Скопировать ссылку">
             🔗 <span class="action-label">Скопировать</span>
         </button>
         <button type="button" class="btn btn-sm btn-outline-secondary js-copy-notation"
@@ -41,6 +41,54 @@
         {{ favorite_button(username, game.game_id, game.is_favorite, with_label=True) }}
         {{ note_button(username, game.game_id, game.has_note, with_label=True) }}
     </div>
+
+    {% if engine_enabled %}
+    <div class="game-mobile-actions-bar d-md-none">
+        <a href="/lichess-analyzer/player/{{ username }}"
+           class="btn btn-sm btn-outline-secondary game-mobile-back" title="К игроку">←</a>
+        <div class="dropdown flex-grow-1">
+            <button type="button" class="btn btn-sm btn-outline-secondary w-100 dropdown-toggle"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                ☰ Действия
+            </button>
+            <ul class="dropdown-menu game-mobile-menu">
+                <li>
+                    <a class="dropdown-item" href="https://lichess.org/{{ game.game_id }}" target="_blank" rel="noopener">
+                        ↗ Открыть на Lichess
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="/lichess-analyzer/player/{{ username }}/openings">
+                        📖 Топ дебютов
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item"
+                       href="/lichess-analyzer/player/{{ username }}/openings{% if game.opening_name %}?opening={{ game.opening_name|urlencode }}{% endif %}">
+                        🔍 Фильтр партий
+                    </a>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item js-copy-link">
+                        🔗 Скопировать ссылку
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item js-copy-notation">
+                        📋 Скопировать нотацию
+                    </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-2 py-1">
+                    {{ favorite_button(username, game.game_id, game.is_favorite, with_label=True) }}
+                </li>
+                <li class="px-2 py-1">
+                    {{ note_button(username, game.game_id, game.has_note, with_label=True) }}
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Основной layout -->
     <div class="viewer-layout">
@@ -224,19 +272,28 @@ window.GAME_CONTEXT = {
     startPly: {{ start_ply|tojson }},
 };
 
-document.getElementById('copyLinkBtn')?.addEventListener('click', function () {
+(function () {
+    const buttons = document.querySelectorAll('.js-copy-link');
+    if (!buttons.length) return;
     const url = window.location.href;
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-            this.textContent = '✅ Скопировано';
-            setTimeout(() => { this.textContent = '🔗 Скопировать ссылку'; }, 2000);
-        }).catch(() => {
-            prompt('Скопируйте ссылку:', url);
+    buttons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            function done() {
+                const original = button.dataset.originalLabel || button.textContent.trim();
+                button.dataset.originalLabel = original;
+                button.textContent = '✅ Скопировано';
+                setTimeout(function () { button.textContent = original; }, 1800);
+            }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(done).catch(function () {
+                    prompt('Скопируйте ссылку:', url);
+                });
+            } else {
+                prompt('Скопируйте ссылку:', url);
+            }
         });
-    } else {
-        prompt('Скопируйте ссылку:', url);
-    }
-});
+    });
+})();
 
 (function () {
     const buttons = document.querySelectorAll('.js-copy-notation');

@@ -3494,3 +3494,70 @@ thead.table-light th {
         color: var(--text-secondary);
     }
 }
+
+/* ============================================
+   МОБИЛЬНАЯ ШАПКА И МЕНЮ ДЕЙСТВИЙ
+   ============================================ */
+
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .navbar-brand {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        font-size: 17px;
+        padding: 2px 0;
+    }
+
+    .navbar-toggler {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+
+    .game-view-engine .game-view-actions {
+        display: none !important;
+    }
+
+    .game-mobile-actions-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+
+    .game-mobile-back {
+        flex: 0 0 40px;
+        width: 40px;
+        min-height: 40px;
+        padding: 0;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .game-mobile-actions-bar > .dropdown {
+        min-width: 0;
+    }
+
+    .game-mobile-actions-bar .dropdown-toggle {
+        min-height: 40px;
+        text-align: left;
+    }
+
+    .game-mobile-menu {
+        width: 100%;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .game-mobile-menu .btn-favorite,
+    .game-mobile-menu .btn-note {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+    }
+}
