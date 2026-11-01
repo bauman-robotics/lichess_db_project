@@ -167,12 +167,12 @@
                 <small class="text-muted" id="engineEvalSource">Lichess / Stockfish · depth {{ engine_depth }}</small>
                 <div class="engine-move-legend" title="Чей был ход">
                     <span class="engine-legend-item">
-                        <span class="engine-dot engine-dot-white"></span>
-                        <span id="legendWhite">Белые</span>
+                        <span class="engine-dot engine-dot-mine"></span>
+                        <span id="legendMine">Мои ходы</span>
                     </span>
                     <span class="engine-legend-item">
-                        <span class="engine-dot engine-dot-black"></span>
-                        <span id="legendBlack">Чёрные</span>
+                        <span class="engine-dot engine-dot-opponent"></span>
+                        <span id="legendOpponent">Ходы соперника</span>
                     </span>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="engineGraphToggle">
@@ -411,7 +411,7 @@ window.ENGINE_CONTEXT = {
     playerColor: {{ game.color|tojson }},
 };
 </script>
-<script src="/lichess-analyzer/static/js/engine_chart.js?v=4"></script>
+<script src="/lichess-analyzer/static/js/engine_chart.js?v=5"></script>
 {% endif %}
 {% endblock %}
 

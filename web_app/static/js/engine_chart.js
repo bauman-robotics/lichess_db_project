@@ -65,47 +65,48 @@
         return 'нет оценок';
     }
 
-    function dotFill(pos, active) {
-        if (active) return '#ffd700';
+    function isMine(pos) {
+        return !!(pos && pos.color && ctx.playerColor && pos.color === ctx.playerColor);
+    }
+
+    function pointColor(pos, active) {
         if (!pos || !pos.color) return null;
-        return pos.color === 'white' ? '#f0f0f0' : '#222222';
+        if (active) return isMine(pos) ? '#b9e4ff' : '#ffd1a8';
+        return isMine(pos) ? '#4da3ff' : '#ff9f43';
     }
 
-    function dotBorder(pos, active) {
-        if (active) return '#fff3c4';
-        if (pos && pos.color === 'black') return '#9aa0a6';
-        return '#888888';
+    function pointBorder(pos, active) {
+        if (active) return '#ffffff';
+        return isMine(pos) ? '#b9e4ff' : '#ffd1a8';
     }
 
-    function updateMoveDots(activeIndex) {
-        if (!chart || !chart.data || !chart.data.datasets[1]) return;
-        const ds = chart.data.datasets[1];
+    function updatePointStyles(activeIndex) {
+        if (!chart || !chart.data || !chart.data.datasets[0]) return;
+        const ds = chart.data.datasets[0];
         ds.pointBackgroundColor = positions.map(function (p, i) {
-            return i === activeIndex ? '#ffd700' : dotFill(p, false);
+            return pointColor(p, i === activeIndex);
         });
         ds.pointBorderColor = positions.map(function (p, i) {
-            return i === activeIndex ? '#fff3c4' : dotBorder(p, false);
+            return pointBorder(p, i === activeIndex);
+        });
+        ds.pointBorderWidth = positions.map(function (p, i) {
+            return i === activeIndex ? 2.5 : 1;
         });
         ds.pointRadius = positions.map(function (p, i) {
-            return i === activeIndex ? 6 : 3.5;
+            if (!p.color) return 0;
+            return i === activeIndex ? 7 : 3.2;
         });
         chart.update('none');
     }
 
     function updateLegend() {
-        const white = document.getElementById('legendWhite');
-        const black = document.getElementById('legendBlack');
-        if (!white || !black) return;
-        if (ctx.playerColor === 'white') {
-            white.textContent = 'Белые (мои)';
-            black.textContent = 'Чёрные (соперник)';
-        } else if (ctx.playerColor === 'black') {
-            white.textContent = 'Белые (соперник)';
-            black.textContent = 'Чёрные (мои)';
-        } else {
-            white.textContent = 'Белые';
-            black.textContent = 'Чёрные';
-        }
+        const mine = document.getElementById('legendMine');
+        const opponent = document.getElementById('legendOpponent');
+        if (!mine || !opponent) return;
+        const side = ctx.playerColor === 'white' ? 'белые'
+            : (ctx.playerColor === 'black' ? 'чёрные' : '');
+        mine.textContent = 'Мои ходы' + (side ? ' (' + side + ')' : '');
+        opponent.textContent = 'Ходы соперника';
     }
 
     function drawChart() {
@@ -142,36 +143,18 @@
                     tension: 0.1,
                     fill: true,
                     spanGaps: false,
-                    pointRadius: 2,
-                    pointHoverRadius: 5,
-                    pointHitRadius: 10,
-                    pointBackgroundColor: values.map(function (v, i) {
-                        if (positions[i] && positions[i].result === 'Loss') return 'rgb(220, 53, 69)';
-                        if (positions[i] && positions[i].result === 'Win') return 'rgb(40, 167, 69)';
-                        return 'rgb(255, 193, 7)';
-                    }),
-                },
-                {
-                    label: 'Ходы',
-                    data: positions.map(function (p) {
-                        return p.color ? -10 : null;
-                    }),
-                    showLine: false,
-                    clip: false,
-                    pointStyle: 'circle',
                     pointRadius: positions.map(function (p) {
-                        return p.color ? 3.5 : 0;
+                        return p.color ? 3.2 : 0;
                     }),
                     pointHoverRadius: 6,
-                    pointHitRadius: 9,
+                    pointHitRadius: 10,
                     pointBackgroundColor: positions.map(function (p) {
-                        return dotFill(p, false);
+                        return pointColor(p, false);
                     }),
                     pointBorderColor: positions.map(function (p) {
-                        return dotBorder(p, false);
+                        return pointBorder(p, false);
                     }),
                     pointBorderWidth: 1,
-                    order: 1,
                 }]
             },
             options: {
@@ -214,20 +197,17 @@
                             },
                             label: function (item) {
                                 const p = positions[item.dataIndex] || {};
-                                if (item.datasetIndex === 1) {
-                                    if (!p.color) return '';
-                                    const side = p.color === 'white' ? 'белые' : 'чёрные';
-                                    const mine = ctx.playerColor === p.color ? ' · мои' : ' · соперник';
-                                    return 'Ход: ' + side + mine;
-                                }
-                                return 'Оценка: ' + fmtEval(p.eval_cp, p.mate);
+                                const side = p.color === 'white' ? 'белые' : 'чёрные';
+                                const owner = isMine(p) ? 'мои' : 'соперник';
+                                return 'Оценка: ' + fmtEval(p.eval_cp, p.mate)
+                                    + (p.color ? ' · ' + side + ', ' + owner : '');
                             }
                         }
                     }
                 }
             }
         });
-        updateMoveDots(window.GameViewer ? window.GameViewer.getCurrentIndex() : 0);
+        updatePointStyles(window.GameViewer ? window.GameViewer.getCurrentIndex() : 0);
         updateLegend();
         setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 0);
     }
@@ -326,8 +306,7 @@
         const index = event.detail.index;
         if (index === undefined || index === null) return;
         try {
-            chart.setActiveElements([{ datasetIndex: 0, index: index }]);
-            updateMoveDots(index);
+            updatePointStyles(index);
         } catch (e) {}
     });
 

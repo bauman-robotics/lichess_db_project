@@ -3649,12 +3649,12 @@ thead.table-light th {
     flex: 0 0 8px;
 }
 
-.engine-dot-white {
-    background: #f0f0f0;
-    border: 1px solid #aaa;
+.engine-dot-mine {
+    background: #4da3ff;
+    border: 1px solid #b9e4ff;
 }
 
-.engine-dot-black {
-    background: #222;
-    border: 1px solid #aaa;
+.engine-dot-opponent {
+    background: #ff9f43;
+    border: 1px solid #ffd1a8;
 }
