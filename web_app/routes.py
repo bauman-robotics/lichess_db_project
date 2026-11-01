@@ -2479,6 +2479,12 @@ def player_move_length(username):
         return redirect(f'/lichess-analyzer/player/{username}')
 
     move_stats = get_move_stats(username)
+    move_game_ids = [
+        g['game_id']
+        for key in ('shortest', 'longest')
+        for g in move_stats.get(key, [])
+    ]
+    favorite_ids = get_favorite_ids(username, move_game_ids)
 
     config_loader = ConfigLoader()
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
@@ -2498,6 +2504,7 @@ def player_move_length(username):
         username=username,
         stats=stats,
         move_stats=move_stats,
+        favorite_ids=favorite_ids,
         viewer_config=viewer_config,
         current_section='move-length',
     )    

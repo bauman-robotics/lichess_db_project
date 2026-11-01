@@ -38,3 +38,66 @@
     {% endif %}
 </button>
 {% endmacro %}
+
+{% macro move_game_card(g, username, favorite_ids, rank) %}
+<div class="game-card-compact">
+    <div class="gc-header">
+        <span class="gc-num">#{{ rank }}</span>
+        <span class="gc-date">{{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else (g.date or '—') }}</span>
+        <span class="gc-color">{% if g.color == 'white' %}⚪{% else %}⚫{% endif %}</span>
+        <span class="gc-rating">{{ g.full_moves }} ходов</span>
+        {% if g.result == 'Win' %}
+            <span class="badge-result badge-result-win">✅ Победа</span>
+        {% elif g.result == 'Loss' %}
+            <span class="badge-result badge-result-loss">❌ Поражение</span>
+        {% elif g.result == 'Draw' %}
+            <span class="badge-result badge-result-draw">➖ Ничья</span>
+        {% else %}
+            <span class="badge-result badge-result-unknown">{{ g.result or '—' }}</span>
+        {% endif %}
+    </div>
+    <div class="gc-opponent">
+        👤 {{ g.opponent or '—' }}
+        {% if g.opponent_rating %}<small>({{ g.opponent_rating }})</small>{% endif %}
+        <span class="gc-sep">·</span>
+        <small>⏰ {{ g.time_control or '—' }}</small>
+    </div>
+    {% if g.opening %}
+        <div class="gc-opening">📖 {{ g.opening }}</div>
+    {% endif %}
+    <div class="gc-actions">
+        {{ favorite_button(username, g.game_id, g.game_id in favorite_ids, with_label=True) }}
+        <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
+           class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro opening_card(op, username) %}
+<div class="opening-card">
+    <div class="opening-card-head">
+        <strong>{{ op.name if op.name else 'Неизвестно' }}</strong>
+        <span class="opening-card-games">{{ op.games }} игр</span>
+    </div>
+    <div class="opening-card-stats">
+        <span class="text-success">✅ {{ op.wins }}</span>
+        <span class="text-danger">❌ {{ op.losses }}</span>
+        <span class="text-warning">➖ {{ op.draws }}</span>
+    </div>
+    {% set win_rate = op.win_rate if op.win_rate is not none else 0 %}
+    <div class="progress" style="height: 16px;">
+        <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+             role="progressbar"
+             style="width: {{ win_rate }}%;"
+             aria-valuenow="{{ win_rate }}"
+             aria-valuemin="0"
+             aria-valuemax="100">
+            {{ '%0.1f'|format(win_rate) }}%
+        </div>
+    </div>
+    <a href="/lichess-analyzer/player/{{ username }}/openings?opening={{ op.name|urlencode }}"
+       class="btn btn-sm btn-outline-secondary mt-2">
+        🔍 Партии
+    </a>
+</div>
+{% endmacro %}

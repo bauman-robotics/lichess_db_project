@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import opening_card %}
 
 {% block title %}
 {{ username }} — Топ дебютов
@@ -18,7 +19,7 @@
             </div>
             <div class="card-body">
                 {% if openings and openings|length > 0 %}
-                    <div class="table-responsive">
+                    <div class="table-responsive desktop-table">
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
                                 <tr>
@@ -62,6 +63,20 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="mobile-cards">
+                        {% for op in openings[:10] %}
+                            {{ opening_card(op, username) }}
+                        {% endfor %}
+                        {% if openings|length > 10 %}
+                            <details class="opening-more">
+                                <summary>Показать все {{ openings|length }}</summary>
+                                {% for op in openings[10:] %}
+                                    {{ opening_card(op, username) }}
+                                {% endfor %}
+                            </details>
+                        {% endif %}
                     </div>
                 {% else %}
                     <div class="text-center text-muted">

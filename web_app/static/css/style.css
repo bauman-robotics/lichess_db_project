@@ -2419,3 +2419,79 @@ thead.table-light th {
         display: inline;
     }
 }
+
+/* ============================================
+   ДЛИНА ПАРТИЙ И ТОП ДЕБЮТОВ — МОБИЛЬНЫЕ КАРТОЧКИ
+   ============================================ */
+
+.distribution-card {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+}
+
+.distribution-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.distribution-head span {
+    color: var(--text-secondary);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.opening-card {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+}
+
+.opening-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.opening-card-head strong {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.opening-card-games {
+    flex: 0 0 auto;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.opening-card-stats {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.opening-more summary {
+    min-height: 44px;
+    padding: 10px 4px;
+    color: var(--accent-gold);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+@media (max-width: 768px) {
+    .move-stats-row .col-md-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}

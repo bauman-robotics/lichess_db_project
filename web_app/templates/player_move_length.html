@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import favorite_button, move_game_card %}
 
 {% block title %}
 {{ username }} — Длина партий
@@ -14,7 +15,7 @@
 
         <!-- КАРТОЧКИ СТАТИСТИКИ ДЛИНЫ -->
         {% if move_stats %}
-            <div class="row mb-4">
+            <div class="row mb-4 move-stats-row">
                 <div class="col-md-3">
                     <div class="stat-card">
                         <div class="stat-label">Средняя длина</div>
@@ -60,7 +61,7 @@
                         <h5 class="mb-0">📊 Распределение по длине</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
+                        <div class="table-responsive desktop-table">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
                                     <tr>
@@ -94,6 +95,28 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <div class="mobile-cards">
+                            {% for item in move_stats.distribution %}
+                                {% set win_rate = item.win_rate|float if item.win_rate is defined and item.win_rate is not none else 0 %}
+                                <div class="distribution-card">
+                                    <div class="distribution-head">
+                                        <strong>{{ item.category }}</strong>
+                                        <span>{{ item.games }} игр · {{ item.wins }} побед</span>
+                                    </div>
+                                    <div class="progress" style="height: 18px;">
+                                        <div class="progress-bar {% if win_rate >= 50 %}bg-success{% elif win_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                             role="progressbar"
+                                             style="width: {{ win_rate }}%;"
+                                             aria-valuenow="{{ win_rate }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
+                                            {{ win_rate|round(1) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             {% endif %}
@@ -105,7 +128,7 @@
                         <h5 class="mb-0">⚡ Топ-10 самых коротких партий</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
+                        <div class="table-responsive desktop-table">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
                                     <tr>
@@ -117,6 +140,7 @@
                                         <th>Ходов</th>
                                         <th>Контроль</th>
                                         <th>Дебют</th>
+                                        <th class="text-center">★</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -150,6 +174,9 @@
                                             <td><strong>{{ g.full_moves }}</strong></td>
                                             <td><small>{{ g.time_control }}</small></td>
                                             <td><small>{{ g.opening or '—' }}</small></td>
+                                            <td class="text-center">
+                                                {{ favorite_button(username, g.game_id, g.game_id in favorite_ids) }}
+                                            </td>
                                             <td>
                                                 <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
                                                    class="btn btn-sm btn-outline-secondary" title="Смотреть партию">
@@ -160,6 +187,12 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="mobile-cards">
+                            {% for g in move_stats.shortest %}
+                                {{ move_game_card(g, username, favorite_ids, loop.index) }}
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -172,7 +205,7 @@
                         <h5 class="mb-0">🐢 Топ-10 самых длинных партий</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
+                        <div class="table-responsive desktop-table">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
                                     <tr>
@@ -184,6 +217,7 @@
                                         <th>Ходов</th>
                                         <th>Контроль</th>
                                         <th>Дебют</th>
+                                        <th class="text-center">★</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -217,6 +251,9 @@
                                             <td><strong>{{ g.full_moves }}</strong></td>
                                             <td><small>{{ g.time_control }}</small></td>
                                             <td><small>{{ g.opening or '—' }}</small></td>
+                                            <td class="text-center">
+                                                {{ favorite_button(username, g.game_id, g.game_id in favorite_ids) }}
+                                            </td>
                                             <td>
                                                 <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
                                                    class="btn btn-sm btn-outline-secondary" title="Смотреть партию">
@@ -227,6 +264,12 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="mobile-cards">
+                            {% for g in move_stats.longest %}
+                                {{ move_game_card(g, username, favorite_ids, loop.index) }}
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
