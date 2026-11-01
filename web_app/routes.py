@@ -1622,8 +1622,11 @@ def player_stats(username):
         config_loader.get('ui.featured_player')
         or config_loader.get('secrets.lichess.username')
     )
+    featured_is_current = bool(
+        featured_player and str(featured_player).lower() == username.lower()
+    )
     featured_games_count = 0
-    if featured_player and str(featured_player).lower() != username.lower():
+    if featured_player and not featured_is_current:
         featured_games_count = count_games_vs_opponent(username, str(featured_player))
 
     # Конфиг просмотрщика партии
@@ -1646,6 +1649,7 @@ def player_stats(username):
                            games=games,
                            favorite_ids=favorite_ids,
                            featured_player=featured_player,
+                           featured_is_current=featured_is_current,
                            featured_games_count=featured_games_count,
                            import_task_id=request.args.get('import_task'),
                            viewer_config=viewer_config,
