@@ -70,17 +70,6 @@
         </div>
     </nav>
 
-    {% if current_player %}
-    <div class="player-context-bar d-lg-none">
-        <a href="/lichess-analyzer/player/{{ current_player }}" class="player-context-link">
-            ♟️ <span class="player-context-name">{{ current_player }}</span>
-        </a>
-        <a href="/lichess-analyzer/search" class="player-context-switch" title="Сменить игрока">
-            🔄
-        </a>
-    </div>
-    {% endif %}
-
     <main class="{% block main_class %}container{% endblock %} mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
