@@ -27,6 +27,10 @@
         <button type="button" class="btn btn-sm btn-outline-secondary" id="copyLinkBtn" title="Скопировать ссылку">
             🔗 Скопировать
         </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary js-copy-notation"
+                title="Скопировать нотацию партии">
+            📋 Нотация
+        </button>
         {{ favorite_button(username, game.game_id, game.is_favorite, with_label=True) }}
         {{ note_button(username, game.game_id, game.has_note, with_label=True) }}
     </div>
@@ -81,8 +85,12 @@
         </div>
 
         <div class="viewer-moves viewer-desktop-only">
-            <h6>Ходы</h6>
-            <div id="viewMovesList"></div>
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <h6 class="mb-0">Ходы</h6>
+                <button type="button" class="btn btn-sm btn-outline-secondary js-copy-notation"
+                        title="Скопировать нотацию партии">⧉</button>
+            </div>
+            <div id="viewMovesList" class="mt-2"></div>
         </div>
 
     </div>
@@ -115,6 +123,10 @@
     <div class="viewer-mobile-content">
 
         <div class="viewer-mobile-tab {% if _tab != 'moves' %}d-none{% endif %}" id="mobileTabMoves">
+            <button type="button" class="btn btn-sm btn-outline-secondary js-copy-notation mb-2"
+                    title="Скопировать нотацию партии">
+                📋 Скопировать нотацию
+            </button>
             <div id="viewMovesListMobile" class="viewer-mobile-scroll"></div>
         </div>
 
@@ -177,6 +189,52 @@ document.getElementById('copyLinkBtn')?.addEventListener('click', function () {
         prompt('Скопируйте ссылку:', url);
     }
 });
+
+(function () {
+    const buttons = document.querySelectorAll('.js-copy-notation');
+    if (!buttons.length) return;
+    let cachedNotation = null;
+
+    function setLabel(button, label, timeout) {
+        const original = button.dataset.originalLabel || button.textContent.trim();
+        button.dataset.originalLabel = original;
+        button.textContent = label;
+        if (timeout) {
+            setTimeout(function () { button.textContent = original; }, timeout);
+        }
+    }
+
+    async function copyNotation(button) {
+        try {
+            button.disabled = true;
+            if (!cachedNotation) {
+                const response = await fetch(
+                    `/lichess-analyzer/player/${encodeURIComponent(window.GAME_CONTEXT.username)}`
+                    + `/game/${encodeURIComponent(window.GAME_CONTEXT.gameId)}/pgn`,
+                    { credentials: 'same-origin' }
+                );
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                if (!data.pgn) throw new Error('Нотация пуста');
+                cachedNotation = data.pgn;
+            }
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(cachedNotation);
+            } else {
+                prompt('Скопируйте нотацию:', cachedNotation);
+            }
+            setLabel(button, '✅ Скопировано', 1800);
+        } catch (error) {
+            setLabel(button, '❌ Ошибка', 1800);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    buttons.forEach(function (button) {
+        button.addEventListener('click', function () { copyNotation(button); });
+    });
+})();
 </script>
 {% endblock %}
 
