@@ -3747,3 +3747,26 @@ thead.table-light th {
 .btn-analysis .analysis-eval-dot.engine::after {
     content: 'S';
 }
+
+/* Возвращаем компактные точки вместо бейджей L/S */
+.btn-analysis .analysis-eval-dot {
+    width: 6px;
+    height: 6px;
+    top: 2px;
+    right: 2px;
+    display: block;
+    border: none;
+    box-sizing: content-box;
+    font-size: 0;
+    z-index: 3;
+}
+
+.btn-analysis .analysis-eval-dot.engine {
+    top: 2px;
+    right: 10px;
+}
+
+.btn-analysis .analysis-eval-dot.lichess::after,
+.btn-analysis .analysis-eval-dot.engine::after {
+    content: none;
+}
