@@ -192,6 +192,17 @@ def list_prompt_variants() -> Dict[str, str]:
     return variants
 
 
+def get_default_prompt_key() -> str:
+    """Ключ промпта из deepseek.prompt_key (с проверкой наличия)."""
+    try:
+        cfg = _load_config()
+        key = cfg.get('deepseek.prompt_key', 'game_analysis') or 'game_analysis'
+    except Exception:
+        key = 'game_analysis'
+    variants = list_prompt_variants()
+    return key if key in variants else (next(iter(variants), 'game_analysis'))
+
+
 def load_prompts(prompt_key: str | None = None) -> Dict[str, str]:
     """
     Загружает промпты из config/deepseek_prompts.yaml.

@@ -64,12 +64,13 @@
         }
 
         if (elPromptButtons.length) {
-            let savedPrompt = '';
-            try { savedPrompt = localStorage.getItem('analysis_prompt') || ''; } catch (e) {}
-            const hasSaved = elPromptButtons.some(function (b) {
-                return b.dataset.promptKey === savedPrompt;
+            const container = document.getElementById('analysisPromptButtons');
+            const defaultPrompt = container ? container.dataset.defaultPrompt : '';
+            const hasDefault = elPromptButtons.some(function (b) {
+                return b.dataset.promptKey === defaultPrompt;
             });
-            selectPrompt(hasSaved ? savedPrompt : elPromptButtons[0].dataset.promptKey);
+            // По умолчанию подсвечиваем промпт из конфига, а не первый в списке.
+            selectPrompt(hasDefault ? defaultPrompt : elPromptButtons[0].dataset.promptKey);
             elPromptButtons.forEach(function (button) {
                 button.addEventListener('click', function () {
                     selectPrompt(button.dataset.promptKey);

@@ -36,10 +36,11 @@
                 <!-- Вариант промпта и повторный анализ -->
                 <div class="analysis-prompt-bar mb-3">
                     <div class="small text-muted mb-2">Вариант разбора:</div>
-                    <div class="analysis-prompt-buttons" id="analysisPromptButtons">
+                    <div class="analysis-prompt-buttons" id="analysisPromptButtons"
+                         data-default-prompt="{{ default_prompt_key }}">
                         {% for key, label in prompt_variants.items() %}
                             <button type="button"
-                                    class="analysis-prompt-btn{% if loop.first %} active{% endif %}"
+                                    class="analysis-prompt-btn{% if key == default_prompt_key %} active{% endif %}"
                                     data-prompt-key="{{ key }}">
                                 {{ label }}
                             </button>
