@@ -24,7 +24,8 @@
 
         // ---------- CSRF-токен ----------
         const csrfEl = document.querySelector('[name=csrf_token]');
-        const CSRF_TOKEN = csrfEl ? csrfEl.value : '';
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const CSRF_TOKEN = csrfEl ? csrfEl.value : (csrfMeta ? csrfMeta.content : '');
 
         // ---------- Модалка Bootstrap ----------
         const modal = new bootstrap.Modal(modalEl);

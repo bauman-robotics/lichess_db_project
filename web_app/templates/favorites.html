@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% from "_macros.html" import favorite_button, note_button %}
+{% from "_macros.html" import favorite_button, note_button, analysis_button %}
 
-{% block title %}Избранные партии{% endblock %}
+{% block title %}Избранные партии{% include "_analysis_modal.html" %}
+{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -103,6 +104,7 @@
                         {{ favorite_button(item.player_username, item.game_id, True, with_label=True) }}
                         {{ note_button(item.player_username, item.game_id, item.note, with_label=True) }}
                         <button type="button" class="btn btn-sm btn-outline-secondary btn-note-edit">✎ Заметка</button>
+                        {{ analysis_button(item.player_username, item.game_id, item.analysis_state, with_label=True) }}
                         <a href="/lichess-analyzer/player/{{ item.player_username }}/game/{{ item.game_id }}/view"
                            class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
                         <a href="https://lichess.org/{{ item.game_id }}" target="_blank" rel="noopener"
@@ -143,4 +145,5 @@
         {% endif %}
     </div>
 </div>
+{% include "_analysis_modal.html" %}
 {% endblock %}

@@ -154,3 +154,17 @@
     <span class="note-icon" aria-hidden="true">📝</span>{% if with_label %}<span class="note-label">Заметка</span>{% endif %}
 </button>
 {% endmacro %}
+
+{% macro analysis_button(username, game_id, state='none', with_label=False) %}
+<button type="button"
+        class="btn btn-sm btn-analysis btn-analysis-{{ state }}{% if with_label %} btn-analysis-with-text{% endif %}"
+        data-username="{{ username }}"
+        data-game-id="{{ game_id }}"
+        data-state="{{ state }}"
+        title="Анализ партии через DeepSeek">
+    <span class="btn-analysis-icon">
+        {% if state == 'running' %}⏳{% elif state == 'done' %}✅{% elif state == 'error' %}❌{% else %}🤖{% endif %}
+    </span>
+    {% if with_label %}<span class="btn-analysis-label">Анализ</span>{% endif %}
+</button>
+{% endmacro %}

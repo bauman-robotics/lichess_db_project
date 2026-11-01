@@ -491,6 +491,53 @@ def get_favorites(q: str = '', sort: str = 'added', page: int = 1,
     return items, total
 
 
+def get_analysis_done_ids(username: str, game_ids: list) -> set:
+    """game_id с непустым сохранённым анализом DeepSeek."""
+    if not game_ids:
+        return set()
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+    try:
+        if not db.table_exists():
+            return set()
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f'SELECT game_id FROM "{table_name}" '
+                    'WHERE game_id = ANY(%s) '
+                    "AND game_analysis IS NOT NULL AND game_analysis <> '';",
+                    (list(game_ids),),
+                )
+                return {row[0] for row in cur.fetchall()}
+    except Exception:
+        return set()
+    finally:
+        db.table_name = original_table
+        db.close()
+
+
+def attach_analysis_states(items: list) -> None:
+    """Проставляет item['analysis_state']: running/done/none."""
+    grouped = {}
+    for item in items:
+        grouped.setdefault(item['player_username'], []).append(item)
+    for username, user_items in grouped.items():
+        game_ids = [item['game_id'] for item in user_items]
+        done = get_analysis_done_ids(username, game_ids)
+        running = set(analysis_tasks.get_running_game_ids(username))
+        for item in user_items:
+            game_id = item['game_id']
+            if game_id in running:
+                item['analysis_state'] = 'running'
+            elif game_id in done:
+                item['analysis_state'] = 'done'
+            else:
+                item['analysis_state'] = 'none'
+
+
 def get_annotation(username: str, game_id: str) -> Optional[dict]:
     """Возвращает заметку и флаг избранного для одной партии."""
     config = ConfigLoader()
@@ -1629,10 +1676,12 @@ def notes_list():
 
     page = max(1, request.args.get('page', 1, type=int) or 1)
     notes, total = get_notes(q=q, sort=sort, page=page, per_page=per_page)
+    attach_analysis_states(notes)
     pages = max(1, ceil(total / per_page)) if total else 1
     if page > pages:
         page = pages
         notes, total = get_notes(q=q, sort=sort, page=page, per_page=per_page)
+        attach_analysis_states(notes)
 
     query_params = []
     if q:
@@ -1703,10 +1752,12 @@ def favorites_list():
 
     page = max(1, request.args.get('page', 1, type=int) or 1)
     items, total = get_favorites(q=q, sort=sort, page=page, per_page=per_page)
+    attach_analysis_states(items)
     pages = max(1, ceil(total / per_page)) if total else 1
     if page > pages:
         page = pages
         items, total = get_favorites(q=q, sort=sort, page=page, per_page=per_page)
+        attach_analysis_states(items)
 
     query_params = []
     if q:
