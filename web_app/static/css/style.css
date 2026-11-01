@@ -3070,13 +3070,15 @@ thead.table-light th {
 
 @media (min-width: 769px) {
     .game-view-page.engine-enabled {
-        height: auto;
-        min-height: calc(100vh - 100px);
-        overflow: visible;
+        height: calc(100vh - 100px);
+        min-height: 0;
+        overflow: hidden;
     }
 
     .game-view-page.engine-enabled .viewer-layout {
-        flex: 0 1 auto;
+        flex: 1 1 0;
+        height: auto;
+        min-height: 0;
     }
 }
 
@@ -3087,6 +3089,23 @@ thead.table-light th {
 .engine-chart-wrap {
     position: relative;
     height: 170px;
+}
+
+@media (max-height: 800px) {
+    .engine-chart-wrap {
+        height: 130px;
+    }
+
+    .engine-eval-card .card-header {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+}
+
+@media (max-height: 680px) {
+    .engine-chart-wrap {
+        height: 105px;
+    }
 }
 
 #engineEvalChart {

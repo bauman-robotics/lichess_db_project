@@ -185,6 +185,8 @@
         body.classList.toggle('d-none', !isOpen);
         toggle.textContent = isOpen ? 'Скрыть график' : 'Показать график';
         try { localStorage.setItem('la_engine_graph', isOpen ? '1' : '0'); } catch (e) {}
+        // Пересчитать размер доски под изменившуюся высоту layout.
+        window.dispatchEvent(new Event('resize'));
     });
 
     async function pollTask(taskId) {

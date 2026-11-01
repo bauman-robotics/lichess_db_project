@@ -102,15 +102,22 @@
                     availableHeight = window.innerHeight - 250;
                 }
 
-                const size = Math.max(320, Math.min(cfg.boardSizeDesktop, availableHeight));
+                const engineMode = !!document.querySelector('.game-view-page.engine-enabled');
+                const minSize = engineMode ? 180 : 320;
+                const size = Math.max(minSize, Math.min(cfg.boardSizeDesktop, availableHeight));
                 elBoard.style.width  = size + 'px';
                 elBoard.style.height = size + 'px';
 
-                // Зафиксировать высоту layout = высоте доски,
-                // чтобы не было пустоты под доской (комментарии скроллятся внутри)
                 if (layout) {
-                    layout.style.height    = size + 'px';
-                    layout.style.maxHeight = size + 'px';
+                    if (engineMode) {
+                        // В режиме с графиком layout — flex-элемент и сам забирает
+                        // оставшуюся высоту; фиксировать его высоту нельзя.
+                        layout.style.height = '';
+                        layout.style.maxHeight = '';
+                    } else {
+                        layout.style.height    = size + 'px';
+                        layout.style.maxHeight = size + 'px';
+                    }
                 }
             }
 
