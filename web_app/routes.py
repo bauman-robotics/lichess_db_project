@@ -936,7 +936,7 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
     return results
 
 
-def get_recent_games(username: str, limit: int = 10) -> list:
+def get_recent_games(username: str, limit: int = 10, offset: int = 0) -> list:
     """Получает последние игры игрока из таблицы игрока"""
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
@@ -968,8 +968,8 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     pgn_moves LIKE '%%[%%eval%%' AS has_lichess_eval
                 FROM {table_name}
                 ORDER BY game_date DESC, id DESC
-                LIMIT %s;
-            """, (limit,))
+                LIMIT %s OFFSET %s;
+            """, (limit, max(0, int(offset or 0))))
             
             results = []
             for row in cur.fetchall():
@@ -2178,10 +2178,22 @@ def player_stats(username):
                                    favorite_ids=[],
                                    current_section='games')
 
-    # Лимит последних игр из конфига
+    # Лимит последних игр из конфига + пагинация
     config_loader = ConfigLoader()
-    recent_limit = config_loader.get('statistics.recent_games_limit', 25)
-    games = get_recent_games(username, limit=recent_limit)
+    try:
+        recent_limit = max(1, int(config_loader.get('statistics.recent_games_limit', 30)))
+    except (TypeError, ValueError):
+        recent_limit = 30
+
+    total_games = int(stats.get('total') or 0)
+    pages = max(1, ceil(total_games / recent_limit)) if total_games else 1
+    page = max(1, request.args.get('page', 1, type=int) or 1)
+    page = min(page, pages)
+    games = get_recent_games(
+        username,
+        limit=recent_limit,
+        offset=(page - 1) * recent_limit,
+    )
     game_ids = [g['game_id'] for g in games]
     favorite_ids = get_favorite_ids(username, game_ids)
     note_ids = get_note_ids(username, game_ids)
@@ -2222,6 +2234,10 @@ def player_stats(username):
                            featured_player=featured_player,
                            featured_is_current=featured_is_current,
                            featured_games_count=featured_games_count,
+                           recent_limit=recent_limit,
+                           total_games=total_games,
+                           page=page,
+                           pages=pages,
                            import_task_id=request.args.get('import_task'),
                            viewer_config=viewer_config,
                            current_section='games')

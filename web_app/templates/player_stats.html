@@ -232,6 +232,27 @@
                             {% endfor %}
                         </div>
 
+                        {% if pages > 1 %}
+                            <nav class="pagination-wrap mt-3" aria-label="Страницы последних игр">
+                                {% if page > 1 %}
+                                    <a class="page-btn" href="?page={{ page - 1 }}" aria-label="Предыдущие 30">‹</a>
+                                {% else %}
+                                    <span class="page-btn disabled" aria-hidden="true">‹</span>
+                                {% endif %}
+                                <span class="page-btn active" aria-current="page">
+                                    {{ page }} / {{ pages }}
+                                </span>
+                                {% if page < pages %}
+                                    <a class="page-btn" href="?page={{ page + 1 }}" aria-label="Следующие 30">›</a>
+                                {% else %}
+                                    <span class="page-btn disabled" aria-hidden="true">›</span>
+                                {% endif %}
+                            </nav>
+                            <div class="text-center text-muted small mt-1">
+                                Всего игр: {{ total_games }} · по {{ recent_limit }} на странице
+                            </div>
+                        {% endif %}
+
                     </div>
                 </div>
             {% endif %}
