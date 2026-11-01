@@ -1217,7 +1217,8 @@ def get_games_filtered(
                             notation_tokens = pgn_tokens[window_start:window_end]
                             notation_match_start = match_start - window_start
                             notation_match_end = notation_match_start + len(query_tokens)
-                            notation_ply = match_start + 1
+                            # Позиция после последнего хода из фильтра.
+                            notation_ply = match_start + len(query_tokens)
                             notation_has_before = window_start > 0
                             notation_has_after = window_end < len(pgn_tokens)
 
