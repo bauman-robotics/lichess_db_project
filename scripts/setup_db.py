@@ -15,6 +15,7 @@ from core.database.db_manager import DatabaseManager
 from core.database.migrations import (
     annotations_table_status,
     engine_tables_status,
+    ensure_analysis_task_columns,
     ensure_annotations_table,
     ensure_engine_tables,
     ensure_import_tasks_table,
@@ -113,7 +114,8 @@ def main():
                     ensure_import_tasks_table(db_manager)
                     logger.info("✅ Таблица import_tasks готова")
                     ensure_engine_tables(db_manager)
-                    logger.info("✅ Таблицы движка готовы")
+                    ensure_analysis_task_columns(db_manager)
+                    logger.info("✅ Таблицы движка и стадии анализа готовы")
                 except Exception as e:
                     logger.error(f"❌ Ошибка создания служебных таблиц: {e}")
                     sys.exit(1)

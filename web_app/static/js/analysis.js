@@ -38,6 +38,7 @@
         const elMetaOpen   = document.getElementById('meta-opening');
         const elPgn        = document.getElementById('analysis-pgn');
         const elStatus     = document.getElementById('analysis-status');
+        const elStatusText = document.getElementById('analysis-status-text');
         const elError      = document.getElementById('analysis-error');
         const elContent    = document.getElementById('analysis-content');
         const elPromptButtons = Array.from(
@@ -85,7 +86,8 @@
                 'btn-analysis-none',
                 'btn-analysis-running',
                 'btn-analysis-done',
-                'btn-analysis-error'
+                'btn-analysis-error',
+                'btn-analysis-engine'
             );
             btn.classList.add('btn-analysis-' + state);
 
@@ -102,6 +104,25 @@
                 const dots = Array.from(btn.querySelectorAll('.analysis-eval-dot'));
                 btn.textContent = icon;
                 dots.forEach(function (dot) { btn.appendChild(dot); });
+            }
+        }
+
+        function setButtonStage(btn, stage, progress, total) {
+            if (!btn) return;
+            const iconEl = btn.querySelector('.btn-analysis-icon');
+            if (stage === 'engine') {
+                btn.classList.add('btn-analysis-engine');
+                btn.title = `Stockfish: ${progress || 0} / ${total || '?'}`;
+                if (iconEl) iconEl.textContent = '📈';
+                if (elStatusText) {
+                    elStatusText.textContent =
+                        `Stockfish: ${progress || 0} / ${total || '?'}`;
+                }
+            } else {
+                btn.classList.remove('btn-analysis-engine');
+                btn.title = 'Анализ партии через DeepSeek';
+                if (iconEl) iconEl.textContent = '⏳';
+                if (elStatusText) elStatusText.textContent = 'DeepSeek думает…';
             }
         }
 
@@ -303,6 +324,10 @@
                     const r = await fetch(url, { credentials: 'same-origin' });
                     const data = await r.json();
 
+                    if (data.status === 'running') {
+                        setButtonStage(button, data.stage || 'deepseek',
+                            data.progress, data.total);
+                    }
                     if (data.status === 'done') {
                         setButtonState(button, 'done');
                         if (elRerunBtn) elRerunBtn.disabled = false;
@@ -311,6 +336,7 @@
                     }
                     if (data.status === 'error') {
                         setButtonState(button, 'error');
+                        if (elStatusText) elStatusText.textContent = 'Ошибка анализа';
                         if (elRerunBtn) elRerunBtn.disabled = false;
                         alert(data.message || 'Ошибка анализа');
                         return;

@@ -43,7 +43,10 @@ CREATE TABLE IF NOT EXISTS analysis_tasks (
     status      TEXT NOT NULL,
     started_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     finished_at TIMESTAMP,
-    error       TEXT
+    error       TEXT,
+    stage       TEXT DEFAULT 'deepseek',
+    progress    INTEGER DEFAULT 0,
+    total       INTEGER DEFAULT 0
 );
 """
 

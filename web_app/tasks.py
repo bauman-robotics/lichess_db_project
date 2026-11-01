@@ -101,7 +101,8 @@ def get_task(task_id: str) -> Optional[Dict[str, Any]]:
             with conn.cursor() as cur:
                 cur.execute("""
                     SELECT task_id, username, game_id, status,
-                           started_at, finished_at, error
+                           started_at, finished_at, error,
+                           stage, progress, total
                     FROM analysis_tasks
                     WHERE task_id = %s
                 """, (task_id,))
@@ -116,6 +117,9 @@ def get_task(task_id: str) -> Optional[Dict[str, Any]]:
                     'started_at': row[4],
                     'finished_at': row[5],
                     'error': row[6],
+                    'stage': row[7] or 'deepseek',
+                    'progress': int(row[8] or 0),
+                    'total': int(row[9] or 0),
                 }
     finally:
         db.close()
@@ -129,7 +133,8 @@ def get_running_task_for(username: str, game_id: str) -> Optional[Dict[str, Any]
             with conn.cursor() as cur:
                 cur.execute("""
                     SELECT task_id, username, game_id, status,
-                           started_at, finished_at, error
+                           started_at, finished_at, error,
+                           stage, progress, total
                     FROM analysis_tasks
                     WHERE username = %s
                       AND game_id = %s
@@ -147,6 +152,9 @@ def get_running_task_for(username: str, game_id: str) -> Optional[Dict[str, Any]
                     'started_at': row[4],
                     'finished_at': row[5],
                     'error': row[6],
+                    'stage': row[7] or 'deepseek',
+                    'progress': int(row[8] or 0),
+                    'total': int(row[9] or 0),
                 }
     finally:
         db.close()
@@ -179,6 +187,25 @@ def get_running_game_ids(username: str) -> List[str]:
 # ============================================================
 # ОБНОВЛЕНИЕ
 # ============================================================
+
+def update_task_stage(task_id: str, stage: str, progress: int = 0,
+                      total: int = 0) -> None:
+    """Обновляет стадию и прогресс анализа."""
+    db = _get_db()
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE analysis_tasks
+                    SET stage = %s, progress = %s, total = %s
+                    WHERE task_id = %s
+                """, (stage, int(progress), int(total), task_id))
+            conn.commit()
+    except Exception as e:
+        logger.warning(f"Не удалось обновить стадию задачи {task_id}: {e}")
+    finally:
+        db.close()
+
 
 def update_task_done(task_id: str):
     """Помечает задачу как выполненную."""

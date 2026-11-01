@@ -378,3 +378,37 @@ def engine_tables_status(db_manager: Optional[DatabaseManager] = None) -> dict:
         if own_db:
             db.close()
     return status
+
+
+# ============================================================
+# СТАДИИ АНАЛИЗА DEEPSEEK
+# ============================================================
+
+def ensure_analysis_task_columns(db_manager: Optional[DatabaseManager] = None) -> bool:
+    """Добавляет stage/progress/total в analysis_tasks, если таблица есть."""
+    db = db_manager or _get_db()
+    own_db = db_manager is None
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT to_regclass('public.analysis_tasks');")
+                if cur.fetchone()[0] is None:
+                    return False
+                cur.execute(
+                    "ALTER TABLE analysis_tasks "
+                    "ADD COLUMN IF NOT EXISTS stage VARCHAR(20) DEFAULT 'deepseek';"
+                )
+                cur.execute(
+                    "ALTER TABLE analysis_tasks "
+                    "ADD COLUMN IF NOT EXISTS progress INTEGER DEFAULT 0;"
+                )
+                cur.execute(
+                    "ALTER TABLE analysis_tasks "
+                    "ADD COLUMN IF NOT EXISTS total INTEGER DEFAULT 0;"
+                )
+            conn.commit()
+        logger.info("Колонки стадий analysis_tasks готовы")
+        return True
+    finally:
+        if own_db:
+            db.close()

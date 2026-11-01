@@ -3770,3 +3770,10 @@ thead.table-light th {
 .btn-analysis .analysis-eval-dot.engine::after {
     content: none;
 }
+
+.btn-analysis-engine {
+    border-color: rgba(155, 89, 182, 0.75);
+    background: rgba(155, 89, 182, 0.18);
+    color: #d7b4f0;
+    animation: pulse-analysis 1.5s ease-in-out infinite;
+}

@@ -1107,15 +1107,23 @@ def _run_analysis_task(task_id: str, username: str, game_id: str,
         except Exception:
             prepass = False
         if prepass and engine_cfg['enabled']:
-            try:
-                if '[%eval' not in (game.get('pgn_moves') or ''):
+            if '[%eval' not in (game.get('pgn_moves') or ''):
+                analysis_tasks.update_task_stage(task_id, 'engine', 0, 0)
+                try:
                     logger.info(f"[task {task_id}] Stockfish prepass depth={engine_cfg['depth']}")
                     ensure_engine_evals(
-                        username, game_id, engine_cfg['depth'], config=config
+                        username, game_id, engine_cfg['depth'], config=config,
+                        progress_cb=lambda done, total: analysis_tasks.update_task_stage(
+                            task_id, 'engine', done, total
+                        ),
                     )
+                except Exception as e:
+                    logger.warning(f"[task {task_id}] Stockfish prepass failed: {e}")
+            try:
                 eval_block = build_eval_block(username, game_id, config)
             except Exception as e:
-                logger.warning(f"[task {task_id}] Stockfish prepass failed: {e}")
+                logger.warning(f"[task {task_id}] eval block failed: {e}")
+        analysis_tasks.update_task_stage(task_id, 'deepseek', 0, 0)
 
         # 3. Вызываем DeepSeek
         analysis = analyze_game(
