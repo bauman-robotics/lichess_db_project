@@ -35,6 +35,8 @@
 - `activate.sh` добавлен в `.gitignore`.
 - `web_app/routes.py` получил `from __future__ import annotations` —
   совместимость с Python 3.8/3.9 при аннотациях `str | None` и `list[...]`.
+- Healthcheck в `server_update.sh` ждёт до 30 секунд: gunicorn
+  поднимается не мгновенно после `systemctl restart`.
 
 ## [2026-11-01] iteration 0.3 — доработки веб-интерфейса
 

@@ -106,6 +106,7 @@ python scripts/deploy/update_remote.py --yes
 | `--skip-restart` | только `git pull`, без рестарта |
 | `--no-sudo` | `systemctl` без sudo |
 | `--healthcheck-url URL` | проверить URL после рестарта |
+| `HEALTHCHECK_RETRIES=30` | сколько секунд ждать ответа healthcheck |
 | `--strict-host-key` | требовать known_hosts |
 
 Ветку можно не указывать — тогда сервер сделает `git pull --ff-only` для
@@ -129,7 +130,8 @@ python scripts/deploy/update_remote.py --yes
    Это идемпотентно: создаёт `favorite_games`, не трогая таблицы партий.
 5. Перезапускает сервис через `sudo -n systemctl restart`.
 6. Проверяет `systemctl is-active`.
-7. Если задан `healthcheck_url` — делает `curl -fsS`.
+7. Если задан `healthcheck_url` — проверяет URL с повторами
+   (по умолчанию 30 секунд), потому что gunicorn поднимается не мгновенно.
 
 При ошибке печатает статус сервиса и завершается с ненулевым кодом.
 

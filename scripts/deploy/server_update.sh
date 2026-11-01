@@ -17,6 +17,7 @@
 #   USE_SUDO        — 1/0; по умолчанию 0 для root, иначе 1
 #   PYTHON_BIN      — путь к python; по умолчанию venv/bin/python или python3
 #   HEALTHCHECK_URL — URL для проверки после рестарта (опционально)
+#   HEALTHCHECK_RETRIES — сколько секунд ждать ответа (по умолчанию 30)
 #   DRY_RUN         — 1/0, только показать команды
 #
 set -euo pipefail
@@ -43,6 +44,7 @@ if [ -z "${USE_SUDO:-}" ]; then
 fi
 PYTHON_BIN="${PYTHON_BIN:-}"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-}"
+HEALTHCHECK_RETRIES="${HEALTHCHECK_RETRIES:-30}"
 DRY_RUN="${DRY_RUN:-0}"
 
 export GIT_TERMINAL_PROMPT=0
@@ -142,11 +144,20 @@ fi
 if [ -n "$HEALTHCHECK_URL" ]; then
     log "Healthcheck: $HEALTHCHECK_URL"
     if [ "$DRY_RUN" = "1" ]; then
-        printf '+ curl -fsS --max-time 10 %q\n' "$HEALTHCHECK_URL"
+        printf '+ curl -fsS --max-time 2 %q\n' "$HEALTHCHECK_URL"
     else
-        curl -fsS --max-time 10 "$HEALTHCHECK_URL" >/dev/null \
-            || die "healthcheck не прошёл: $HEALTHCHECK_URL"
-        log "Healthcheck пройден"
+        attempt=1
+        while [ "$attempt" -le "$HEALTHCHECK_RETRIES" ]; do
+            if curl -fsS --max-time 2 "$HEALTHCHECK_URL" >/dev/null 2>&1; then
+                log "Healthcheck пройден (попытка $attempt)"
+                break
+            fi
+            if [ "$attempt" -eq "$HEALTHCHECK_RETRIES" ]; then
+                die "healthcheck не прошёл за ${HEALTHCHECK_RETRIES}с: $HEALTHCHECK_URL"
+            fi
+            sleep 1
+            attempt=$((attempt + 1))
+        done
     fi
 fi
 
