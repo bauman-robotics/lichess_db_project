@@ -68,13 +68,16 @@
     function drawChart() {
         if (!hasAnyEval()) {
             if (chart) { chart.destroy(); chart = null; }
+            panel.classList.add('engine-no-evals');
             canvas.classList.add('d-none');
             empty.classList.remove('d-none');
             analyzeBtn.classList.remove('d-none');
             sourceLabel.textContent = 'нет оценок · depth ' + ctx.depth;
+            setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 0);
             return;
         }
 
+        panel.classList.remove('engine-no-evals');
         canvas.classList.remove('d-none');
         empty.classList.add('d-none');
         sourceLabel.textContent = sourceText() + ' · depth ' + ctx.depth;
@@ -153,6 +156,7 @@
                 }
             }
         });
+        setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 0);
     }
 
     async function loadPositions() {

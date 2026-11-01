@@ -3339,3 +3339,28 @@ thead.table-light th {
         margin-top: 4px;
     }
 }
+
+/* Компактное состояние, пока оценок нет */
+.engine-eval-card.engine-no-evals .engine-chart-wrap {
+    display: none;
+}
+
+.engine-eval-card.engine-no-evals .engine-eval-main {
+    padding: 0;
+}
+
+.engine-eval-card.engine-no-evals .engine-eval-empty {
+    min-height: 0;
+    padding: 8px 10px;
+}
+
+.engine-eval-card.engine-no-evals .engine-eval-empty p {
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.engine-eval-card.engine-no-evals .engine-eval-side {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
