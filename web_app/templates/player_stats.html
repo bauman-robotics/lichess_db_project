@@ -61,8 +61,15 @@
             <!-- ПОСЛЕДНИЕ ИГРЫ -->
             {% if games and games|length > 0 %}
                 <div class="card shadow-sm">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 class="mb-0">📋 Последние игры</h5>
+                        {% if featured_player and featured_games_count > 0 %}
+                            <a href="/lichess-analyzer/player/{{ username }}/openings?opponent={{ featured_player|urlencode }}"
+                               class="btn btn-sm btn-outline-secondary"
+                               title="Показать все партии против {{ featured_player }}">
+                                🤝 Игры с {{ featured_player }} ({{ featured_games_count }})
+                            </a>
+                        {% endif %}
                     </div>
                     <div class="card-body">
 

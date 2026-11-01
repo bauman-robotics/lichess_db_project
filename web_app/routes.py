@@ -443,6 +443,32 @@ def get_favorites(q: str = '', sort: str = 'added', page: int = 1,
     return items, total
 
 
+def count_games_vs_opponent(username: str, opponent: str) -> int:
+    """Количество партий игрока против указанного соперника."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = player_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+    try:
+        if not db.table_exists():
+            return 0
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f'SELECT COUNT(*) FROM "{table_name}" '
+                    'WHERE opponent_name ILIKE %s;',
+                    (f'%{opponent}%',),
+                )
+                return int(cur.fetchone()[0] or 0)
+    except Exception as e:
+        db.logger.warning(f'Не удалось посчитать игры с {opponent}: {e}')
+        return 0
+    finally:
+        db.table_name = original_table
+        db.close()
+
+
 def get_player_stats(username: str) -> dict:
     """Получает статистику игрока из таблицы игрока"""
     print(f"🔍 DEBUG: get_player_stats вызвана для {username}")
@@ -1592,6 +1618,14 @@ def player_stats(username):
     games = get_recent_games(username, limit=recent_limit)
     favorite_ids = get_favorite_ids(username, [g['game_id'] for g in games])
 
+    featured_player = (
+        config_loader.get('ui.featured_player')
+        or config_loader.get('secrets.lichess.username')
+    )
+    featured_games_count = 0
+    if featured_player and str(featured_player).lower() != username.lower():
+        featured_games_count = count_games_vs_opponent(username, str(featured_player))
+
     # Конфиг просмотрщика партии
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
     if _default_tab not in ('moves', 'comments'):
@@ -1611,6 +1645,8 @@ def player_stats(username):
                            exists=True,
                            games=games,
                            favorite_ids=favorite_ids,
+                           featured_player=featured_player,
+                           featured_games_count=featured_games_count,
                            import_task_id=request.args.get('import_task'),
                            viewer_config=viewer_config,
                            current_section='games')
