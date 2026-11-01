@@ -393,7 +393,7 @@ python3 scripts/06_list_tables.py
 
 ---
 
-<a id="tables"></a>
+<a id="tables" name="tables"></a>
 
 ## 🗄️ Таблицы и поля
 
@@ -524,7 +524,7 @@ python3 scripts/06_list_tables.py
 python3 scripts/setup_db.py --action create
 ```
 
-<a id="deployment"></a>
+<a id="deployment" name="deployment"></a>
 
 ## 🖥️ Развёртывание
 
