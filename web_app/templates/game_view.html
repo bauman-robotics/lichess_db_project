@@ -7,7 +7,9 @@
 {{ username }} — просмотр партии
 {% endblock %}
 
-    {% block content %}
+    {% block body_class %}{% if engine_enabled %}game-view-engine{% endif %}{% endblock %}
+
+{% block content %}
     <div class="container-fluid game-view-page{% if engine_enabled %} engine-enabled{% endif %}">
 
     <!-- Кнопки действий — над доской, по центру -->
@@ -76,6 +78,25 @@
         <div class="viewer-board-col text-center">
 
             <!-- Заголовок партии — только на мобильном -->
+            {% if engine_enabled %}
+            <details class="game-mobile-meta d-md-none">
+                <summary>
+                    <span class="game-mobile-players">♟️ {{ username }} — {{ game.opponent_name }}</span>
+                    <span class="game-mobile-chevron" aria-hidden="true">▾</span>
+                </summary>
+                <div class="game-mobile-meta-body">
+                    {% if game.game_date %}
+                        <div>{{ game.game_date.strftime('%d.%m.%Y') if game.game_date is not string else game.game_date }}</div>
+                    {% endif %}
+                    <div>
+                        ⏱ {{ game.time_control or '—' }} · {{ game.result or '—' }}
+                    </div>
+                    {% if game.opening_name %}
+                        <div>📖 {{ game.opening_name }}</div>
+                    {% endif %}
+                </div>
+            </details>
+            {% else %}
             <div class="viewer-mobile-header d-md-none mb-2">
                 <strong>♟️ {{ username }} — {{ game.opponent_name }}</strong>
                 <div class="text-muted small">
@@ -85,6 +106,7 @@
                     {% endif %}
                 </div>
             </div>
+            {% endif %}
 
             <div class="viewer-board-wrap">
                 <div id="viewBoard"></div>
