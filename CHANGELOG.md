@@ -33,6 +33,8 @@
 - Проверка чистого дерева учитывает только отслеживаемые файлы;
   untracked-файлы (например, `activate.sh`) не блокируют обновление.
 - `activate.sh` добавлен в `.gitignore`.
+- `web_app/routes.py` получил `from __future__ import annotations` —
+  совместимость с Python 3.8/3.9 при аннотациях `str | None` и `list[...]`.
 
 ## [2026-11-01] iteration 0.3 — доработки веб-интерфейса
 

@@ -1,6 +1,8 @@
 """
 Маршруты веб-приложения
 """
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 from datetime import date, datetime, time as dt_time, timedelta
