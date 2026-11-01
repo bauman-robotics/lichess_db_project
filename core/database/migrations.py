@@ -381,6 +381,50 @@ def engine_tables_status(db_manager: Optional[DatabaseManager] = None) -> dict:
 
 
 # ============================================================
+# ЗАДАЧИ АНАЛИЗА DEEPSEEK
+# ============================================================
+
+CREATE_ANALYSIS_TASKS_SQL = """
+CREATE TABLE IF NOT EXISTS analysis_tasks (
+    task_id     TEXT PRIMARY KEY,
+    username    TEXT NOT NULL,
+    game_id     TEXT NOT NULL,
+    status      TEXT NOT NULL,
+    started_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    finished_at TIMESTAMP,
+    error       TEXT,
+    stage       VARCHAR(20) DEFAULT 'deepseek',
+    progress    INTEGER DEFAULT 0,
+    total       INTEGER DEFAULT 0
+);
+"""
+
+CREATE_ANALYSIS_TASKS_INDEXES_SQL = """
+CREATE UNIQUE INDEX IF NOT EXISTS one_running_task
+    ON analysis_tasks (status) WHERE status = 'running';
+CREATE INDEX IF NOT EXISTS idx_tasks_username_game
+    ON analysis_tasks (username, game_id);
+"""
+
+
+def ensure_analysis_tasks_table(db_manager: Optional[DatabaseManager] = None) -> bool:
+    """Создаёт analysis_tasks и индексы (идемпотентно)."""
+    db = db_manager or _get_db()
+    own_db = db_manager is None
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(CREATE_ANALYSIS_TASKS_SQL)
+                cur.execute(CREATE_ANALYSIS_TASKS_INDEXES_SQL)
+            conn.commit()
+        logger.info("Таблица analysis_tasks готова")
+        return True
+    finally:
+        if own_db:
+            db.close()
+
+
+# ============================================================
 # СТАДИИ АНАЛИЗА DEEPSEEK
 # ============================================================
 
