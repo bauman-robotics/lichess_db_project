@@ -61,7 +61,8 @@
   - [Импорт игр](#-импорт-игр)
   - [Веб-интерфейс](#-веб-интерфейс)
   - [Анализ игр](#-анализ-игр)
-- [Развёртывание](#-развёртывание)
+  - [Таблицы и поля](#tables)
+- [Развёртывание](#deployment)
 - [Расширение функциональности](#-расширение-функциональности)
 - [Лицензия](#-лицензия)
 
@@ -391,6 +392,139 @@ python3 scripts/06_list_tables.py
 ```
 
 ---
+
+<a id="tables"></a>
+
+## 🗄️ Таблицы и поля
+
+### `games_<username>`
+
+Отдельная таблица партий на каждого игрока. Имя — `games_` + безопасное
+нижнерегистровое имя игрока (`games_dennedelin`). Старая общая таблица
+`games` используется только как legacy-совместимость.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `id` | SERIAL PK | Внутренний идентификатор записи |
+| `game_id` | VARCHAR(20), UNIQUE | ID партии на Lichess |
+| `game_date` | TIMESTAMP | Дата и время партии |
+| `time_control` | VARCHAR(20) | Контроль времени |
+| `player_color` | VARCHAR(10) | Цвет игрока: `white` / `black` |
+| `result` | VARCHAR(10) | `Win` / `Loss` / `Draw` |
+| `accuracy` | DECIMAL(5,2) | Точность, если есть |
+| `move_count` | INTEGER | Количество полуходов |
+| `opening_name` | VARCHAR(200) | Дебют |
+| `opponent_name` | VARCHAR(100) | Соперник |
+| `my_rating` | INTEGER | Рейтинг игрока |
+| `opponent_rating` | INTEGER | Рейтинг соперника |
+| `opponent_games_count` | INTEGER | Число игр соперника |
+| `game_analysis` | TEXT | Текст анализа DeepSeek |
+| `game_url` | VARCHAR(200) | Ссылка на Lichess |
+| `pgn_moves` | TEXT | PGN с ходами и `[%eval]`, если есть |
+| `import_source` | VARCHAR(20) | `file` / `api` |
+| `created_at` | TIMESTAMP | Создано |
+| `updated_at` | TIMESTAMP | Обновлено |
+
+### `game_annotations`
+
+Единая таблица заметок и избранного. Первичный ключ —
+`(player_username, game_id)`.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `player_username` | VARCHAR(100) PK | Игрок |
+| `game_id` | VARCHAR(20) PK | Партия |
+| `game_date` | TIMESTAMP | Дата партии (снимок) |
+| `opponent_name` | VARCHAR(100) | Соперник (снимок) |
+| `opponent_rating` | INTEGER | Рейтинг соперника |
+| `player_color` | VARCHAR(10) | Цвет игрока |
+| `result` | VARCHAR(10) | Результат |
+| `opening_name` | VARCHAR(200) | Дебют |
+| `time_control` | VARCHAR(20) | Контроль |
+| `move_count` | INTEGER | Полуходы |
+| `my_rating` | INTEGER | Рейтинг игрока |
+| `game_url` | VARCHAR(200) | Ссылка |
+| `note` | TEXT | Текст заметки |
+| `is_favorite` | BOOLEAN | Избранное |
+| `created_at` | TIMESTAMPTZ | Создано |
+| `updated_at` | TIMESTAMPTZ | Обновлено |
+
+### `import_tasks`
+
+Очередь фонового импорта и догрузки игр.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `task_id` | VARCHAR(36) PK | ID задачи |
+| `username` | VARCHAR(100) | Игрок |
+| `mode` | VARCHAR(20) | `fill` / `refresh` |
+| `target_limit` | INTEGER | Целевое число игр |
+| `status` | VARCHAR(20) | `queued` / `running` / `done` / `error` |
+| `created_at` | TIMESTAMPTZ | Создано |
+| `started_at` | TIMESTAMPTZ | Начато |
+| `finished_at` | TIMESTAMPTZ | Завершено |
+| `saved` | INTEGER | Сохранено игр |
+| `total` | INTEGER | Всего обработано |
+| `error` | TEXT | Ошибка |
+
+### `game_engine_evals`
+
+Оценки Stockfish по позициям. Ключ — `(player_username, game_id, ply)`.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `player_username` | VARCHAR(100) PK | Игрок |
+| `game_id` | VARCHAR(20) PK | Партия |
+| `ply` | INTEGER PK | Номер полухода |
+| `san` | VARCHAR(20) | Ход в SAN |
+| `eval_cp` | INTEGER | Оценка в сантипешках |
+| `mate` | INTEGER | Мат в N ходов |
+| `depth` | INTEGER | Глубина расчёта |
+| `engine` | VARCHAR(50) | Название движка |
+| `created_at` | TIMESTAMPTZ | Создано |
+
+### `engine_tasks`
+
+Очередь фонового анализа Stockfish.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `task_id` | VARCHAR(36) PK | ID задачи |
+| `player_username` | VARCHAR(100) | Игрок |
+| `game_id` | VARCHAR(20) | Партия |
+| `depth` | INTEGER | Глубина |
+| `status` | VARCHAR(20) | `queued` / `running` / `done` / `error` |
+| `progress` | INTEGER | Обработано полуходов |
+| `total` | INTEGER | Всего полуходов |
+| `error` | TEXT | Ошибка |
+| `created_at` | TIMESTAMPTZ | Создано |
+| `started_at` | TIMESTAMPTZ | Начато |
+| `finished_at` | TIMESTAMPTZ | Завершено |
+
+### `analysis_tasks`
+
+Очередь анализа DeepSeek и стадии подготовки.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| `task_id` | TEXT PK | ID задачи |
+| `username` | TEXT | Игрок |
+| `game_id` | TEXT | Партия |
+| `status` | TEXT | `running` / `done` / `error` |
+| `started_at` | TIMESTAMP | Начато |
+| `finished_at` | TIMESTAMP | Завершено |
+| `error` | TEXT | Ошибка |
+| `stage` | VARCHAR(20) | `engine` / `deepseek` |
+| `progress` | INTEGER | Прогресс Stockfish |
+| `total` | INTEGER | Всего позиций Stockfish |
+
+Все служебные таблицы создаются идемпотентно командой:
+
+```bash
+python3 scripts/setup_db.py --action create
+```
+
+<a id="deployment"></a>
 
 ## 🖥️ Развёртывание
 
