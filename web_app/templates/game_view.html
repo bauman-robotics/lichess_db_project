@@ -87,21 +87,7 @@
             </div>
 
             <div id="viewBoard"></div>
-        </div>
-
-        <div class="viewer-moves viewer-desktop-only">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <h6 class="mb-0">Ходы</h6>
-                <button type="button" class="btn btn-sm btn-outline-secondary js-copy-current"
-                        title="Скопировать нотацию до текущего хода">⧉</button>
-            </div>
-            <div id="viewMovesList" class="mt-2"></div>
-        </div>
-
-    </div>
-    <!-- закрытие .viewer-layout -->
-
-    {% if engine_enabled %}
+            {% if engine_enabled %}
     <div class="engine-bottom-row" id="engineBottomRow">
         <div class="engine-eval-card shadow-sm" id="engineEvalPanel">
             <div class="engine-eval-side">
@@ -128,7 +114,22 @@
             {% include "_viewer_controls.html" %}
         </div>
     </div>
-    {% else %}
+            {% endif %}
+        </div>
+
+        <div class="viewer-moves viewer-desktop-only">
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <h6 class="mb-0">Ходы</h6>
+                <button type="button" class="btn btn-sm btn-outline-secondary js-copy-current"
+                        title="Скопировать нотацию до текущего хода">⧉</button>
+            </div>
+            <div id="viewMovesList" class="mt-2"></div>
+        </div>
+
+    </div>
+    <!-- закрытие .viewer-layout -->
+
+    {% if not engine_enabled %}
     <div class="viewer-controls">
         {% include "_viewer_controls.html" %}
     </div>

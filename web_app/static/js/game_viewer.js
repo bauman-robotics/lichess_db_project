@@ -103,6 +103,11 @@
                 }
 
                 const engineMode = !!document.querySelector('.game-view-page.engine-enabled');
+                const engineRow = document.querySelector('.game-view-page.engine-enabled .engine-bottom-row');
+                if (engineMode && engineRow) {
+                    // График и управление находятся под доской: вычитаем их высоту.
+                    availableHeight -= engineRow.offsetHeight + 8;
+                }
                 const minSize = engineMode ? 180 : 320;
                 const size = Math.max(minSize, Math.min(cfg.boardSizeDesktop, availableHeight));
                 elBoard.style.width  = size + 'px';
