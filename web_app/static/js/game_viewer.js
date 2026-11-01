@@ -530,6 +530,11 @@
                 return;
             }
 
+            const page = document.querySelector('.game-view-page');
+            if (page) {
+                page.classList.toggle('mobile-graph-hidden', tabName !== 'graph');
+            }
+
             if (tabName === 'graph' && enginePanel) {
                 if (mobileContent) mobileContent.classList.add('d-none');
                 enginePanel.classList.remove('d-none');

@@ -3561,3 +3561,56 @@ thead.table-light th {
         text-align: left;
     }
 }
+
+/* ============================================
+   МОБИЛЬНЫЙ: УПРАВЛЕНИЕ НАД ФУТЕРОМ
+   ============================================ */
+
+@media (max-width: 768px) {
+    .game-view-engine .game-view-page.engine-enabled {
+        padding-bottom: 94px;
+    }
+
+    .game-view-page.engine-enabled.mobile-graph-hidden .engine-eval-card {
+        display: none;
+    }
+
+    .game-view-page.engine-enabled.mobile-graph-hidden .engine-bottom-row {
+        padding: 0;
+        margin: 0;
+        min-height: 0;
+    }
+
+    .game-view-page.engine-enabled .viewer-controls-side {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 44px;
+        top: auto;
+        z-index: 1001;
+        width: 100%;
+        margin: 0;
+        padding: 4px 8px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .viewer-controls-side .viewer-nav-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .viewer-controls-side .viewer-nav-buttons .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 38px;
+        padding: 6px 0;
+        font-size: 15px;
+    }
+
+    .viewer-controls-side .viewer-move-counter {
+        display: none;
+    }
+}
