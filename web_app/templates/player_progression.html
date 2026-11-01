@@ -11,15 +11,38 @@
         {% include "player_header.html" %}
         {% include "player_summary.html" %}
 
+        <!-- ВЫБОР КОНТРОЛЯ И ПЕРИОДА -->
+        <div class="progress-toolbar">
+            <div class="speed-tabs" role="tablist" aria-label="Контроль времени">
+                {% for category in speed_categories %}
+                    <a href="?tc={{ category.key }}&period={{ period }}"
+                       class="speed-tab {% if current_tc == category.key %}active{% endif %}"
+                       {% if current_tc == category.key %}aria-current="page"{% endif %}>
+                        {{ category.label }} <span class="speed-tab-count">{{ category.games }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+            <div class="period-tabs" role="group" aria-label="Период">
+                {% for key, label in period_options %}
+                    <a href="?tc={{ current_tc or '' }}&period={{ key }}"
+                       class="period-tab {% if period == key %}active{% endif %}">
+                        {{ label }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- ПРОГРЕСС РЕЙТИНГА (график) -->
         {% if rating_progression and rating_progression|length > 0 %}
             <div class="card shadow-sm mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">📈 Прогресс рейтинга (последние {{ rating_progression|length }} игр)</h5>
-                    <span class="badge bg-secondary">Всего игр: {{ stats.total }}</span>
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0">📈 {{ tc_label }} · {{ period_label }}</h5>
+                    <span class="badge bg-secondary">
+                        Игр: {{ rating_progression|length }} из {{ stats.total }}
+                    </span>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3" style="height: 300px; width: 100%;">
+                    <div class="mb-3 progression-chart">
                         <canvas id="ratingProgressionChart"></canvas>
                     </div>
 
@@ -39,7 +62,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for game in rating_progression %}
+                                {% for game in table_games %}
                                     <tr>
                                         <td>{{ loop.index }}</td>
                                         <td>{{ game.date if game.date else '—' }}</td>
@@ -58,8 +81,8 @@
                                         </td>
                                         <td>
                                             {% set next_idx = loop.index0 + 1 %}
-                                            {% if next_idx < rating_progression|length %}
-                                                {% set prev = rating_progression[next_idx].my_rating %}
+                                            {% if next_idx < table_games|length %}
+                                                {% set prev = table_games[next_idx].my_rating %}
                                                 {% set diff = game.my_rating - prev %}
                                                 {% if diff > 0 %}
                                                     <span class="text-success">+{{ diff }}</span>
@@ -94,7 +117,7 @@
                     <div class="row mt-3">
                         <div class="col-md-4">
                             <div class="alert alert-info">
-                                <strong>📊 Статистика за последние {{ rating_progression|length }} игр:</strong><br>
+                                <strong>📊 Статистика за период ({{ rating_progression|length }} игр):</strong><br>
                                 {% set wins = rating_progression|selectattr('result', 'equalto', 'Win')|list|length %}
                                 {% set losses = rating_progression|selectattr('result', 'equalto', 'Loss')|list|length %}
                                 {% set draws = rating_progression|selectattr('result', 'equalto', 'Draw')|list|length %}
@@ -134,6 +157,18 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center text-muted py-4">
+                    <p class="mb-2">
+                        За {{ period_label|lower }} в категории «{{ tc_label }}» игр нет.
+                    </p>
+                    <a href="?tc={{ current_tc or '' }}&period=all"
+                       class="btn btn-sm btn-outline-secondary">
+                        Показать всё время
+                    </a>
                 </div>
             </div>
         {% endif %}
@@ -295,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: reversed.map((_, i) => i + 1),
+                labels: reversed.map(d => (d.date || '').slice(5).replace('-', '.')),
                 datasets: [
                     {
                         label: 'Мой рейтинг',
@@ -335,11 +370,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     title: {
                         display: true,
-                        text: 'Динамика рейтинга',
+                        text: {{ ('Динамика рейтинга · ' ~ tc_label ~ ' · ' ~ period_label)|tojson }},
                         font: { size: 14 }
                     },
                     tooltip: {
                         callbacks: {
+                            title: function(items) {
+                                const idx = items[0].dataIndex;
+                                return reversed[idx] ? reversed[idx].date : '';
+                            },
                             afterLabel: function(context) {
                                 const idx = context.dataIndex;
                                 const game = reversed[idx];
@@ -356,8 +395,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     x: {
                         title: {
                             display: true,
-                            text: 'Номер игры (от старых к новым)',
+                            text: 'Дата',
                             font: { size: 11 }
+                        },
+                        ticks: {
+                            maxTicksLimit: 8,
+                            autoSkip: true,
+                            maxRotation: 0
                         }
                     },
                     y: {

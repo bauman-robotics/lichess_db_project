@@ -2122,3 +2122,130 @@ thead.table-light th {
         right: 12px;
     }
 }
+
+/* ============================================
+   ПРОГРЕСС: КОНТРОЛИ И ПЕРИОД
+   ============================================ */
+
+.progress-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.speed-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.speed-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.speed-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 7px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.speed-tab:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-gold);
+}
+
+.speed-tab.active {
+    color: #1a1a2e;
+    background: var(--accent-gold);
+    border-color: var(--accent-gold);
+}
+
+.speed-tab-count {
+    display: inline-block;
+    min-width: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.18);
+    font-size: 11px;
+    text-align: center;
+}
+
+.speed-tab:not(.active) .speed-tab-count {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.period-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+}
+
+.period-tab {
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.period-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.period-tab.active {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    background: var(--bg-card);
+    font-weight: 700;
+}
+
+.progression-chart {
+    height: 300px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .progress-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .period-tabs {
+        justify-content: space-between;
+    }
+
+    .period-tab {
+        flex: 1 1 0;
+        text-align: center;
+        padding: 8px 4px;
+        font-size: 11px;
+    }
+
+    .progression-chart {
+        height: 240px;
+    }
+}

@@ -22,7 +22,7 @@ from io import StringIO
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, make_response
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SubmitField
 
@@ -34,6 +34,7 @@ from core.database.db_manager import DatabaseManager
 from core.utils.lichess import (
     LichessUsernameError,
     SPEED_LABELS,
+    classify_time_control,
     normalize_lichess_username,
     player_table_name,
     safe_filename_part,
@@ -785,10 +786,69 @@ def get_time_control_stats(username: str) -> list:
     return results
 
 
-def get_rating_progression(username: str, limit: int = 30) -> list:
-    """Прогресс рейтинга с дебютами"""
-    print(f"🔍 DEBUG: get_rating_progression вызвана для {username}")
-    
+def get_speed_categories(username: str) -> tuple[list, str | None]:
+    """
+    Категории контроля с количеством игр и категория последней партии.
+
+    Returns:
+        (categories, last_speed)
+    """
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+    categories = []
+    last_speed = None
+
+    if not db.table_exists():
+        db.table_name = original_table
+        db.close()
+        return categories, last_speed
+
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                speed_sql = time_control_speed_sql('time_control')
+                cur.execute(f"""
+                    SELECT {speed_sql} AS speed, COUNT(*)
+                    FROM "{table_name}"
+                    GROUP BY 1
+                    ORDER BY COUNT(*) DESC, 1;
+                """)
+                for key, count in cur.fetchall():
+                    if key in SPEED_LABELS:
+                        categories.append({
+                            'key': key,
+                            'label': SPEED_LABELS[key],
+                            'games': int(count),
+                        })
+
+                cur.execute(f"""
+                    SELECT time_control
+                    FROM "{table_name}"
+                    ORDER BY game_date DESC, id DESC
+                    LIMIT 1;
+                """)
+                row = cur.fetchone()
+                if row:
+                    last_speed = classify_time_control(row[0])
+    except Exception as e:
+        print(f"❌ Ошибка get_speed_categories: {e}")
+    finally:
+        db.table_name = original_table
+        db.close()
+
+    return categories, last_speed
+
+
+def get_rating_progression(
+    username: str,
+    speed: str | None = None,
+    date_from=None,
+    limit: int | None = None,
+) -> list:
+    """Прогресс рейтинга с дебютами, с фильтром по категории и дате."""
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     
@@ -801,6 +861,20 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
         db.close()
         return []
     
+    where = []
+    params = []
+    if speed:
+        where.append(f"({time_control_speed_sql('time_control')}) = %s")
+        params.append(speed)
+    if date_from:
+        where.append("game_date >= %s")
+        params.append(datetime.combine(date_from, dt_time.min))
+
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+    limit_sql = "LIMIT %s" if limit else ""
+    if limit:
+        params.append(limit)
+
     results = []
     try:
         with db.connection.get_connection() as conn:
@@ -814,10 +888,11 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
                         COALESCE(opening_name, '—') as opening_name,
                         COALESCE(player_color, '—') as player_color,
                         COALESCE(time_control, '—') as time_control
-                    FROM {table_name}
+                    FROM "{table_name}"
+                    {where_sql}
                     ORDER BY game_date DESC, id DESC
-                    LIMIT %s
-                """, (limit,))
+                    {limit_sql}
+                """, params)
                 
                 for row in cur.fetchall():
                     date_val = row[0]
@@ -844,10 +919,6 @@ def get_rating_progression(username: str, limit: int = 30) -> list:
     
     db.table_name = original_table
     db.close()
-    
-    print(f"✅ DEBUG: get_rating_progression вернула {len(results)} записей")
-    if results:
-        print(f"✅ DEBUG: первая запись = {results[0]}")
     
     return results
 
@@ -1838,14 +1909,53 @@ def player_debuts(username):
 
 @main_bp.route('/player/<username>/progression')
 def player_progression(username):
-    """Страница прогресса рейтинга и рейтинговой статистики."""
+    """Страница прогресса рейтинга по категории контроля и периоду."""
     stats = get_player_stats(username)
     if not stats.get('exists'):
         flash(f'Игрок {username} не найден.', 'warning')
         return redirect(f'/lichess-analyzer/player/{username}')
 
+    config_loader = ConfigLoader()
+    categories, last_speed = get_speed_categories(username)
+    valid_speeds = {item['key'] for item in categories}
+
+    # Приоритет: URL -> cookie последнего выбора -> контроль последней игры.
+    tc = request.args.get('tc', '').strip()
+    if tc not in valid_speeds:
+        tc = request.cookies.get('la_tc')
+    if tc not in valid_speeds:
+        tc = last_speed if last_speed in valid_speeds else None
+    if tc is None and categories:
+        tc = categories[0]['key']
+
+    period = request.args.get('period', '').strip()
+    period_options = [
+        ('1m', '1 месяц'),
+        ('3m', '3 месяца'),
+        ('6m', '6 месяцев'),
+        ('all', 'Всё время'),
+    ]
+    valid_periods = {key for key, _ in period_options}
+    if period not in valid_periods:
+        period = config_loader.get('statistics.progression_default_period', '3m')
+        if period not in valid_periods:
+            period = '3m'
+
+    period_days = {'1m': 30, '3m': 90, '6m': 180}
+    date_from = None
+    if period in period_days:
+        date_from = date.today() - timedelta(days=period_days[period])
+
+    rating_progression = get_rating_progression(
+        username,
+        speed=tc,
+        date_from=date_from,
+    )
+    table_games = rating_progression[:50]
+    period_label = dict(period_options).get(period, period)
+    tc_label = SPEED_LABELS.get(tc, 'Все контроли') if tc else 'Все контроли'
+
     rating_stats = get_rating_stats(username)
-    rating_progression = get_rating_progression(username, limit=30)
 
     # Преобразуем данные для графика
     rating_progression_json = []
@@ -1861,7 +1971,6 @@ def player_progression(username):
         }
         rating_progression_json.append(json_game)
 
-    config_loader = ConfigLoader()
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
     if _default_tab not in ('moves', 'comments'):
         _default_tab = 'comments'
@@ -1874,16 +1983,35 @@ def player_progression(username):
         'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
     }
 
-    return render_template(
+    response = make_response(render_template(
         'player_progression.html',
         username=username,
         stats=stats,
         rating_stats=rating_stats,
         rating_progression=rating_progression,
+        table_games=table_games,
         rating_progression_json=rating_progression_json,
+        speed_categories=categories,
+        current_tc=tc,
+        tc_label=tc_label,
+        period=period,
+        period_label=period_label,
+        period_options=period_options,
         viewer_config=viewer_config,
         current_section='progression',
-    )    
+    ))
+
+    # Запоминаем выбранный контроль для следующего визита.
+    if request.args.get('tc') in valid_speeds:
+        response.set_cookie(
+            'la_tc',
+            tc,
+            max_age=31536000,
+            path='/',
+            samesite='Lax',
+        )
+
+    return response
 
 
 @main_bp.route('/player/<username>/time-control')

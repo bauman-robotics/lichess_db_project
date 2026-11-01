@@ -64,6 +64,7 @@ statistics:
   default_limit: 100
   recent_games_limit: 30   # ← сколько последних игр показывать
   debuts_per_page: 50      # ← размер страницы на странице дебютов
+  progression_default_period: "3m"  # 1m / 3m / 6m / all
 
 # Настройки валидации
 validation:
