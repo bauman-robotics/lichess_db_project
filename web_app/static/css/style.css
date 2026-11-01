@@ -2893,3 +2893,23 @@ thead.table-light th {
         min-height: 220px;
     }
 }
+
+/* ============================================
+   НУМЕРАЦИЯ ЗАМЕТОК
+   ============================================ */
+
+.note-rank {
+    flex: 0 0 28px;
+    align-self: flex-start;
+    padding-top: 2px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .note-rank {
+        flex-basis: 22px;
+    }
+}

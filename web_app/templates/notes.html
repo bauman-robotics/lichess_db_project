@@ -57,6 +57,7 @@
             {% for item in notes %}
                 <div class="favorite-card" data-note-card
                      data-player="{{ item.player_username }}" data-game="{{ item.game_id }}">
+                    <span class="note-rank">{{ (page - 1) * per_page + loop.index }}</span>
                     <div class="favorite-card-main">
                         <div class="favorite-card-head">
                             <a href="/lichess-analyzer/player/{{ item.player_username }}"
