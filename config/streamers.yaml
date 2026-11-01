@@ -37,3 +37,23 @@ streamers:
     name: "Матвей Гальченко"
     title: "IM"
     enabled: true
+  - username: "AnishGiri"
+    name: "Аниш Гири"
+    title: "GM"
+    enabled: true
+  - username: "PeterSvidler"
+    name: "Пётр Свидлер"
+    title: "GM"
+    enabled: true
+  - username: "DaniilDubov"
+    name: "Даниил Дубов"
+    title: "GM"
+    enabled: true
+  - username: "Grischuk"
+    name: "Александр Грищук"
+    title: "GM"
+    enabled: true
+  - username: "ValentinaGunina"
+    name: "Валентина Гунина"
+    title: "GM"
+    enabled: true
