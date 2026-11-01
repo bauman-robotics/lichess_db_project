@@ -3070,15 +3070,21 @@ thead.table-light th {
 
 @media (min-width: 769px) {
     .game-view-page.engine-enabled {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         height: calc(100vh - 100px);
         min-height: 0;
         overflow: hidden;
     }
 
     .game-view-page.engine-enabled .viewer-layout {
-        flex: 1 1 0;
+        flex: none;
         height: auto;
         min-height: 0;
+    }
+
+    .game-view-page.engine-enabled .engine-bottom-row {
+        align-self: end;
     }
 }
 
