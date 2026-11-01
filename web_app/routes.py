@@ -870,7 +870,7 @@ def get_player_stats(username: str) -> dict:
     return result
 
 
-def get_opening_stats(username: str, limit: int = 30) -> list:
+def get_opening_stats(username: str, limit: int = 30, sort: str = "all") -> list:
     """Получает статистику по дебютам из таблицы игрока"""
     print(f"🔍 DEBUG: get_opening_stats вызвана для {username}")
     
@@ -886,6 +886,11 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
         db.close()
         return []
     
+    order_sql = {
+        'wins': 'wins DESC, games DESC',
+        'losses': 'losses DESC, games DESC',
+    }.get(sort, 'games DESC, wins DESC')
+
     results = []
     try:
         with db.connection.get_connection() as conn:
@@ -902,7 +907,7 @@ def get_opening_stats(username: str, limit: int = 30) -> list:
                     WHERE opening_name IS NOT NULL AND opening_name != ''
                     GROUP BY opening_name
                     HAVING COUNT(*) >= 1
-                    ORDER BY games DESC
+                    ORDER BY {order_sql}
                     LIMIT %s;
                 """, (limit,))
                 
@@ -2967,7 +2972,10 @@ def player_debuts(username):
         flash(f'Игрок {username} не найден.', 'warning')
         return redirect(f'/lichess-analyzer/player/{username}')
 
-    openings = get_opening_stats(username, limit=50)
+    sort = request.args.get('sort', 'all').strip()
+    if sort not in ('all', 'wins', 'losses'):
+        sort = 'all'
+    openings = get_opening_stats(username, limit=50, sort=sort)
 
     config_loader = ConfigLoader()
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
@@ -2987,6 +2995,7 @@ def player_debuts(username):
         username=username,
         stats=stats,
         openings=openings,
+        sort=sort,
         viewer_config=viewer_config,
         current_section='debuts',
     )

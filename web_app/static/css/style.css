@@ -3871,3 +3871,58 @@ thead.table-light th {
     opacity: 0.75;
     margin-right: 3px;
 }
+
+/* Сортировка дебютов */
+.debut-sort-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.debut-sort-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.debut-sort-options {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.debut-sort-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.debut-sort-option input {
+    margin: 0;
+    accent-color: var(--accent-gold);
+}
+
+.debut-sort-option.active {
+    border-color: var(--accent-gold);
+    color: var(--text-primary);
+    background: rgba(255, 215, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+    .debut-sort-form {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .debut-sort-option {
+        font-size: 13px;
+        padding: 7px 10px;
+    }
+}

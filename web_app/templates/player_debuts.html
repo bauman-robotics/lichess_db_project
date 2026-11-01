@@ -18,6 +18,31 @@
                 <h5 class="mb-0">📖 Топ дебютов ({{ openings|length if openings else 0 }})</h5>
             </div>
             <div class="card-body">
+                <form method="GET" action="/lichess-analyzer/player/{{ username }}/debuts"
+                      class="debut-sort-form mb-3">
+                    <span class="debut-sort-label">Сортировать по:</span>
+                    <div class="debut-sort-options" role="radiogroup" aria-label="Сортировка дебютов">
+                        <label class="debut-sort-option{% if sort == 'all' %} active{% endif %}">
+                            <input type="radio" name="sort" value="all"
+                                   {% if sort == 'all' %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            Все
+                        </label>
+                        <label class="debut-sort-option{% if sort == 'wins' %} active{% endif %}">
+                            <input type="radio" name="sort" value="wins"
+                                   {% if sort == 'wins' %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            Победы
+                        </label>
+                        <label class="debut-sort-option{% if sort == 'losses' %} active{% endif %}">
+                            <input type="radio" name="sort" value="losses"
+                                   {% if sort == 'losses' %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            Поражения
+                        </label>
+                    </div>
+                </form>
+
                 {% if openings and openings|length > 0 %}
                     <div class="table-responsive desktop-table">
                         <table class="table table-sm table-bordered">
