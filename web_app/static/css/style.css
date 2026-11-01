@@ -232,7 +232,7 @@ table tbody tr:last-child td { border-bottom: none; }
 }
 .progress-bar.bg-success { background: var(--accent-green); }
 .progress-bar.bg-warning { background: #ffc107; color: #1a1a2e; }
-.progress-bar.bg-danger { background: var(--accent-red); }
+.progress-bar.bg-danger { background: #6f2b32; }
 .progress-bar.bg-info { background: var(--accent-blue); }
 .progress-bar.bg-gold { background: var(--accent-gold); color: #1a1a2e; }
 
