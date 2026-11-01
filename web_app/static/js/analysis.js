@@ -316,7 +316,7 @@
         async function pollStatus(username, gameId, taskId, button) {
             const url = `/lichess-analyzer/player/${username}/game/${gameId}/analyze/status/${taskId}`;
             let attempts = 0;
-            const maxAttempts = 60;
+            const maxAttempts = 180;
 
             const tick = async () => {
                 attempts++;

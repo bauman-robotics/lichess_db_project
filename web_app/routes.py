@@ -2804,7 +2804,12 @@ def analyze_status_route(username, game_id, task_id):
         })
 
     # running
-    return jsonify({'status': 'running'})    
+    return jsonify({
+        'status': 'running',
+        'stage': task.get('stage') or 'deepseek',
+        'progress': task.get('progress', 0),
+        'total': task.get('total', 0),
+    })    
 
 @main_bp.route('/player/<username>/game/<game_id>/pgn', methods=['GET'])
 def get_game_pgn_route(username, game_id):
