@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import favorite_button, move_game_card %}
+{% from "_macros.html" import favorite_button, note_button, move_game_card %}
 
 {% block title %}
 {{ username }} — Длина партий
@@ -141,6 +141,7 @@
                                         <th>Контроль</th>
                                         <th>Дебют</th>
                                         <th class="text-center">★</th>
+                                        <th class="text-center">📝</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -177,6 +178,9 @@
                                             <td class="text-center">
                                                 {{ favorite_button(username, g.game_id, g.game_id in favorite_ids) }}
                                             </td>
+                                            <td class="text-center">
+                                                {{ note_button(username, g.game_id, g.game_id in note_ids) }}
+                                            </td>
                                             <td>
                                                 <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
                                                    class="btn btn-sm btn-outline-secondary" title="Смотреть партию">
@@ -191,7 +195,7 @@
 
                         <div class="mobile-cards">
                             {% for g in move_stats.shortest %}
-                                {{ move_game_card(g, username, favorite_ids, loop.index) }}
+                                {{ move_game_card(g, username, favorite_ids, loop.index, note_ids) }}
                             {% endfor %}
                         </div>
                     </div>
@@ -218,6 +222,7 @@
                                         <th>Контроль</th>
                                         <th>Дебют</th>
                                         <th class="text-center">★</th>
+                                        <th class="text-center">📝</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -254,6 +259,9 @@
                                             <td class="text-center">
                                                 {{ favorite_button(username, g.game_id, g.game_id in favorite_ids) }}
                                             </td>
+                                            <td class="text-center">
+                                                {{ note_button(username, g.game_id, g.game_id in note_ids) }}
+                                            </td>
                                             <td>
                                                 <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
                                                    class="btn btn-sm btn-outline-secondary" title="Смотреть партию">
@@ -268,7 +276,7 @@
 
                         <div class="mobile-cards">
                             {% for g in move_stats.longest %}
-                                {{ move_game_card(g, username, favorite_ids, loop.index) }}
+                                {{ move_game_card(g, username, favorite_ids, loop.index, note_ids) }}
                             {% endfor %}
                         </div>
                     </div>

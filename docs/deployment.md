@@ -127,7 +127,7 @@ python scripts/deploy/update_remote.py --yes
    ```bash
    venv/bin/python scripts/setup_db.py --action create
    ```
-   Это идемпотентно: создаёт служебные таблицы `favorite_games` и
+   Это идемпотентно: создаёт служебные таблицы `game_annotations` и
    `import_tasks`, не трогая таблицы партий.
 5. Перезапускает сервис через `sudo -n systemctl restart`.
 6. Проверяет `systemctl is-active`.

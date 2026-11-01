@@ -180,7 +180,7 @@ def get_known_players(limit: Optional[int] = 8, force: bool = False) -> list:
 # ИЗБРАННОЕ
 # ============================================================
 
-FAVORITES_TABLE = 'favorite_games'
+FAVORITES_TABLE = 'game_annotations'
 NOTE_MAX_LENGTH = 2000
 
 
@@ -191,7 +191,7 @@ def get_favorites_count() -> int:
     try:
         with db.connection.get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE};')
+                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE} WHERE is_favorite;')
                 return int(cur.fetchone()[0] or 0)
     except Exception:
         # Таблицы может ещё не быть до миграции — счётчик просто 0.
@@ -213,7 +213,8 @@ def get_favorite_ids(username: str, game_ids: list) -> set:
                     f"""
                     SELECT game_id
                     FROM {FAVORITES_TABLE}
-                    WHERE player_username = %s AND game_id = ANY(%s);
+                    WHERE player_username = %s AND game_id = ANY(%s)
+                      AND is_favorite;
                     """,
                     (username.lower(), list(game_ids)),
                 )
@@ -294,18 +295,21 @@ def add_favorite(username: str, game_id: str) -> Optional[int]:
                     INSERT INTO {FAVORITES_TABLE} (
                         player_username, game_id, game_date, opponent_name,
                         opponent_rating, player_color, result, opening_name,
-                        time_control, move_count, my_rating, game_url
+                        time_control, move_count, my_rating, game_url,
+                        is_favorite
                     ) VALUES (
                         %(player_username)s, %(game_id)s, %(game_date)s,
                         %(opponent_name)s, %(opponent_rating)s, %(player_color)s,
                         %(result)s, %(opening_name)s, %(time_control)s,
-                        %(move_count)s, %(my_rating)s, %(game_url)s
+                        %(move_count)s, %(my_rating)s, %(game_url)s,
+                        TRUE
                     )
-                    ON CONFLICT (player_username, game_id) DO NOTHING;
+                    ON CONFLICT (player_username, game_id)
+                    DO UPDATE SET is_favorite = TRUE, updated_at = NOW();
                     """,
                     snapshot,
                 )
-                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE};')
+                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE} WHERE is_favorite;')
                 count = int(cur.fetchone()[0] or 0)
             conn.commit()
         return count
@@ -314,27 +318,7 @@ def add_favorite(username: str, game_id: str) -> Optional[int]:
 
 
 def remove_favorite(username: str, game_id: str) -> int:
-    """Удаляет партию из избранного, возвращает новый счётчик."""
-    config = ConfigLoader()
-    db = DatabaseManager(config, 'local')
-    try:
-        with db.connection.get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    f'DELETE FROM {FAVORITES_TABLE} '
-                    'WHERE player_username = %s AND game_id = %s;',
-                    (username.lower(), game_id),
-                )
-                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE};')
-                count = int(cur.fetchone()[0] or 0)
-            conn.commit()
-        return count
-    finally:
-        db.close()
-
-
-def update_favorite_note(username: str, game_id: str, note: str) -> bool:
-    """Обновляет заметку к избранной партии."""
+    """Убирает из избранного, сохраняя заметку. Возвращает счётчик."""
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
     try:
@@ -343,16 +327,80 @@ def update_favorite_note(username: str, game_id: str, note: str) -> bool:
                 cur.execute(
                     f"""
                     UPDATE {FAVORITES_TABLE}
-                    SET note = %s, updated_at = NOW()
+                    SET is_favorite = FALSE, updated_at = NOW()
                     WHERE player_username = %s AND game_id = %s;
                     """,
-                    (note[:NOTE_MAX_LENGTH], username.lower(), game_id),
+                    (username.lower(), game_id),
                 )
-                updated = cur.rowcount > 0
+                cur.execute(
+                    f"""
+                    DELETE FROM {FAVORITES_TABLE}
+                    WHERE player_username = %s AND game_id = %s
+                      AND is_favorite = FALSE
+                      AND (note IS NULL OR note = '');
+                    """,
+                    (username.lower(), game_id),
+                )
+                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE} WHERE is_favorite;')
+                count = int(cur.fetchone()[0] or 0)
             conn.commit()
-        return updated
+        return count
     finally:
         db.close()
+
+
+def save_annotation(username: str, game_id: str, note: str) -> bool:
+    """Сохраняет заметку к любой партии; создаёт строку при необходимости."""
+    snapshot = get_game_snapshot(username, game_id)
+    if not snapshot:
+        return False
+
+    note = (note or '').strip()
+    note_value = note[:NOTE_MAX_LENGTH] if note else None
+    snapshot['note'] = note_value
+
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    INSERT INTO {FAVORITES_TABLE} (
+                        player_username, game_id, game_date, opponent_name,
+                        opponent_rating, player_color, result, opening_name,
+                        time_control, move_count, my_rating, game_url,
+                        note, is_favorite
+                    ) VALUES (
+                        %(player_username)s, %(game_id)s, %(game_date)s,
+                        %(opponent_name)s, %(opponent_rating)s, %(player_color)s,
+                        %(result)s, %(opening_name)s, %(time_control)s,
+                        %(move_count)s, %(my_rating)s, %(game_url)s,
+                        %(note)s, FALSE
+                    )
+                    ON CONFLICT (player_username, game_id)
+                    DO UPDATE SET note = EXCLUDED.note, updated_at = NOW();
+                    """,
+                    snapshot,
+                )
+                if not note:
+                    cur.execute(
+                        f"""
+                        DELETE FROM {FAVORITES_TABLE}
+                        WHERE player_username = %s AND game_id = %s
+                          AND is_favorite = FALSE;
+                        """,
+                        (username.lower(), game_id),
+                    )
+            conn.commit()
+        return True
+    finally:
+        db.close()
+
+
+def update_favorite_note(username: str, game_id: str, note: str) -> bool:
+    """Совместимость: сохраняет заметку через общую аннотацию."""
+    return save_annotation(username, game_id, note)
 
 
 def get_favorites(q: str = '', sort: str = 'added', page: int = 1,
@@ -363,7 +411,7 @@ def get_favorites(q: str = '', sort: str = 'added', page: int = 1,
     Returns:
         tuple[list[dict], int]
     """
-    where = []
+    where = ['is_favorite = TRUE']
     params = []
 
     normalized_username = username.lower() if username else None
@@ -437,6 +485,158 @@ def get_favorites(q: str = '', sort: str = 'added', page: int = 1,
                     })
     except Exception as e:
         db.logger.warning(f'Не удалось прочитать избранное: {e}')
+    finally:
+        db.close()
+
+    return items, total
+
+
+def get_annotation(username: str, game_id: str) -> Optional[dict]:
+    """Возвращает заметку и флаг избранного для одной партии."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    SELECT note, is_favorite, updated_at
+                    FROM {FAVORITES_TABLE}
+                    WHERE player_username = %s AND game_id = %s;
+                    """,
+                    (username.lower(), game_id),
+                )
+                row = cur.fetchone()
+                if not row:
+                    return {'note': '', 'is_favorite': False, 'updated_at': None}
+                return {
+                    'note': row[0] or '',
+                    'is_favorite': bool(row[1]),
+                    'updated_at': row[2],
+                }
+    except Exception:
+        return {'note': '', 'is_favorite': False, 'updated_at': None}
+    finally:
+        db.close()
+
+
+def get_note_ids(username: str, game_ids: list) -> set:
+    """Множество game_id с непустой заметкой."""
+    if not game_ids:
+        return set()
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    SELECT game_id FROM {FAVORITES_TABLE}
+                    WHERE player_username = %s AND game_id = ANY(%s)
+                      AND note IS NOT NULL AND note <> '';
+                    """,
+                    (username.lower(), list(game_ids)),
+                )
+                return {row[0] for row in cur.fetchall()}
+    except Exception:
+        return set()
+    finally:
+        db.close()
+
+
+def get_notes_count() -> int:
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"SELECT COUNT(*) FROM {FAVORITES_TABLE} "
+                    "WHERE note IS NOT NULL AND note <> '';"
+                )
+                return int(cur.fetchone()[0] or 0)
+    except Exception:
+        return 0
+    finally:
+        db.close()
+
+
+def get_notes(q: str = '', sort: str = 'updated', page: int = 1,
+              per_page: int = 25, username: Optional[str] = None):
+    """Список заметок с поиском по тексту/игроку/сопернику/дебюту."""
+    where = ["note IS NOT NULL AND note <> ''"]
+    params = []
+
+    if username:
+        where.append('player_username = %s')
+        params.append(username.lower())
+
+    if q:
+        like = f'%{q}%'
+        where.append(
+            '(note ILIKE %s OR player_username ILIKE %s '
+            'OR opponent_name ILIKE %s OR opening_name ILIKE %s)'
+        )
+        params.extend([like, like, like, like])
+
+    where_sql = 'WHERE ' + ' AND '.join(where)
+    order_sql = {
+        'updated': 'updated_at DESC, player_username, game_id',
+        'game_date': 'game_date DESC NULLS LAST, updated_at DESC',
+        'opponent': 'opponent_name ASC NULLS LAST, updated_at DESC',
+    }.get(sort, 'updated_at DESC, player_username, game_id')
+
+    page = max(1, int(page or 1))
+    per_page = max(1, int(per_page or 25))
+    offset = (page - 1) * per_page
+
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    items = []
+    total = 0
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f'SELECT COUNT(*) FROM {FAVORITES_TABLE} {where_sql};',
+                    params,
+                )
+                total = int(cur.fetchone()[0] or 0)
+                cur.execute(
+                    f"""
+                    SELECT
+                        player_username, game_id, game_date, opponent_name,
+                        opponent_rating, player_color, result, opening_name,
+                        time_control, move_count, my_rating, game_url,
+                        note, created_at, updated_at, is_favorite
+                    FROM {FAVORITES_TABLE}
+                    {where_sql}
+                    ORDER BY {order_sql}
+                    LIMIT %s OFFSET %s;
+                    """,
+                    params + [per_page, offset],
+                )
+                for row in cur.fetchall():
+                    items.append({
+                        'player_username': row[0],
+                        'game_id': row[1],
+                        'date': row[2],
+                        'opponent': row[3],
+                        'opponent_rating': row[4],
+                        'color': row[5],
+                        'result': row[6],
+                        'opening': row[7],
+                        'time_control': row[8],
+                        'move_count': row[9],
+                        'my_rating': row[10],
+                        'game_url': row[11],
+                        'note': row[12] or '',
+                        'created_at': row[13],
+                        'updated_at': row[14],
+                        'is_favorite': bool(row[15]),
+                    })
+    except Exception as e:
+        db.logger.warning(f'Не удалось прочитать заметки: {e}')
     finally:
         db.close()
 
@@ -704,6 +904,7 @@ def get_game_for_analysis(username: str, game_id: str) -> dict:
                     'game_analysis': row[10] or '',
                 }
                 game['is_favorite'] = game_id in get_favorite_ids(username, [game_id])
+                game['has_note'] = game_id in get_note_ids(username, [game_id])
                 return game
     finally:
         db.table_name = original_table
@@ -1411,6 +1612,80 @@ def render_search_page(form):
     )
 
 
+@main_bp.route('/notes')
+def notes_list():
+    """Глобальный список заметок с поиском и пагинацией."""
+    q = request.args.get('q', '').strip()
+    sort = request.args.get('sort', 'updated').strip()
+    if sort not in ('updated', 'game_date', 'opponent'):
+        sort = 'updated'
+
+    try:
+        per_page = int(request.args.get('per_page', 25))
+    except (TypeError, ValueError):
+        per_page = 25
+    if per_page not in (25, 50, 100):
+        per_page = 25
+
+    page = max(1, request.args.get('page', 1, type=int) or 1)
+    notes, total = get_notes(q=q, sort=sort, page=page, per_page=per_page)
+    pages = max(1, ceil(total / per_page)) if total else 1
+    if page > pages:
+        page = pages
+        notes, total = get_notes(q=q, sort=sort, page=page, per_page=per_page)
+
+    query_params = []
+    if q:
+        query_params.append(('q', q))
+    if sort != 'updated':
+        query_params.append(('sort', sort))
+    if per_page != 25:
+        query_params.append(('per_page', str(per_page)))
+
+    page_links = [
+        {
+            'number': number,
+            'url': '?' + urlencode(query_params + [('page', number)]),
+            'active': number == page,
+        }
+        for number in range(1, pages + 1)
+    ]
+    per_page_links = [
+        {
+            'size': size,
+            'url': '?' + urlencode(
+                [p for p in query_params if p[0] != 'per_page']
+                + [('per_page', size)]
+            ),
+            'active': size == per_page,
+        }
+        for size in (25, 50, 100)
+    ]
+    prev_url = (
+        '?' + urlencode(query_params + [('page', page - 1)])
+        if page > 1 else None
+    )
+    next_url = (
+        '?' + urlencode(query_params + [('page', page + 1)])
+        if page < pages else None
+    )
+
+    return render_template(
+        'notes.html',
+        notes=notes,
+        total=total,
+        page=page,
+        pages=pages,
+        per_page=per_page,
+        page_links=page_links,
+        per_page_links=per_page_links,
+        prev_url=prev_url,
+        next_url=next_url,
+        q=q,
+        sort=sort,
+    )
+
+
 @main_bp.route('/favorites')
 def favorites_list():
     """Глобальный список избранных партий с поиском."""
@@ -1544,8 +1819,52 @@ def favorites_note(username, game_id):
     except Exception as e:
         return jsonify({'error': f'Избранное недоступно: {e}'}), 503
     if not updated:
-        return jsonify({'error': 'Партия не найдена в избранном'}), 404
+        return jsonify({'error': 'Партия не найдена'}), 404
     return jsonify({'ok': True, 'note': note})
+
+
+def _annotation_payload(username, game_id):
+    try:
+        username = normalize_lichess_username(username)
+    except LichessUsernameError as e:
+        return None, None, (jsonify({'error': str(e)}), 400)
+    if not re.fullmatch(r'[A-Za-z0-9]{1,20}', game_id or ''):
+        return None, None, (jsonify({'error': 'Неверный game_id'}), 400)
+    return username, game_id, None
+
+
+@main_bp.route('/annotations/<username>/<game_id>', methods=['GET'])
+def annotation_get(username, game_id):
+    """Возвращает заметку и флаг избранного для партии."""
+    username, game_id, error = _annotation_payload(username, game_id)
+    if error:
+        return error
+    return jsonify(get_annotation(username, game_id))
+
+
+@main_bp.route('/annotations/<username>/<game_id>', methods=['PATCH'])
+def annotation_save(username, game_id):
+    """Сохраняет/удаляет заметку к любой партии."""
+    username, game_id, error = _annotation_payload(username, game_id)
+    if error:
+        return error
+    data = request.get_json(silent=True) or {}
+    note = str(data.get('note') or '')
+    if len(note) > NOTE_MAX_LENGTH:
+        return jsonify({'error': f'Заметка длиннее {NOTE_MAX_LENGTH} символов'}), 400
+    try:
+        saved = save_annotation(username, game_id, note)
+    except Exception as e:
+        return jsonify({'error': f'Заметки недоступны: {e}'}), 503
+    if not saved:
+        return jsonify({'error': 'Партия не найдена'}), 404
+    current = get_annotation(username, game_id)
+    return jsonify({
+        'ok': True,
+        'note': current.get('note', ''),
+        'has_note': bool(current.get('note')),
+        'is_favorite': bool(current.get('is_favorite')),
+    })
 
 
 @main_bp.route('/')
@@ -1616,7 +1935,9 @@ def player_stats(username):
     config_loader = ConfigLoader()
     recent_limit = config_loader.get('statistics.recent_games_limit', 25)
     games = get_recent_games(username, limit=recent_limit)
-    favorite_ids = get_favorite_ids(username, [g['game_id'] for g in games])
+    game_ids = [g['game_id'] for g in games]
+    favorite_ids = get_favorite_ids(username, game_ids)
+    note_ids = get_note_ids(username, game_ids)
 
     featured_player = (
         config_loader.get('ui.featured_player')
@@ -1648,6 +1969,7 @@ def player_stats(username):
                            exists=True,
                            games=games,
                            favorite_ids=favorite_ids,
+                           note_ids=note_ids,
                            featured_player=featured_player,
                            featured_is_current=featured_is_current,
                            featured_games_count=featured_games_count,
@@ -1908,7 +2230,9 @@ def player_openings(username):
 
     popular_openings = get_popular_openings()
     speed_categories, _ = get_speed_categories(username)
-    favorite_ids = get_favorite_ids(username, [g['game_id'] for g in games])
+    game_ids = [g['game_id'] for g in games]
+    favorite_ids = get_favorite_ids(username, game_ids)
+    note_ids = get_note_ids(username, game_ids)
 
     # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
     running_ids = analysis_tasks.get_running_game_ids(username)
@@ -1931,6 +2255,7 @@ def player_openings(username):
         games=games,
         total=total,
         favorite_ids=favorite_ids,
+        note_ids=note_ids,
         page=page,
         pages=pages,
         per_page=per_page,
@@ -2309,6 +2634,10 @@ def player_progression(username):
         date_from=date_from,
     )
     table_games = rating_progression[:50]
+    note_ids = get_note_ids(
+        username,
+        [g.get('game_id') for g in table_games if g.get('game_id')],
+    )
     period_games = len(rating_progression)
     period_wins = sum(1 for g in rating_progression if g.get('result') == 'Win')
     period_win_rate = round(period_wins * 100 / period_games, 1) if period_games else 0
@@ -2401,6 +2730,7 @@ def player_progression(username):
         rating_stats=rating_stats,
         rating_progression=rating_progression,
         table_games=table_games,
+        note_ids=note_ids,
         period_games=period_games,
         period_wins=period_wins,
         period_win_rate=period_win_rate,
@@ -2478,6 +2808,7 @@ def player_move_length(username):
         for g in move_stats.get(key, [])
     ]
     favorite_ids = get_favorite_ids(username, move_game_ids)
+    note_ids = get_note_ids(username, move_game_ids)
 
     config_loader = ConfigLoader()
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
@@ -2498,6 +2829,7 @@ def player_move_length(username):
         stats=stats,
         move_stats=move_stats,
         favorite_ids=favorite_ids,
+        note_ids=note_ids,
         viewer_config=viewer_config,
         current_section='move-length',
     )    

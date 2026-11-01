@@ -13,9 +13,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config.config_loader import ConfigLoader
 from core.database.db_manager import DatabaseManager
 from core.database.migrations import (
-    ensure_favorites_table,
+    annotations_table_status,
+    ensure_annotations_table,
     ensure_import_tasks_table,
-    favorites_table_status,
     import_tasks_status,
 )
 from core.exceptions.custom_exceptions import DatabaseError
@@ -106,8 +106,8 @@ def main():
             if db_manager.create_table(drop_existing=args.drop_table):
                 logger.info("✅ Таблица создана успешно")
                 try:
-                    ensure_favorites_table(db_manager)
-                    logger.info("✅ Таблица favorite_games готова")
+                    ensure_annotations_table(db_manager)
+                    logger.info("✅ Таблица game_annotations готова")
                     ensure_import_tasks_table(db_manager)
                     logger.info("✅ Таблица import_tasks готова")
                 except Exception as e:
@@ -121,7 +121,7 @@ def main():
             if args.drop_table:  # Для безопасности, явно требуем флаг
                 logger.info("Удаление таблицы...")
                 logger.warning(
-                    "Избранное (favorite_games) не удаляется: это пользовательские данные."
+                    "Избранное и заметки (game_annotations) не удаляются: это пользовательские данные."
                 )
                 if db_manager.drop_table():
                     logger.info("✅ Таблица удалена")
@@ -135,7 +135,7 @@ def main():
         elif args.action == 'recreate':
             logger.info("Пересоздание таблицы...")
             logger.warning(
-                "Избранное (favorite_games) сохранится: удаляется только games."
+                "Избранное и заметки (game_annotations) сохранятся: удаляется только games."
             )
             if db_manager.drop_table() and db_manager.create_table(drop_existing=True):
                 logger.info("✅ Таблица пересоздана")
@@ -176,12 +176,14 @@ def main():
                     for result, count in stats['results_distribution']:
                         print(f"    {result}: {count}")
 
-            fav = favorites_table_status(db_manager)
-            print("\n⭐ Избранное:")
+            fav = annotations_table_status(db_manager)
+            print("\n⭐ Избранное и заметки:")
             print(f"  Таблица: {fav['table']}")
             print(f"  Существует: {'✅' if fav['exists'] else '❌'}")
             if fav['exists']:
                 print(f"  Записей: {fav['records']}")
+                print(f"  Избранных: {fav['favorites']}")
+                print(f"  С заметками: {fav['notes']}")
                 print(f"  Индексов: {fav['indexes']}")
 
             queue = import_tasks_status(db_manager)

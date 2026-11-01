@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% from "_macros.html" import favorite_button, note_button %}
+
+{% block title %}Заметки{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="player-title-row">
+            <h1 class="player-title">📝 Заметки</h1>
+            <span class="badge bg-secondary">{{ total }} заметок</span>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="/lichess-analyzer/notes" class="favorites-search">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="notesSearch">Поиск</label>
+                            <input type="search" name="q" id="notesSearch"
+                                   class="form-control" value="{{ q }}"
+                                   placeholder="текст заметки, игрок, соперник или дебют">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label" for="notesSort">Сортировка</label>
+                            <select name="sort" id="notesSort" class="form-select">
+                                <option value="updated" {% if sort == 'updated' %}selected{% endif %}>Недавно изменённые</option>
+                                <option value="game_date" {% if sort == 'game_date' %}selected{% endif %}>По дате партии</option>
+                                <option value="opponent" {% if sort == 'opponent' %}selected{% endif %}>По сопернику</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">🔍 Найти</button>
+                        </div>
+                        <div class="col-12 col-md-1">
+                            {% if q %}
+                                <a href="/lichess-analyzer/notes" class="btn btn-outline-secondary w-100" title="Сбросить поиск">✖</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if per_page != 25 %}
+                        <input type="hidden" name="per_page" value="{{ per_page }}">
+                    {% endif %}
+                </form>
+
+                <div class="per-page-switch mt-3">
+                    <span class="text-muted small">Показать:</span>
+                    {% for item in per_page_links %}
+                        <a href="{{ item.url }}"
+                           class="per-page-link {% if item.active %}active{% endif %}">{{ item.size }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="favorites-list" data-notes-list>
+            {% for item in notes %}
+                <div class="favorite-card" data-note-card
+                     data-player="{{ item.player_username }}" data-game="{{ item.game_id }}">
+                    <div class="favorite-card-main">
+                        <div class="favorite-card-head">
+                            <a href="/lichess-analyzer/player/{{ item.player_username }}"
+                               class="favorite-player">♟️ {{ item.player_username }}</a>
+                            <span class="favorite-date">
+                                {{ item.date.strftime('%d.%m.%Y') if item.date is not string and item.date else (item.date or '—') }}
+                            </span>
+                            <span class="badge {% if item.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
+                                {{ item.color or '?' }}
+                            </span>
+                            <span class="badge-result {% if item.result == 'Win' %}badge-result-win{% elif item.result == 'Loss' %}badge-result-loss{% else %}badge-result-draw{% endif %}">
+                                {{ item.result or '—' }}
+                            </span>
+                        </div>
+
+                        <div class="favorite-opponent">
+                            👤 {{ item.opponent or '—' }}
+                            {% if item.opponent_rating %}({{ item.opponent_rating }}){% endif %}
+                            <span class="text-muted">·</span>
+                            ⏰ {{ item.time_control or '—' }}
+                            <span class="text-muted">·</span>
+                            📊 {{ ((item.move_count or 0) + 1) // 2 }} ходов
+                        </div>
+
+                        {% if item.opening %}
+                            <div class="favorite-opening">📖 {{ item.opening }}</div>
+                        {% endif %}
+
+                        <div class="favorite-note-view">{{ item.note }}</div>
+                    </div>
+
+                    <div class="favorite-card-actions">
+                        {{ note_button(item.player_username, item.game_id, True, with_label=True) }}
+                        {{ favorite_button(item.player_username, item.game_id, item.is_favorite, with_label=True) }}
+                        <a href="/lichess-analyzer/player/{{ item.player_username }}/game/{{ item.game_id }}/view"
+                           class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
+                        <a href="https://lichess.org/{{ item.game_id }}" target="_blank" rel="noopener"
+                           class="btn btn-sm btn-outline-secondary">↗ Lichess</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="notesEmpty" class="card shadow-sm {% if notes %}d-none{% endif %}">
+            <div class="card-body text-center text-muted py-5">
+                <p class="mb-2">Пока нет заметок.</p>
+                <p class="small mb-3">Нажмите 📝 в списке игр или при просмотре партии.</p>
+                <a href="/lichess-analyzer/" class="btn btn-sm btn-primary">Перейти к игрокам</a>
+            </div>
+        </div>
+
+        {% if pages > 1 %}
+            <nav class="pagination-wrap" aria-label="Страницы заметок">
+                {% if prev_url %}
+                    <a class="page-btn" href="{{ prev_url }}" aria-label="Назад">‹</a>
+                {% else %}
+                    <span class="page-btn disabled" aria-hidden="true">‹</span>
+                {% endif %}
+                {% for item in page_links %}
+                    {% if item.active %}
+                        <span class="page-btn active" aria-current="page">{{ item.number }}</span>
+                    {% else %}
+                        <a class="page-btn" href="{{ item.url }}">{{ item.number }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if next_url %}
+                    <a class="page-btn" href="{{ next_url }}" aria-label="Вперёд">›</a>
+                {% else %}
+                    <span class="page-btn disabled" aria-hidden="true">›</span>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

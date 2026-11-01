@@ -265,14 +265,14 @@ END
 
 ---
 
-## 9. Функция 6. Глобальное избранное
+## 9. Функция 6. Избранное и заметки
 
 ### 9.1. Хранение
 
-Новая таблица `favorite_games` со снимком метаданных:
+Единая таблица `game_annotations` со снимком метаданных:
 
 ```sql
-CREATE TABLE IF NOT EXISTS favorite_games (
+CREATE TABLE IF NOT EXISTS game_annotations (
     player_username  VARCHAR(100) NOT NULL,
     game_id          VARCHAR(20)  NOT NULL,
     game_date        TIMESTAMP,
@@ -286,28 +286,33 @@ CREATE TABLE IF NOT EXISTS favorite_games (
     my_rating        INTEGER,
     game_url         VARCHAR(200),
     note             TEXT,
+    is_favorite      BOOLEAN NOT NULL DEFAULT FALSE,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (player_username, game_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_fav_created
-    ON favorite_games (created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_fav_player
-    ON favorite_games (player_username);
-CREATE INDEX IF NOT EXISTS idx_fav_game_date
-    ON favorite_games (game_date DESC);
+CREATE INDEX IF NOT EXISTS idx_ann_created
+    ON game_annotations (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ann_player
+    ON game_annotations (player_username);
+CREATE INDEX IF NOT EXISTS idx_ann_game_date
+    ON game_annotations (game_date DESC);
+CREATE INDEX IF NOT EXISTS idx_ann_favorite
+    ON game_annotations (is_favorite) WHERE is_favorite;
 ```
 
 - `player_username` — в нижнем регистре.
 - Снимок заполняется при добавлении из строки партии или страницы просмотра.
-- При удалении игрока чистим его избранное.
+- При удалении игрока чистим его избранное и заметки (game_annotations).
 
 ### 9.2. Добавление и удаление
 
 - `POST /favorites` — `{player_username, game_id}`, идемпотентно; ответ `{favorited: true, count: N}`.
 - `DELETE /favorites/<player>/<game_id>` — 204, идемпотентно.
-- `PATCH /favorites/<player>/<game_id>` — `{note}`.
+- `PATCH /favorites/<player>/<game_id>` — `{note}` (совместимость).
+- `PATCH /annotations/<player>/<game_id>` — `{note}`; создаёт строку для любой партии.
+- `GET /annotations/<player>/<game_id>` — `{note, is_favorite, updated_at}`.
 - CSRF через `X-CSRFToken`.
 - Звёздочка `☆ / ★` в таблице, мобильной карточке и на странице партии.
 - На мобильном кнопка всегда видима, 44×44, `aria-pressed`.
@@ -320,12 +325,24 @@ CREATE INDEX IF NOT EXISTS idx_fav_game_date
 - Пагинация 25 / 50 / 100.
 - Карточка: игрок, дата, цвет, результат, соперник, дебют, контроль, заметка, кнопки «Смотреть», «Убрать», «✎ Заметка».
 - Заметка: plain text, до 2000 символов, `white-space: pre-wrap`.
+- Убрать из избранного не удаляет заметку; строка удаляется только если
+  нет ни заметки, ни избранного.
 - Горячие клавиши просмотрщика не перехватывают пробел/стрелки
   в полях ввода и textarea.
 - Пустое состояние с подсказкой.
 - Счётчик `⭐ Избранное (N)` в шапке всегда; обновляется из ответов API.
 
-### 9.4. Мобильные
+### 9.4. Страница `/notes`
+
+- Отдельный пункт `📝 Заметки` в шапке со счётчиком.
+- Поиск `q`: текст заметки, игрок, соперник, дебют.
+- Сортировка: недавно изменённые / дата партии / соперник.
+- Пагинация 25 / 50 / 100.
+- Иконка `📝` во всех списках: последние игры, фильтр, длина партий,
+  прогресс, избранное, просмотр партии.
+- Заполненная иконка — заметка есть; модалка с `Ctrl+Enter`.
+
+### 9.5. Мобильные
 
 - «Избранное» — пункт верхней навигации.
 - Поиск на всю ширину, фильтры не нужны (только `q` и сортировка).

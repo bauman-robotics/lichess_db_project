@@ -13,7 +13,7 @@ from flask_wtf.csrf import CSRFProtect
 
 from web_app.config import WebConfig
 from web_app.import_tasks import start_import_worker
-from web_app.routes import get_favorites_count, main_bp
+from web_app.routes import get_favorites_count, get_notes_count, main_bp
 
 
 def create_app():
@@ -36,6 +36,7 @@ def create_app():
         return {
             'current_player': (request.view_args or {}).get('username'),
             'favorite_count': get_favorites_count(),
+            'note_count': get_notes_count(),
         }
     
     # Регистрируем блюпринт БЕЗ префикса

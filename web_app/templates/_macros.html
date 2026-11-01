@@ -46,7 +46,7 @@
 </button>
 {% endmacro %}
 
-{% macro move_game_card(g, username, favorite_ids, rank) %}
+{% macro move_game_card(g, username, favorite_ids, rank, note_ids=[]) %}
 <div class="game-card-compact">
     <div class="gc-header">
         <span class="gc-num">#{{ rank }}</span>
@@ -74,6 +74,7 @@
     {% endif %}
     <div class="gc-actions">
         {{ favorite_button(username, g.game_id, g.game_id in favorite_ids, with_label=True) }}
+        {{ note_button(username, g.game_id, g.game_id in note_ids, with_label=True) }}
         <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
            class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
     </div>
@@ -141,4 +142,15 @@
         {% endif %}
     </div>
 </div>
+{% endmacro %}
+
+{% macro note_button(username, game_id, has_note=False, with_label=False) %}
+<button type="button"
+        class="btn btn-sm btn-outline-secondary btn-note{% if has_note %} has-note{% endif %}"
+        data-username="{{ username }}"
+        data-game-id="{{ game_id }}"
+        data-has-note="{{ '1' if has_note else '0' }}"
+        title="{{ 'Заметка есть' if has_note else 'Добавить заметку' }}">
+    <span class="note-icon" aria-hidden="true">📝</span>{% if with_label %}<span class="note-label">Заметка</span>{% endif %}
+</button>
 {% endmacro %}

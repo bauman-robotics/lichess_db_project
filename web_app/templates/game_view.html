@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import favorite_button %}
+{% from "_macros.html" import favorite_button, note_button %}
 
 {% block main_class %}container-fluid mt-2{% endblock %}
 
@@ -28,6 +28,7 @@
             🔗 Скопировать
         </button>
         {{ favorite_button(username, game.game_id, game.is_favorite, with_label=True) }}
+        {{ note_button(username, game.game_id, game.has_note, with_label=True) }}
     </div>
 
     <!-- Основной layout -->

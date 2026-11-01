@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import favorite_button %}
+{% from "_macros.html" import favorite_button, note_button %}
 
 {% block title %}
 {{ username }} — Игры
@@ -87,6 +87,7 @@
                                         <th>Дебют</th>
                                         <th>Ссылка</th>
                                         <th class="text-center">★</th>
+                                        <th class="text-center">📝</th>
                                         <th class="text-center">Смотреть</th>
                                         <th class="text-center">Анализ</th>
                                     </tr>
@@ -132,6 +133,9 @@
                                             </td>
                                             <td class="text-center">
                                                 {{ favorite_button(username, game.game_id, game.game_id in favorite_ids) }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ note_button(username, game.game_id, game.game_id in note_ids) }}
                                             </td>
                                             <td class="text-center">
                                                 <a href="/lichess-analyzer/player/{{ username }}/game/{{ game.game_id }}/view"
@@ -196,6 +200,7 @@
                                     <!-- Строка 4: кнопки действий -->
                                     <div class="gc-actions">
                                         {{ favorite_button(username, game.game_id, game.game_id in favorite_ids, with_label=True) }}
+                                        {{ note_button(username, game.game_id, game.game_id in note_ids, with_label=True) }}
                                         {% if game.game_id %}
                                             {% set orientation = '/white' if game.color == 'white' else ('/black' if game.color == 'black' else '') %}
                                             <a href="https://lichess.org/{{ game.game_id }}{{ orientation }}"

@@ -9,7 +9,7 @@
     <!-- Bootstrap CSS с темной темой -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Наши стили -->
-    <link href="/lichess-analyzer/static/css/style.css?v=71" rel="stylesheet">
+    <link href="/lichess-analyzer/static/css/style.css?v=72" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -28,6 +28,12 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/lichess-analyzer/search">🔍 Поиск</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/lichess-analyzer/notes">
+                            📝 Заметки
+                            <span class="favorite-count-badge" data-note-count>{{ note_count }}</span>
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/lichess-analyzer/favorites">
@@ -96,6 +102,36 @@
     </footer>
     {% endblock %}
 
+
+    <!-- Модалка заметки -->
+    <div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteModalTitle">📝 Заметка к партии</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-muted small mb-2" id="noteModalGame"></div>
+                    <textarea id="noteModalText" class="form-control" rows="8" maxlength="2000"
+                              placeholder="Текст заметки (plain text)"></textarea>
+                    <div class="small mt-2" id="noteModalStatus" role="status"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-outline-danger me-auto" id="noteModalDelete">
+                        Удалить заметку
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">
+                        Отмена
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" id="noteModalSave">
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -107,7 +143,8 @@
     <script src="/lichess-analyzer/static/chessboard/board.js?v=2"></script>
     <script src="/lichess-analyzer/static/chessboard/renderer.js?v=2"></script>
     <script src="/lichess-analyzer/static/js/game_viewer.js?v=21"></script>
-    <script src="/lichess-analyzer/static/js/favorites.js?v=1"></script>
+    <script src="/lichess-analyzer/static/js/favorites.js?v=2"></script>
+    <script src="/lichess-analyzer/static/js/notes.js?v=1"></script>
     <script src="/lichess-analyzer/static/js/import_tasks.js?v=2"></script>
     {% block scripts %}{% endblock %}
 </body>
