@@ -11,7 +11,7 @@
     <div class="container-fluid game-view-page">
 
     <!-- Кнопки действий — над доской, по центру -->
-    <div class="d-flex gap-2 mb-2 flex-wrap justify-content-center">
+    <div class="game-view-actions d-flex gap-2 mb-2 flex-wrap justify-content-center">
         <a href="/lichess-analyzer/player/{{ username }}"
            class="btn btn-sm btn-outline-secondary" title="К игроку">
             ← К игроку
@@ -23,6 +23,11 @@
         <a href="/lichess-analyzer/player/{{ username }}/openings"
            class="btn btn-sm btn-outline-secondary" title="Дебюты">
             📖 Топ дебютов
+        </a>
+        <a href="/lichess-analyzer/player/{{ username }}/openings{% if game.opening_name %}?opening={{ game.opening_name|urlencode }}{% endif %}"
+           class="btn btn-sm btn-outline-secondary"
+           title="Открыть фильтр партий{% if game.opening_name %} с этим дебютом{% endif %}">
+            🔍 Фильтр партий
         </a>
         <button type="button" class="btn btn-sm btn-outline-secondary" id="copyLinkBtn" title="Скопировать ссылку">
             🔗 Скопировать

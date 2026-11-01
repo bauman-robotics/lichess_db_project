@@ -3032,3 +3032,34 @@ thead.table-light th {
     color: var(--accent-gold);
     font-weight: 700;
 }
+
+/* ============================================
+   КНОПКИ ДЕЙСТВИЙ НА ПРОСМОТРЕ ПАРТИИ
+   ============================================ */
+
+.game-view-actions {
+    row-gap: 0.5rem;
+}
+
+@media (max-width: 576px) {
+    .game-view-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .game-view-actions > * {
+        width: 100%;
+    }
+
+    .game-view-actions .btn,
+    .game-view-actions .btn-favorite,
+    .game-view-actions .btn-note {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: normal;
+    }
+}
