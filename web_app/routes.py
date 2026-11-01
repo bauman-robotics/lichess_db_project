@@ -598,6 +598,59 @@ def get_note_ids(username: str, game_ids: list) -> set:
         db.close()
 
 
+def attach_eval_flags(items: list) -> None:
+    """Проставляет has_lichess_eval/has_engine_eval для списка партий разных игроков."""
+    grouped = {}
+    for item in items:
+        grouped.setdefault(item['player_username'], []).append(item)
+    config = ConfigLoader()
+    for username, user_items in grouped.items():
+        ids = [item['game_id'] for item in user_items]
+        if not ids:
+            continue
+        table = get_safe_table_name(username)
+        db = DatabaseManager(config, 'local')
+        original = db.table_name
+        db.table_name = table
+        lichess_ids = set()
+        engine_ids = set()
+        try:
+            if db.table_exists():
+                with db.connection.get_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            f'SELECT game_id, pgn_moves LIKE %s FROM "{table}" '
+                            'WHERE game_id = ANY(%s);',
+                            ('%[%eval%', list(ids)),
+                        )
+                        lichess_ids = {row[0] for row in cur.fetchall() if row[1]}
+        except Exception:
+            pass
+        finally:
+            db.table_name = original
+            db.close()
+        try:
+            db = DatabaseManager(config, 'local')
+            with db.connection.get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        'SELECT DISTINCT game_id FROM game_engine_evals '
+                        'WHERE player_username = %s AND game_id = ANY(%s);',
+                        (username.lower(), list(ids)),
+                    )
+                    engine_ids = {row[0] for row in cur.fetchall()}
+        except Exception:
+            pass
+        finally:
+            try:
+                db.close()
+            except Exception:
+                pass
+        for item in user_items:
+            item['has_lichess_eval'] = item['game_id'] in lichess_ids
+            item['has_engine_eval'] = item['game_id'] in engine_ids
+
+
 def get_engine_eval_ids(username: str, game_ids: list) -> set:
     """game_id, для которых уже есть оценки Stockfish."""
     if not game_ids:
@@ -1808,11 +1861,13 @@ def notes_list():
     page = max(1, request.args.get('page', 1, type=int) or 1)
     notes, total = get_notes(q=q, sort=sort, page=page, per_page=per_page)
     attach_analysis_states(notes)
+    attach_eval_flags(notes)
     pages = max(1, ceil(total / per_page)) if total else 1
     if page > pages:
         page = pages
         notes, total = get_notes(q=q, sort=sort, page=page, per_page=per_page)
         attach_analysis_states(notes)
+        attach_eval_flags(notes)
 
     query_params = []
     if q:
@@ -1884,11 +1939,13 @@ def favorites_list():
     page = max(1, request.args.get('page', 1, type=int) or 1)
     items, total = get_favorites(q=q, sort=sort, page=page, per_page=per_page)
     attach_analysis_states(items)
+    attach_eval_flags(items)
     pages = max(1, ceil(total / per_page)) if total else 1
     if page > pages:
         page = pages
         items, total = get_favorites(q=q, sort=sort, page=page, per_page=per_page)
         attach_analysis_states(items)
+        attach_eval_flags(items)
 
     query_params = []
     if q:

@@ -104,7 +104,7 @@
                         {{ favorite_button(item.player_username, item.game_id, True, with_label=True) }}
                         {{ note_button(item.player_username, item.game_id, item.note, with_label=True) }}
                         <button type="button" class="btn btn-sm btn-outline-secondary btn-note-edit">✎ Заметка</button>
-                        {{ analysis_button(item.player_username, item.game_id, item.analysis_state, with_label=True) }}
+                        {{ analysis_button(item.player_username, item.game_id, item.analysis_state, with_label=True, has_lichess_eval=item.has_lichess_eval, has_engine_eval=item.has_engine_eval) }}
                         <a href="/lichess-analyzer/player/{{ item.player_username }}/game/{{ item.game_id }}/view"
                            class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
                         <a href="https://lichess.org/{{ item.game_id }}" target="_blank" rel="noopener"

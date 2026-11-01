@@ -155,16 +155,18 @@
 </button>
 {% endmacro %}
 
-{% macro analysis_button(username, game_id, state='none', with_label=False) %}
+{% macro analysis_button(username, game_id, state='none', with_label=False, has_lichess_eval=False, has_engine_eval=False) %}
 <button type="button"
-        class="btn btn-sm btn-analysis btn-analysis-{{ state }}{% if with_label %} btn-analysis-with-text{% endif %}"
+        class="btn btn-sm btn-analysis btn-analysis-{{ state }}{% if has_lichess_eval %} has-lichess-eval{% elif has_engine_eval %} has-engine-eval{% endif %}{% if with_label %} btn-analysis-with-text{% endif %}"
         data-username="{{ username }}"
         data-game-id="{{ game_id }}"
         data-state="{{ state }}"
-        title="Анализ партии через DeepSeek">
+        title="Анализ партии через DeepSeek{% if has_lichess_eval %} · есть оценка Lichess{% elif has_engine_eval %} · есть оценка Stockfish{% endif %}">
     <span class="btn-analysis-icon">
         {% if state == 'running' %}⏳{% elif state == 'done' %}✅{% elif state == 'error' %}❌{% else %}🤖{% endif %}
     </span>
     {% if with_label %}<span class="btn-analysis-label">Анализ</span>{% endif %}
+    {% if has_lichess_eval %}<span class="analysis-eval-dot lichess" title="Есть оценка Lichess"></span>{% endif %}
+    {% if has_engine_eval %}<span class="analysis-eval-dot engine" title="Есть оценка Stockfish"></span>{% endif %}
 </button>
 {% endmacro %}

@@ -92,7 +92,7 @@
                     <div class="favorite-card-actions">
                         {{ note_button(item.player_username, item.game_id, True, with_label=True) }}
                         {{ favorite_button(item.player_username, item.game_id, item.is_favorite, with_label=True) }}
-                        {{ analysis_button(item.player_username, item.game_id, item.analysis_state, with_label=True) }}
+                        {{ analysis_button(item.player_username, item.game_id, item.analysis_state, with_label=True, has_lichess_eval=item.has_lichess_eval, has_engine_eval=item.has_engine_eval) }}
                         <a href="/lichess-analyzer/player/{{ item.player_username }}/game/{{ item.game_id }}/view"
                            class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
                         <a href="https://lichess.org/{{ item.game_id }}" target="_blank" rel="noopener"
