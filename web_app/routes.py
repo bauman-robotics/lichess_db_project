@@ -40,12 +40,13 @@ from core.utils.lichess import (
     classify_time_control,
     normalize_lichess_username,
     player_table_name,
-    safe_filename_part,
     time_control_speed_sql,
 )
 from services.lichess_client import LichessClient
 from services.import_manager import ImportManager
 from services.pgn_parser import PGNParser
+from services.player_import import import_player_games
+from services.streamers import get_streamer_cards, streamer_table_names
 
 from web_app import tasks as analysis_tasks
 from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError, DeepSeekUnavailable, clean_pgn
@@ -84,10 +85,10 @@ def get_safe_table_name(username: str) -> str:
 
 
 _KNOWN_PLAYERS_CACHE = {'ts': 0.0, 'data': []}
-_KNOWN_PLAYERS_TTL = 60
+_KNOWN_PLAYERS_TTL = 10
 
 
-def get_known_players(limit: int = 8, force: bool = False) -> list:
+def get_known_players(limit: Optional[int] = 8, force: bool = False) -> list:
     """
     Список игроков, для которых в базе есть таблица games_<username>.
 
@@ -96,10 +97,12 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
     """
     now = time.monotonic()
     if not force and (now - _KNOWN_PLAYERS_CACHE['ts']) < _KNOWN_PLAYERS_TTL:
-        return _KNOWN_PLAYERS_CACHE['data'][:limit]
+        data = _KNOWN_PLAYERS_CACHE['data']
+        return data if limit is None else data[:limit]
 
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
+    streamer_tables = streamer_table_names()
     players = []
 
     try:
@@ -149,6 +152,7 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
                         'table_name': table,
                         'games': int(games_count or 0),
                         'last_game': last_game,
+                        'is_streamer': table in streamer_tables,
                         'featured': bool(
                             featured_username
                             and display_name.lower() == str(featured_username).lower()
@@ -168,7 +172,7 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
     )
     _KNOWN_PLAYERS_CACHE['ts'] = now
     _KNOWN_PLAYERS_CACHE['data'] = players
-    return players[:limit]
+    return players if limit is None else players[:limit]
 
 
 # ============================================================
@@ -1418,79 +1422,11 @@ def refresh_player_games(username: str) -> dict:
         return {'success': False, 'error': str(e)}
 
 def download_player_games(username: str, limit: int = 1000) -> dict:
-    """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока"""
-    try:
-        username = normalize_lichess_username(username)
-        config = ConfigLoader()
-        lichess = LichessClient(config)
-        
-        pgn_content = lichess.download_games(
-            username=username,
-            max_games=limit
-        )
-        
-        if not pgn_content:
-            return {'success': False, 'error': 'Не удалось загрузить игры'}
-        
-        # Сохраняем во временный файл
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"data/downloads/{safe_filename_part(username)}_{timestamp}.pgn"
-        
-        Path("data/downloads").mkdir(parents=True, exist_ok=True)
-        
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(pgn_content)
-        
-        # Импортируем в таблицу игрока
-        db = DatabaseManager(config, 'local')
-        
-        # Создаем таблицу для игрока если не существует
-        table_name = get_safe_table_name(username)
-        
-        # Используем менеджер импорта
-        import_manager = ImportManager(config, db)
-        
-        # Подменяем таблицу в db_manager для импорта
-        original_table = db.table_name
-        db.table_name = table_name
-        
-        # Проверяем существование таблицы
-        if not db.table_exists():
-            # Создаем таблицу используя схему
-            from core.database.schema_loader import SchemaLoader
-            schema_loader = SchemaLoader(config.get_schema_path())
-            schema = schema_loader.load()
-            schema.table_name = table_name
-            
-            # Создаем таблицу
-            sql = schema_loader.get_create_table_sql(drop_existing=False)
-            with db.connection.get_connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(sql)
-                    conn.commit()
-            print(f"✅ Таблица {table_name} создана")
-        
-        # Импортируем
-        result = import_manager.import_from_file(
-            file_path=filename,
-            player_name=username,
-            delete_after_import=True
-        )
-        
-        # Восстанавливаем имя таблицы
-        db.table_name = original_table
-        db.close()
+    """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока."""
+    result = import_player_games(username, limit=limit)
+    if result.get('success'):
         _KNOWN_PLAYERS_CACHE['ts'] = 0.0
-        
-        return {
-            'success': True,
-            'saved': result.get('saved_games', 0),
-            'total': result.get('total_parsed', 0)
-        }
-        
-    except Exception as e:
-        return {'success': False, 'error': str(e)}
-
+    return result
 
 def get_popular_openings() -> list:
     """
@@ -1515,23 +1451,33 @@ def get_popular_openings() -> list:
         print(f"❌ Ошибка чтения openings.yaml: {e}")
         return []
 
-def get_known_players_ui() -> list:
+def get_known_players_ui(limit=None) -> list:
     """Список игроков для UI с учётом флага show_known_players."""
     config = ConfigLoader()
     if not config.get('ui.show_known_players', True):
         return []
+    return get_known_players(limit=limit)
+
+
+def get_known_players_limit() -> int:
+    config = ConfigLoader()
     try:
-        limit = int(config.get('ui.known_players_limit', 8))
+        return max(1, int(config.get('ui.known_players_limit', 8)))
     except (TypeError, ValueError):
-        limit = 8
-    return get_known_players(limit=max(1, limit))
+        return 8
 
 
 def render_search_page(form):
+    all_players = get_known_players_ui()
+    known_players = [
+        player for player in all_players if not player.get('is_streamer')
+    ][:get_known_players_limit()]
+    streamers = get_streamer_cards(all_players) if all_players else []
     return render_template(
         'player_search.html',
         form=form,
-        known_players=get_known_players_ui(),
+        known_players=known_players,
+        streamers=streamers,
     )
 
 
@@ -1675,7 +1621,11 @@ def favorites_note(username, game_id):
 @main_bp.route('/')
 def index():
     """Главная страница"""
-    return render_template('index.html', known_players=get_known_players_ui())
+    all_players = get_known_players_ui()
+    known_players = [
+        player for player in all_players if not player.get('is_streamer')
+    ][:get_known_players_limit()]
+    return render_template('index.html', known_players=known_players)
 
 @main_bp.route('/about')
 def about():

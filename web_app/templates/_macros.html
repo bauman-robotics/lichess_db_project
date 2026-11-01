@@ -108,3 +108,37 @@
     </a>
 </div>
 {% endmacro %}
+
+{% macro streamer_card(streamer, rank=0) %}
+<div class="streamer-card {% if streamer.loaded %}is-loaded{% endif %}">
+    {% if rank %}<span class="streamer-rank">{{ rank }}</span>{% endif %}
+    <div class="streamer-main">
+        <div class="streamer-name-line">
+            <span class="streamer-username">@{{ streamer.username }}</span>
+            <span class="streamer-realname">{{ streamer.name }}</span>
+            {% if streamer.title %}
+                <span class="streamer-title">{{ streamer.title }}</span>
+            {% endif %}
+        </div>
+        <div class="streamer-meta">
+            {% if streamer.loaded %}
+                ✅ {{ streamer.games }} игр
+                {% if streamer.last_game %}
+                    · последняя {{ streamer.last_game.strftime('%d.%m.%Y') }}
+                {% endif %}
+            {% else %}
+                ⏳ не загружен · запустите <code>scripts/import_streamers.py</code>
+            {% endif %}
+        </div>
+    </div>
+    <div class="streamer-actions">
+        {% if streamer.loaded %}
+            <a href="/lichess-analyzer/player/{{ streamer.username|urlencode }}"
+               class="btn btn-sm btn-outline-secondary">Открыть</a>
+        {% else %}
+            <a href="{{ streamer.url }}" target="_blank" rel="noopener"
+               class="btn btn-sm btn-outline-secondary">Lichess ↗</a>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}

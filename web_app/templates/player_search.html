@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import known_player_row %}
+{% from "_macros.html" import known_player_row, streamer_card %}
 
 {% block content %}
 <div class="row">
@@ -55,12 +55,28 @@
         {% if known_players %}
         <div class="card shadow-sm mt-3">
             <div class="card-header">
-                <h5 class="mb-0">📂 Уже в базе</h5>
+                <h5 class="mb-0">📂 Мои игроки</h5>
             </div>
             <div class="card-body py-2">
                 <div class="known-players-list">
                     {% for player in known_players %}
                         {{ known_player_row(player, loop.index) }}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if streamers %}
+        <div class="card shadow-sm mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0">📺 Стримеры</h5>
+                <span class="text-muted small">{{ streamers|length }} каналов</span>
+            </div>
+            <div class="card-body py-2">
+                <div class="streamer-list">
+                    {% for streamer in streamers %}
+                        {{ streamer_card(streamer, loop.index) }}
                     {% endfor %}
                 </div>
             </div>

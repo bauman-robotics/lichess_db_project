@@ -2676,3 +2676,103 @@ thead.table-light th {
     font-variant-numeric: tabular-nums;
     text-align: right;
 }
+
+/* ============================================
+   СТРИМЕРЫ В ПОИСКЕ
+   ============================================ */
+
+.streamer-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.streamer-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.streamer-card:last-child {
+    border-bottom: none;
+}
+
+.streamer-card.is-loaded {
+    border-left: 3px solid rgba(25, 135, 84, 0.7);
+    padding-left: 8px;
+}
+
+.streamer-rank {
+    flex: 0 0 22px;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.streamer-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.streamer-name-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+
+.streamer-username {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.streamer-realname {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.streamer-title {
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(255, 215, 0, 0.12);
+    color: var(--accent-gold);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.streamer-meta {
+    margin-top: 3px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.streamer-meta code {
+    color: var(--accent-gold);
+    font-size: 11px;
+}
+
+.streamer-actions {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+    .streamer-card {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .streamer-actions {
+        width: 100%;
+        padding-left: 32px;
+    }
+
+    .streamer-actions .btn {
+        width: 100%;
+        min-height: 42px;
+    }
+}

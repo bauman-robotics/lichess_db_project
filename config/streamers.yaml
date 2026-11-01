@@ -1,0 +1,39 @@
+# Курируемый список шахматных стримеров.
+# Показываются отдельной секцией на странице поиска.
+# limit — сколько последних игр скачивать; если не указан, берётся default_limit.
+
+default_limit: 300
+
+streamers:
+  - username: "RebeccaHarris"
+    name: "Даниил Народицкий"
+    title: "GM"
+    enabled: true
+  - username: "EricRosen"
+    name: "Эрик Розен"
+    title: "IM"
+    enabled: true
+  - username: "BotezLive"
+    name: "Сестры Ботез"
+    title: ""
+    enabled: true
+  - username: "Jepetto"
+    name: "Ян Непомнящий"
+    title: "GM"
+    enabled: true
+  - username: "Weetik"
+    name: "Вячеслав Витик"
+    title: "FM"
+    enabled: true
+  - username: "Zhigalko_Sergei"
+    name: "Сергей Жигалко"
+    title: "GM"
+    enabled: true
+  - username: "venajalainen"
+    name: "Клементий Сычёв"
+    title: "GM"
+    enabled: true
+  - username: "MatthewG-p4p"
+    name: "Матвей Гальченко"
+    title: "IM"
+    enabled: true
