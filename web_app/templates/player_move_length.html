@@ -125,7 +125,7 @@
             {% if move_stats.shortest and move_stats.shortest|length > 0 %}
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">⚡ Топ-10 самых коротких партий</h5>
+                        <h5 class="mb-0">⚡ Самые короткие партии</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive desktop-table">
@@ -148,7 +148,7 @@
                                 <tbody>
                                     {% for g in move_stats.shortest %}
                                         <tr>
-                                            <td>{{ loop.index }}</td>
+                                            <td>{{ (move_stats.short_page - 1) * move_stats.per_page + loop.index }}</td>
                                             <td>{{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}</td>
                                             <td>
                                                 {{ g.opponent }}
@@ -195,9 +195,25 @@
 
                         <div class="mobile-cards">
                             {% for g in move_stats.shortest %}
-                                {{ move_game_card(g, username, favorite_ids, loop.index, note_ids) }}
+                                {{ move_game_card(g, username, favorite_ids, (move_stats.short_page - 1) * move_stats.per_page + loop.index, note_ids) }}
                             {% endfor %}
                         </div>
+
+                        {% if move_stats.short_pages > 1 %}
+                            <nav class="pagination-wrap mt-3" aria-label="Страницы коротких партий">
+                                {% if move_stats.short_page > 1 %}
+                                    <a class="page-btn" href="?short_page={{ move_stats.short_page - 1 }}{% if move_stats.long_page > 1 %}&long_page={{ move_stats.long_page }}{% endif %}">‹</a>
+                                {% else %}
+                                    <span class="page-btn disabled">‹</span>
+                                {% endif %}
+                                <span class="page-btn active">{{ move_stats.short_page }} / {{ move_stats.short_pages }}</span>
+                                {% if move_stats.short_page < move_stats.short_pages %}
+                                    <a class="page-btn" href="?short_page={{ move_stats.short_page + 1 }}{% if move_stats.long_page > 1 %}&long_page={{ move_stats.long_page }}{% endif %}">›</a>
+                                {% else %}
+                                    <span class="page-btn disabled">›</span>
+                                {% endif %}
+                            </nav>
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}
@@ -206,7 +222,7 @@
             {% if move_stats.longest and move_stats.longest|length > 0 %}
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">🐢 Топ-10 самых длинных партий</h5>
+                        <h5 class="mb-0">🐢 Самые длинные партии</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive desktop-table">
@@ -229,7 +245,7 @@
                                 <tbody>
                                     {% for g in move_stats.longest %}
                                         <tr>
-                                            <td>{{ loop.index }}</td>
+                                            <td>{{ (move_stats.long_page - 1) * move_stats.per_page + loop.index }}</td>
                                             <td>{{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}</td>
                                             <td>
                                                 {{ g.opponent }}
@@ -276,9 +292,25 @@
 
                         <div class="mobile-cards">
                             {% for g in move_stats.longest %}
-                                {{ move_game_card(g, username, favorite_ids, loop.index, note_ids) }}
+                                {{ move_game_card(g, username, favorite_ids, (move_stats.long_page - 1) * move_stats.per_page + loop.index, note_ids) }}
                             {% endfor %}
                         </div>
+
+                        {% if move_stats.long_pages > 1 %}
+                            <nav class="pagination-wrap mt-3" aria-label="Страницы длинных партий">
+                                {% if move_stats.long_page > 1 %}
+                                    <a class="page-btn" href="?long_page={{ move_stats.long_page - 1 }}{% if move_stats.short_page > 1 %}&short_page={{ move_stats.short_page }}{% endif %}">‹</a>
+                                {% else %}
+                                    <span class="page-btn disabled">‹</span>
+                                {% endif %}
+                                <span class="page-btn active">{{ move_stats.long_page }} / {{ move_stats.long_pages }}</span>
+                                {% if move_stats.long_page < move_stats.long_pages %}
+                                    <a class="page-btn" href="?long_page={{ move_stats.long_page + 1 }}{% if move_stats.short_page > 1 %}&short_page={{ move_stats.short_page }}{% endif %}">›</a>
+                                {% else %}
+                                    <span class="page-btn disabled">›</span>
+                                {% endif %}
+                            </nav>
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}

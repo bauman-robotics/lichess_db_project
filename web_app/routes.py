@@ -1678,7 +1678,8 @@ def get_rating_progression(
     return results
 
 
-def get_move_stats(username: str) -> dict:
+def get_move_stats(username: str, short_page: int = 1, long_page: int = 1,
+                   per_page: int = 10) -> dict:
     """Статистика по длине партий + топ-10 коротких/длинных."""
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
@@ -1728,7 +1729,20 @@ def get_move_stats(username: str) -> dict:
                     'win_rate': (r[2] / r[1] * 100) if r[1] > 0 else 0
                 })
 
-            # Топ-10 коротких партий
+            # Общее количество партий для пагинации
+            cur.execute(f"""
+                SELECT COUNT(*)
+                FROM {table_name}
+                WHERE move_count IS NOT NULL AND move_count > 0
+            """)
+            total_move_games = int(cur.fetchone()[0] or 0)
+            pages = max(1, ceil(total_move_games / per_page)) if total_move_games else 1
+            short_page = min(max(1, int(short_page or 1)), pages)
+            long_page = min(max(1, int(long_page or 1)), pages)
+            short_offset = (short_page - 1) * per_page
+            long_offset = (long_page - 1) * per_page
+
+            # Короткие партии
             cur.execute(f"""
                 SELECT 
                     game_id, game_date, opponent_name, opponent_rating,
@@ -1736,8 +1750,8 @@ def get_move_stats(username: str) -> dict:
                 FROM {table_name}
                 WHERE move_count IS NOT NULL AND move_count > 0
                 ORDER BY move_count ASC
-                LIMIT 10
-            """)
+                LIMIT %s OFFSET %s
+            """, (per_page, short_offset))
             shortest = []
             for r in cur.fetchall():
                 shortest.append({
@@ -1761,8 +1775,8 @@ def get_move_stats(username: str) -> dict:
                 FROM {table_name}
                 WHERE move_count IS NOT NULL AND move_count > 0
                 ORDER BY move_count DESC
-                LIMIT 10
-            """)
+                LIMIT %s OFFSET %s
+            """, (per_page, long_offset))
             longest = []
             for r in cur.fetchall():
                 longest.append({
@@ -1789,6 +1803,12 @@ def get_move_stats(username: str) -> dict:
         'distribution': distribution,
         'shortest': shortest,
         'longest': longest,
+        'short_page': short_page,
+        'long_page': long_page,
+        'short_pages': pages,
+        'long_pages': pages,
+        'per_page': per_page,
+        'total_move_games': total_move_games,
     }
 
 def download_player_games(username: str, limit: int = 1000) -> dict:
@@ -3185,7 +3205,11 @@ def player_move_length(username):
         flash(f'Игрок {username} не найден.', 'warning')
         return redirect(f'/lichess-analyzer/player/{username}')
 
-    move_stats = get_move_stats(username)
+    short_page = max(1, request.args.get('short_page', 1, type=int) or 1)
+    long_page = max(1, request.args.get('long_page', 1, type=int) or 1)
+    move_stats = get_move_stats(
+        username, short_page=short_page, long_page=long_page, per_page=10
+    )
     move_game_ids = [
         g['game_id']
         for key in ('shortest', 'longest')
