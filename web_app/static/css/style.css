@@ -3658,3 +3658,10 @@ thead.table-light th {
     background: #ff9f43;
     border: 1px solid #ffd1a8;
 }
+
+/* На мобильном в режиме графика даём графику доходить до панели кнопок */
+@media (max-width: 768px) {
+    .game-view-page.engine-enabled:not(.mobile-graph-hidden) .engine-eval-main .engine-chart-wrap {
+        height: 184px;
+    }
+}
