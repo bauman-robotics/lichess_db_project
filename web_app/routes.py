@@ -4,13 +4,15 @@
 import sys
 from pathlib import Path
 from datetime import datetime
+from datetime import date, time as dt_time, timedelta
 import json
 import re
 import time
 import uuid
 import threading
 import logging
-from datetime import datetime
+from math import ceil
+from urllib.parse import urlencode
 
 import chess
 import chess.pgn
@@ -31,9 +33,11 @@ from config.config_loader import ConfigLoader
 from core.database.db_manager import DatabaseManager
 from core.utils.lichess import (
     LichessUsernameError,
+    SPEED_LABELS,
     normalize_lichess_username,
     player_table_name,
     safe_filename_part,
+    time_control_speed_sql,
 )
 from services.lichess_client import LichessClient
 from services.import_manager import ImportManager
@@ -473,7 +477,18 @@ def _run_analysis_task(task_id: str, username: str, game_id: str):
         logger.exception(f"[task {task_id}] {msg}")
         analysis_tasks.update_task_error(task_id, msg)
 
-def get_games_filtered(username, opening=None, results=None, color=None, limit=200):
+def get_games_filtered(
+    username,
+    opening=None,
+    results=None,
+    color=None,
+    date_from=None,
+    date_to=None,
+    opponent=None,
+    speed=None,
+    page=1,
+    per_page=50,
+):
     """
     Выборка игр игрока по фильтрам.
 
@@ -482,10 +497,15 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
         opening: подстрока названия дебюта (ILIKE %...%), или None
         results: список ['Win', 'Loss', 'Draw'], или None (все)
         color: 'white' / 'black' / None (оба)
-        limit: максимум строк
+        date_from: datetime.date или None — включительно
+        date_to: datetime.date или None — включительно
+        opponent: подстрока имени соперника, или None
+        speed: категория контроля (blitz/rapid/...), или None
+        page: номер страницы (1-based)
+        per_page: размер страницы
 
     Returns:
-        list[dict]: список игр
+        tuple[list[dict], int]: (игры, общее количество по фильтрам)
     """
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
@@ -497,7 +517,7 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
     if not db.table_exists():
         db.table_name = original_table
         db.close()
-        return []
+        return [], 0
 
     where = []
     params = []
@@ -515,9 +535,29 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
         where.append("player_color = %s")
         params.append(color)
 
-    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+    if date_from:
+        where.append("game_date >= %s")
+        params.append(datetime.combine(date_from, dt_time.min))
 
-    sql = f"""
+    if date_to:
+        where.append("game_date < %s")
+        params.append(datetime.combine(date_to + timedelta(days=1), dt_time.min))
+
+    if opponent:
+        where.append("opponent_name ILIKE %s")
+        params.append(f"%{opponent}%")
+
+    if speed:
+        where.append(f"({time_control_speed_sql('time_control')}) = %s")
+        params.append(speed)
+
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+    page = max(1, int(page or 1))
+    per_page = max(1, int(per_page or 50))
+    offset = (page - 1) * per_page
+
+    count_sql = f'SELECT COUNT(*) FROM "{table_name}" {where_sql};'
+    data_sql = f"""
         SELECT
             game_id,
             game_date,
@@ -531,18 +571,21 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
             opening_name,
             game_url,
             game_analysis
-        FROM {table_name}
+        FROM "{table_name}"
         {where_sql}
         ORDER BY game_date DESC, id DESC
-        LIMIT %s;
+        LIMIT %s OFFSET %s;
     """
-    params.append(limit)
 
     results_list = []
+    total = 0
     try:
         with db.connection.get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(sql, params)
+                cur.execute(count_sql, params)
+                total = int(cur.fetchone()[0] or 0)
+
+                cur.execute(data_sql, params + [per_page, offset])
                 for r in cur.fetchall():
                     results_list.append({
                         'game_id': r[0],
@@ -566,7 +609,7 @@ def get_games_filtered(username, opening=None, results=None, color=None, limit=2
         db.table_name = original_table
         db.close()
 
-    return results_list
+    return results_list, total
 
 def get_rating_stats(username: str) -> dict:
     """Получает статистику по рейтингу"""
@@ -1259,20 +1302,193 @@ def delete_player(username):
 
     return redirect(f'/lichess-analyzer/')  
 
+def _parse_filter_date(value: str):
+    """Парсит YYYY-MM-DD; возвращает date или None."""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        return None
+
+
 @main_bp.route('/player/<username>/openings')
 def player_openings(username):
-    """Страница анализа партий по дебютам с фильтрами"""
+    """Страница анализа партий по дебютам с фильтрами и пагинацией."""
     opening = request.args.get('opening', '').strip()
     results = request.args.getlist('result') or None
     color = request.args.get('color', '').strip() or None
+    opponent = request.args.get('opponent', '').strip() or None
+    speed = request.args.get('speed', '').strip() or None
+    if speed not in SPEED_LABELS:
+        speed = None
 
-    games = get_games_filtered(username, opening, results, color)
+    date_from_raw = request.args.get('date_from', '').strip()
+    date_to_raw = request.args.get('date_to', '').strip()
+    date_from = _parse_filter_date(date_from_raw)
+    date_to = _parse_filter_date(date_to_raw)
+    date_error = None
+
+    if date_from_raw and date_from is None:
+        date_error = 'Дата начала указана в неверном формате (нужно ГГГГ-ММ-ДД).'
+    elif date_to_raw and date_to is None:
+        date_error = 'Дата окончания указана в неверном формате (нужно ГГГГ-ММ-ДД).'
+    elif date_from and date_to and date_from > date_to:
+        date_error = 'Дата начала позже даты окончания — фильтр по датам не применён.'
+        date_from = None
+        date_to = None
+
+    config_loader = ConfigLoader()
+    try:
+        default_per_page = int(config_loader.get('statistics.debuts_per_page', 50))
+    except (TypeError, ValueError):
+        default_per_page = 50
+    if default_per_page not in (25, 50, 100):
+        default_per_page = 50
+
+    per_page = request.args.get('per_page', default_per_page, type=int)
+    if per_page not in (25, 50, 100):
+        per_page = default_per_page
+
+    page = max(1, request.args.get('page', 1, type=int) or 1)
+
+    games, total = get_games_filtered(
+        username,
+        opening=opening or None,
+        results=results,
+        color=color,
+        date_from=date_from,
+        date_to=date_to,
+        opponent=opponent,
+        speed=speed,
+        page=page,
+        per_page=per_page,
+    )
+
+    pages = max(1, ceil(total / per_page)) if total else 1
+    if page > pages:
+        page = pages
+        games, total = get_games_filtered(
+            username,
+            opening=opening or None,
+            results=results,
+            color=color,
+            date_from=date_from,
+            date_to=date_to,
+            opponent=opponent,
+            speed=speed,
+            page=page,
+            per_page=per_page,
+        )
+
+    # Параметры без page — для пагинации и ссылок «популярные дебюты».
+    query_params = []
+    if opening:
+        query_params.append(('opening', opening))
+    for result in (results or []):
+        query_params.append(('result', result))
+    if color:
+        query_params.append(('color', color))
+    if opponent:
+        query_params.append(('opponent', opponent))
+    if speed:
+        query_params.append(('speed', speed))
+    if date_from_raw and date_from:
+        query_params.append(('date_from', date_from_raw))
+    if date_to_raw and date_to:
+        query_params.append(('date_to', date_to_raw))
+    if per_page != default_per_page:
+        query_params.append(('per_page', str(per_page)))
+
+    base_query = urlencode(query_params)
+
+    def url_without(key: str) -> str:
+        remaining = [(k, v) for k, v in query_params if k != key]
+        return '?' + urlencode(remaining)
+
+    active_filters = []
+    if opening:
+        active_filters.append({
+            'label': f'Дебют: {opening}',
+            'url': url_without('opening'),
+        })
+    if opponent:
+        active_filters.append({
+            'label': f'Соперник: {opponent}',
+            'url': url_without('opponent'),
+        })
+    if speed:
+        active_filters.append({
+            'label': f'Контроль: {SPEED_LABELS[speed]}',
+            'url': url_without('speed'),
+        })
+    if color:
+        color_label = 'белые' if color == 'white' else 'чёрные'
+        active_filters.append({
+            'label': f'Цвет: {color_label}',
+            'url': url_without('color'),
+        })
+    if results:
+        active_filters.append({
+            'label': 'Результат: ' + ', '.join(results),
+            'url': url_without('result'),
+        })
+    if date_from:
+        active_filters.append({
+            'label': f'С даты: {date_from.strftime("%d.%m.%Y")}',
+            'url': url_without('date_from'),
+        })
+    if date_to:
+        active_filters.append({
+            'label': f'По дату: {date_to.strftime("%d.%m.%Y")}',
+            'url': url_without('date_to'),
+        })
+
+    page_links = []
+    if pages <= 9:
+        page_numbers = list(range(1, pages + 1))
+    elif page <= 5:
+        page_numbers = [1, 2, 3, 4, 5, 6, 7, None, pages]
+    elif page >= pages - 4:
+        page_numbers = [1, None] + list(range(pages - 6, pages + 1))
+    else:
+        page_numbers = [1, None, page - 2, page - 1, page, page + 1, page + 2, None, pages]
+
+    for number in page_numbers:
+        if number is None:
+            page_links.append({'number': None, 'url': None, 'active': False})
+            continue
+        page_links.append({
+            'number': number,
+            'url': '?' + urlencode(query_params + [('page', number)]),
+            'active': number == page,
+        })
+
+    per_page_links = []
+    for size in (25, 50, 100):
+        per_page_links.append({
+            'size': size,
+            'url': '?' + urlencode(
+                [p for p in query_params if p[0] != 'per_page']
+                + [('per_page', size)]
+            ),
+            'active': size == per_page,
+        })
+
+    prev_url = (
+        '?' + urlencode(query_params + [('page', page - 1)])
+        if page > 1 else None
+    )
+    next_url = (
+        '?' + urlencode(query_params + [('page', page + 1)])
+        if page < pages else None
+    )
+
     popular_openings = get_popular_openings()
 
     # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
     running_ids = analysis_tasks.get_running_game_ids(username)
 
-    config_loader = ConfigLoader()
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
     if _default_tab not in ('moves', 'comments'):
         _default_tab = 'comments'
@@ -1283,12 +1499,24 @@ def player_openings(username):
         'play_interval_ms':   config_loader.get('viewer.play_interval_ms', 800),
         'default_tab':        _default_tab,
         'show_coords':        bool(config_loader.get('viewer.show_coords', True)),
-        }
+    }
 
     return render_template(
         'player_openings.html',
         username=username,
         games=games,
+        total=total,
+        page=page,
+        pages=pages,
+        per_page=per_page,
+        page_links=page_links,
+        per_page_links=per_page_links,
+        prev_url=prev_url,
+        next_url=next_url,
+        base_query=base_query,
+        active_filters=active_filters,
+        date_error=date_error,
+        speed_labels=SPEED_LABELS,
         popular_openings=popular_openings,
         running_ids=running_ids or [],
         viewer_config=viewer_config,
@@ -1297,8 +1525,71 @@ def player_openings(username):
             'opening': opening,
             'results': results or [],
             'color': color or '',
+            'opponent': opponent or '',
+            'speed': speed or '',
+            'date_from': date_from_raw,
+            'date_to': date_to_raw,
+            'per_page': per_page,
+            'page': page,
         }
     )
+
+
+@main_bp.route('/player/<username>/opponents')
+def player_opponents(username):
+    """Автодополнение соперников для фильтра на странице дебютов."""
+    query = request.args.get('q', '').strip()
+    try:
+        limit = int(request.args.get('limit', 10))
+    except (TypeError, ValueError):
+        limit = 10
+    limit = max(1, min(limit, 20))
+
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+    items = []
+
+    try:
+        if db.table_exists():
+            with db.connection.get_connection() as conn:
+                with conn.cursor() as cur:
+                    if query:
+                        cur.execute(
+                            f"""
+                            SELECT opponent_name, COUNT(*)
+                            FROM "{table_name}"
+                            WHERE opponent_name ILIKE %s
+                            GROUP BY opponent_name
+                            ORDER BY COUNT(*) DESC, opponent_name
+                            LIMIT %s;
+                            """,
+                            (f'%{query}%', limit),
+                        )
+                    else:
+                        cur.execute(
+                            f"""
+                            SELECT opponent_name, COUNT(*)
+                            FROM "{table_name}"
+                            GROUP BY opponent_name
+                            ORDER BY COUNT(*) DESC, opponent_name
+                            LIMIT %s;
+                            """,
+                            (limit,),
+                        )
+                    items = [
+                        {'name': row[0], 'games': int(row[1])}
+                        for row in cur.fetchall()
+                    ]
+    except Exception as e:
+        db.logger.warning(f'Ошибка автодополнения соперников: {e}')
+    finally:
+        db.table_name = original_table
+        db.close()
+
+    return jsonify({'items': items})
 
 def parse_pgn_to_positions(pgn_moves: str) -> list:
     positions = []

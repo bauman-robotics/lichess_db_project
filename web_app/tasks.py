@@ -168,6 +168,10 @@ def get_running_game_ids(username: str) -> List[str]:
                     WHERE username = %s AND status = 'running'
                 """, (username,))
                 return [row[0] for row in cur.fetchall()]
+    except Exception as e:
+        # Таблица задач может отсутствовать — страница игр не должна падать.
+        logger.warning(f"Не удалось получить running-задачи: {e}")
+        return []
     finally:
         db.close()
 

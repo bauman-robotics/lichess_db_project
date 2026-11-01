@@ -63,6 +63,7 @@ statistics:
   cache_ttl: 3600  # секунды
   default_limit: 100
   recent_games_limit: 30   # ← сколько последних игр показывать
+  debuts_per_page: 50      # ← размер страницы на странице дебютов
 
 # Настройки валидации
 validation:

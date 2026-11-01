@@ -121,7 +121,7 @@ def time_control_speed_sql(column: str = "time_control") -> str:
     return f"""
         CASE
             WHEN {col} IS NULL OR {col} = '' THEN 'other'
-            WHEN {col} = '-' OR {col} ILIKE '%day%' THEN 'correspondence'
+            WHEN {col} = '-' OR position('day' in lower({col})) > 0 THEN 'correspondence'
             WHEN {col} ~ '^[0-9]+\\+[0-9]+$' THEN
                 CASE
                     WHEN split_part({col},'+',1)::int

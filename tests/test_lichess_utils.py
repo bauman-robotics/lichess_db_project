@@ -10,6 +10,7 @@ from core.utils.lichess import (
     normalize_lichess_username,
     player_table_name,
     safe_filename_part,
+    time_control_speed_sql,
 )
 
 
@@ -102,6 +103,12 @@ class TimeControlTests(unittest.TestCase):
         self.assertEqual(classify_time_control(None), "other")
         self.assertEqual(classify_time_control(""), "other")
         self.assertEqual(classify_time_control("unknown"), "other")
+
+    def test_speed_sql_has_no_percent_placeholders(self):
+        # psycopg2 воспринимает '%' в SQL как начало placeholder.
+        sql = time_control_speed_sql()
+        self.assertNotIn("%", sql)
+        self.assertIn("position('day'", sql)
 
 
 if __name__ == "__main__":

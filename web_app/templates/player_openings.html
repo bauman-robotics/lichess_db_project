@@ -11,58 +11,133 @@
         <!-- ============================================ -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <form method="GET" action="/lichess-analyzer/player/{{ username }}/openings">
-                    <div class="row g-3 align-items-end">
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                    <h5 class="mb-0">🔍 Фильтры</h5>
+                    <button class="btn btn-sm btn-outline-secondary d-md-none"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#filtersCollapse"
+                            aria-expanded="false"
+                            aria-controls="filtersCollapse">
+                        ⚙ Фильтры ({{ active_filters|length }})
+                    </button>
+                </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Название дебюта</label>
-                            <input type="text" name="opening" class="form-control"
-                                   value="{{ filters.opening }}"
-                                   placeholder="например, Caro-Kann или Marshall">
-                            <small class="text-muted">
-                                Поиск по части названия, регистр не важен
-                            </small>
-                        </div>
+                {% if date_error %}
+                    <div class="alert alert-warning py-2 mb-3">{{ date_error }}</div>
+                {% endif %}
 
-                        <div class="col-md-3">
-                            <label class="form-label d-block">Результат</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox"
-                                       name="result" value="Win" id="resWin"
-                                       {% if 'Win' in filters.results %}checked{% endif %}>
-                                <label class="form-check-label" for="resWin">Победа</label>
+                <div class="collapse" id="filtersCollapse">
+                    <form method="GET" action="/lichess-analyzer/player/{{ username }}/openings">
+                        <input type="hidden" name="per_page" value="{{ filters.per_page }}">
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="openingInput">Название дебюта</label>
+                                <input type="text" name="opening" id="openingInput" class="form-control"
+                                       value="{{ filters.opening }}"
+                                       placeholder="например, Caro-Kann или Marshall">
+                                <small class="text-muted">Поиск по части названия</small>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox"
-                                       name="result" value="Loss" id="resLoss"
-                                       {% if 'Loss' in filters.results %}checked{% endif %}>
-                                <label class="form-check-label" for="resLoss">Поражение</label>
+
+                            <div class="col-12 col-md-3 position-relative">
+                                <label class="form-label" for="opponentInput">Соперник</label>
+                                <input type="text" name="opponent" id="opponentInput" class="form-control"
+                                       value="{{ filters.opponent }}"
+                                       placeholder="имя соперника"
+                                       autocomplete="off">
+                                <div id="opponentSuggest" class="filter-suggest d-none"></div>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox"
-                                       name="result" value="Draw" id="resDraw"
-                                       {% if 'Draw' in filters.results %}checked{% endif %}>
-                                <label class="form-check-label" for="resDraw">Ничья</label>
+
+                            <div class="col-6 col-md-2">
+                                <label class="form-label" for="speedSelect">Контроль</label>
+                                <select name="speed" id="speedSelect" class="form-select">
+                                    <option value="">Все</option>
+                                    {% for key, label in speed_labels.items() %}
+                                        <option value="{{ key }}" {% if filters.speed == key %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Цвет фигур</label>
-                            <select name="color" class="form-select">
-                                <option value="" {% if not filters.color %}selected{% endif %}>Оба</option>
-                                <option value="white" {% if filters.color == 'white' %}selected{% endif %}>Белые</option>
-                                <option value="black" {% if filters.color == 'black' %}selected{% endif %}>Чёрные</option>
-                            </select>
-                        </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label" for="colorSelect">Цвет фигур</label>
+                                <select name="color" id="colorSelect" class="form-select">
+                                    <option value="" {% if not filters.color %}selected{% endif %}>Оба</option>
+                                    <option value="white" {% if filters.color == 'white' %}selected{% endif %}>Белые</option>
+                                    <option value="black" {% if filters.color == 'black' %}selected{% endif %}>Чёрные</option>
+                                </select>
+                            </div>
 
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                🔍 Применить
-                            </button>
-                        </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label" for="dateFrom">Дата с</label>
+                                <input type="date" name="date_from" id="dateFrom" class="form-control"
+                                       value="{{ filters.date_from }}">
+                            </div>
 
+                            <div class="col-6 col-md-2">
+                                <label class="form-label" for="dateTo">Дата по</label>
+                                <input type="date" name="date_to" id="dateTo" class="form-control"
+                                       value="{{ filters.date_to }}">
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label d-block">Результат</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="result" value="Win" id="resWin"
+                                               {% if 'Win' in filters.results %}checked{% endif %}>
+                                        <label class="form-check-label" for="resWin">Победа</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="result" value="Loss" id="resLoss"
+                                               {% if 'Loss' in filters.results %}checked{% endif %}>
+                                        <label class="form-check-label" for="resLoss">Поражение</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="result" value="Draw" id="resDraw"
+                                               {% if 'Draw' in filters.results %}checked{% endif %}>
+                                        <label class="form-check-label" for="resDraw">Ничья</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary flex-grow-1">
+                                        🔍 Применить
+                                    </button>
+                                    <a href="/lichess-analyzer/player/{{ username }}/openings"
+                                       class="btn btn-outline-secondary">
+                                        Сброс
+                                    </a>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary date-preset" data-days="7">7 дней</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary date-preset" data-days="30">30 дней</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary date-preset" data-days="90">3 месяца</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary date-preset" data-days="365">Год</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary date-preset" data-days="0">Всё</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+                {% if active_filters %}
+                    <div class="active-filters">
+                        {% for item in active_filters %}
+                            <a href="{{ item.url }}" class="filter-chip" title="Убрать фильтр">
+                                {{ item.label }} <span aria-hidden="true">×</span>
+                            </a>
+                        {% endfor %}
                     </div>
-                </form>
+                {% endif %}
 
                 <!-- ============================================ -->
                 <!-- ПОПУЛЯРНЫЕ ДЕБЮТЫ ПОД КНОПКОЙ                -->
@@ -82,7 +157,7 @@
                     <div class="collapse mt-2" id="popularOpenings">
                         <div class="d-flex flex-wrap gap-1">
                             {% for op in popular_openings %}
-                                <a href="?opening={{ op|urlencode }}{% if filters.color %}&color={{ filters.color }}{% endif %}{% for r in filters.results %}&result={{ r }}{% endfor %}"
+                                <a href="?opening={{ op|urlencode }}{% if base_query %}&{{ base_query }}{% endif %}"
                                    class="badge bg-secondary text-decoration-none"
                                    title="{{ op }}">
                                     {{ op }}
@@ -97,10 +172,23 @@
         <!-- ============================================ -->
         <!-- РЕЗУЛЬТАТЫ                                    -->
         <!-- ============================================ -->
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" id="results">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5 class="mb-0">Найдено партий: {{ games|length }}</h5>
-                {% if filters.opening or filters.results or filters.color %}
+                <div>
+                    <h5 class="mb-1">
+                        Найдено: {{ total }}
+                        {% if total > games|length %}· показано {{ games|length }}{% endif %}
+                        {% if pages > 1 %}· стр. {{ page }} из {{ pages }}{% endif %}
+                    </h5>
+                    <div class="per-page-switch">
+                        <span class="text-muted small">Показать:</span>
+                        {% for item in per_page_links %}
+                            <a href="{{ item.url }}"
+                               class="per-page-link {% if item.active %}active{% endif %}">{{ item.size }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if active_filters %}
                     <a href="/lichess-analyzer/player/{{ username }}/openings"
                        class="btn btn-sm btn-outline-secondary">
                         ✖ Сбросить фильтры
@@ -135,7 +223,7 @@
                             <tbody>
                                 {% for g in games %}
                                     <tr>
-                                        <td class="text-muted">{{ loop.index }}</td>
+                                        <td class="text-muted">{{ (page - 1) * per_page + loop.index }}</td>
                                         <td>
                                             {{ g.date.strftime('%d.%m.%Y') if g.date is not string else g.date }}
                                         </td>
@@ -204,7 +292,7 @@
 
                                 <!-- Строка 1: №, дата, цвет, рейтинг, результат -->
                                 <div class="gc-header">
-                                    <span class="gc-num">#{{ loop.index }}</span>
+                                    <span class="gc-num">#{{ (page - 1) * per_page + loop.index }}</span>
                                     <span class="gc-date">
                                         {{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}
                                     </span>
@@ -272,16 +360,36 @@
                         {% endfor %}
                     </div>
 
-                    {% if games|length >= 200 %}
-                        <div class="alert alert-info mt-3 mb-0">
-                            Показаны первые 200 партий. Уточните фильтры, чтобы увидеть больше.
-                        </div>
+                    {% if pages > 1 %}
+                        <nav class="pagination-wrap" aria-label="Страницы результатов">
+                            {% if prev_url %}
+                                <a class="page-btn" href="{{ prev_url }}#results" aria-label="Назад">‹</a>
+                            {% else %}
+                                <span class="page-btn disabled" aria-hidden="true">‹</span>
+                            {% endif %}
+
+                            {% for item in page_links %}
+                                {% if item.number is none %}
+                                    <span class="page-ellipsis" aria-hidden="true">…</span>
+                                {% elif item.active %}
+                                    <span class="page-btn active" aria-current="page">{{ item.number }}</span>
+                                {% else %}
+                                    <a class="page-btn" href="{{ item.url }}#results">{{ item.number }}</a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if next_url %}
+                                <a class="page-btn" href="{{ next_url }}#results" aria-label="Вперёд">›</a>
+                            {% else %}
+                                <span class="page-btn disabled" aria-hidden="true">›</span>
+                            {% endif %}
+                        </nav>
                     {% endif %}
 
                 {% else %}
                     <div class="text-center text-muted py-4">
                         <p class="mb-1">Ничего не найдено по заданным фильтрам.</p>
-                        <small>Попробуйте изменить название дебюта или снять галочки результата.</small>
+                        <small>Попробуйте изменить период, соперника или снять галочки результата.</small>
                     </div>
                 {% endif %}
 
@@ -493,5 +601,108 @@ window.VIEWER_CONFIG = {
     defaultTab:       {{ viewer_config.default_tab|tojson }},
     showCoords:       {{ viewer_config.show_coords|tojson }}, 
 };
+</script>
+<script>
+(function () {
+    'use strict';
+
+    // На десктопе фильтры всегда развёрнуты.
+    var filters = document.getElementById('filtersCollapse');
+    if (filters && window.innerWidth >= 768) {
+        filters.classList.add('show');
+    }
+
+    function isoDate(d) {
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + m + '-' + day;
+    }
+
+    var fromInput = document.getElementById('dateFrom');
+    var toInput = document.getElementById('dateTo');
+    document.querySelectorAll('.date-preset').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var days = parseInt(btn.dataset.days, 10);
+            if (!days) {
+                if (fromInput) fromInput.value = '';
+                if (toInput) toInput.value = '';
+                return;
+            }
+            var end = new Date();
+            var start = new Date();
+            start.setDate(end.getDate() - days + 1);
+            if (fromInput) fromInput.value = isoDate(start);
+            if (toInput) toInput.value = isoDate(end);
+        });
+    });
+
+    // Автодополнение соперника.
+    var opponentInput = document.getElementById('opponentInput');
+    var suggestBox = document.getElementById('opponentSuggest');
+    if (!opponentInput || !suggestBox) return;
+
+    var timer = null;
+
+    function hideSuggest() {
+        suggestBox.classList.add('d-none');
+        suggestBox.innerHTML = '';
+    }
+
+    function showSuggest(items) {
+        suggestBox.innerHTML = '';
+        if (!items.length) {
+            hideSuggest();
+            return;
+        }
+        items.forEach(function (item) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'filter-suggest-item';
+            button.textContent = item.name + ' (' + item.games + ')';
+            button.addEventListener('click', function () {
+                opponentInput.value = item.name;
+                hideSuggest();
+            });
+            suggestBox.appendChild(button);
+        });
+        suggestBox.classList.remove('d-none');
+    }
+
+    function loadSuggestions(query) {
+        var url = '/lichess-analyzer/player/{{ username|urlencode }}/opponents?limit=10&q='
+            + encodeURIComponent(query || '');
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(function (data) {
+                showSuggest((data && data.items) || []);
+            })
+            .catch(function () {
+                hideSuggest();
+            });
+    }
+
+    opponentInput.addEventListener('input', function () {
+        var query = opponentInput.value.trim();
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            loadSuggestions(query);
+        }, 250);
+    });
+
+    opponentInput.addEventListener('focus', function () {
+        if (!opponentInput.value.trim()) {
+            loadSuggestions('');
+        }
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!suggestBox.contains(event.target) && event.target !== opponentInput) {
+            hideSuggest();
+        }
+    });
+})();
 </script>
 {% endblock %}
