@@ -98,7 +98,10 @@
             if (iconEl) {
                 iconEl.textContent = icon;
             } else {
+                // Не затираем индикаторы оценок, если у кнопки нет icon-обёртки.
+                const dots = Array.from(btn.querySelectorAll('.analysis-eval-dot'));
                 btn.textContent = icon;
+                dots.forEach(function (dot) { btn.appendChild(dot); });
             }
         }
 

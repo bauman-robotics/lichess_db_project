@@ -316,10 +316,12 @@
                                                     data-game-id="{{ g.game_id }}"
                                                     data-state="{{ state }}"
                                                     title="Анализ партии через DeepSeek{% if g.has_lichess_eval %} · есть оценка Lichess{% endif %}">
+                                                <span class="btn-analysis-icon">
                                                 {% if state == 'running' %}⏳
                                                 {% elif state == 'done' %}✅
                                                 {% elif state == 'error' %}❌
                                                 {% else %}🤖{% endif %}
+                                                </span>
                                                 {% if g.has_lichess_eval %}<span class="analysis-eval-dot lichess" title="Есть оценка Lichess"></span>{% endif %}
                                             {% if g.game_id in engine_eval_ids %}<span class="analysis-eval-dot engine" title="Есть оценка Stockfish"></span>{% endif %}
                                             </button>
