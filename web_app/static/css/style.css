@@ -3953,3 +3953,8 @@ thead.table-light th {
 .engine-current-eval.positive { color: #5cd679; }
 .engine-current-eval.negative { color: #e6858f; }
 .engine-current-eval.neutral   { color: var(--text-secondary); }
+
+/* Не перекрывать подписи вертикальной шкалы */
+.engine-current-eval {
+    left: 42px;
+}
