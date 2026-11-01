@@ -92,8 +92,8 @@
         <div class="viewer-moves viewer-desktop-only">
             <div class="d-flex justify-content-between align-items-center gap-2">
                 <h6 class="mb-0">Ходы</h6>
-                <button type="button" class="btn btn-sm btn-outline-secondary js-copy-notation"
-                        title="Скопировать нотацию партии">⧉</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary js-copy-current"
+                        title="Скопировать нотацию до текущего хода">⧉</button>
             </div>
             <div id="viewMovesList" class="mt-2"></div>
         </div>
@@ -239,6 +239,56 @@ document.getElementById('copyLinkBtn')?.addEventListener('click', function () {
     buttons.forEach(function (button) {
         button.addEventListener('click', function () { copyNotation(button); });
     });
+})();
+
+(function () {
+    const button = document.querySelector('.js-copy-current');
+    if (!button) return;
+
+    function notationUpToCurrent() {
+        if (!window.GameViewer || typeof window.GameViewer.getPositions !== 'function') {
+            return '';
+        }
+        const positions = window.GameViewer.getPositions();
+        const current = window.GameViewer.getCurrentIndex();
+        const parts = [];
+        for (let i = 1; i <= current; i += 2) {
+            const white = positions[i];
+            if (!white) break;
+            let line = `${white.move_number}. ${white.san}`;
+            const black = positions[i + 1];
+            if (black && i + 1 <= current) {
+                line += ` ${black.san}`;
+            }
+            parts.push(line);
+        }
+        return parts.join(' ');
+    }
+
+    async function copyCurrent(button) {
+        const text = notationUpToCurrent();
+        const original = button.textContent;
+        button.disabled = true;
+        try {
+            if (!text) {
+                button.textContent = '—';
+                return;
+            }
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                prompt('Скопируйте нотацию до текущего хода:', text);
+            }
+            button.textContent = '✅';
+        } catch (error) {
+            button.textContent = '❌';
+        } finally {
+            button.disabled = false;
+            setTimeout(function () { button.textContent = original; }, 1600);
+        }
+    }
+
+    button.addEventListener('click', function () { copyCurrent(button); });
 })();
 </script>
 {% endblock %}
