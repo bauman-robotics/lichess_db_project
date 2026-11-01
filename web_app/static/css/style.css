@@ -3007,3 +3007,28 @@ thead.table-light th {
         flex-basis: 22px;
     }
 }
+
+/* ============================================
+   ПОИСК ПО НОТАЦИИ
+   ============================================ */
+
+.notation-snippet {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-family: var(--bs-font-monospace);
+    font-size: 11px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.notation-snippet span {
+    margin-right: 2px;
+}
+
+.notation-snippet .notation-hit {
+    padding: 1px 3px;
+    border-radius: 3px;
+    background: rgba(255, 215, 0, 0.22);
+    color: var(--accent-gold);
+    font-weight: 700;
+}

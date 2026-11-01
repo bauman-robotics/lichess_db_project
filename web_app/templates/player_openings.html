@@ -31,6 +31,9 @@
                 {% if date_error %}
                     <div class="alert alert-warning py-2 mb-3">{{ date_error }}</div>
                 {% endif %}
+                {% if notation_error %}
+                    <div class="alert alert-warning py-2 mb-3">{{ notation_error }}</div>
+                {% endif %}
 
                 <div class="collapse" id="filtersCollapse">
                     <form method="GET" action="/lichess-analyzer/player/{{ username }}/openings">
@@ -43,6 +46,16 @@
                                        value="{{ filters.opening }}"
                                        placeholder="например, Caro-Kann или Marshall">
                                 <small class="text-muted">Поиск по части названия</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label" for="notationInput">Нотация партии</label>
+                                <input type="text" name="notation" id="notationInput" class="form-control"
+                                       value="{{ filters.notation }}"
+                                       placeholder="например, 1.e4 e5 2.Nf3 Nc6">
+                                <small class="text-muted">
+                                    Минимум 2 полухода. Номера ходов можно не писать: e4 e5 Nf3 Nc6
+                                </small>
                             </div>
 
                             <div class="col-12 col-md-3 position-relative">
@@ -259,7 +272,18 @@
                                                 {{ g.opponent }} ({{ g.opponent_rating }})
                                             </a>
                                         </td>
-                                        <td><small>{{ g.opening if g.opening else '—' }}</small></td>
+                                        <td>
+                                            <small>{{ g.opening if g.opening else '—' }}</small>
+                                            {% if g.notation_tokens %}
+                                                <div class="notation-snippet">
+                                                    {% if g.notation_has_before %}…{% endif %}
+                                                    {% for token in g.notation_tokens %}
+                                                        <span class="{% if loop.index0 >= g.notation_match_start and loop.index0 < g.notation_match_end %}notation-hit{% endif %}">{{ token }}</span>
+                                                    {% endfor %}
+                                                    {% if g.notation_has_after %}…{% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </td>
                                         <td class="text-center">
                                             {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
                                             {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
@@ -277,6 +301,13 @@
                                                title="Смотреть партию">
                                                 👁
                                             </a>
+                                            {% if g.notation_ply %}
+                                                <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view?ply={{ g.notation_ply }}"
+                                                   class="btn btn-sm btn-outline-secondary mt-1"
+                                                   title="Открыть на найденном ходу">
+                                                    ↗ К ходу
+                                                </a>
+                                            {% endif %}
                                         </td>
                                         <td class="text-center">
                                             {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
@@ -357,6 +388,12 @@
                                        class="btn btn-sm btn-outline-secondary">
                                         👁 Смотреть
                                     </a>
+                                    {% if g.notation_ply %}
+                                        <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view?ply={{ g.notation_ply }}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            ↗ К ходу
+                                        </a>
+                                    {% endif %}
                                     {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
                                     <button class="btn btn-sm btn-analysis btn-analysis-with-text"
                                             data-username="{{ username }}"

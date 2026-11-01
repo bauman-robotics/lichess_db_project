@@ -1043,6 +1043,45 @@ def _run_analysis_task(task_id: str, username: str, game_id: str,
         logger.exception(f"[task {task_id}] {msg}")
         analysis_tasks.update_task_error(task_id, msg)
 
+NOTATION_SAN_RE = re.compile(
+    r'(?<![A-Za-z0-9])(?:O-O-O[+#]?|O-O[+#]?|'
+    r'[KQRBN](?:[a-h]|[1-8])?x?[a-h][1-8][+#]?|'
+    r'[a-h](?:x[a-h])?[1-8](?:=[QRBN])?[+#]?)(?![A-Za-z0-9])'
+)
+NOTATION_COMMENT_RE = re.compile(r'\{[^}]*\}')
+NOTATION_MOVENUM_RE = re.compile(r'\d+\.(?:\.\.)?')
+NOTATION_ANNOT_RE = re.compile(r'[!?]+')
+NOTATION_RESULT_RE = re.compile(r'(?:1-0|0-1|1/2-1/2|\*)')
+
+NOTATION_SQL = (
+    "regexp_replace(regexp_replace(regexp_replace(regexp_replace("
+    "pgn_moves, '\\{[^}]*\\}', '', 'g'), '\\d+\\.(\\.\\.)?', '', 'g'), "
+    "'[!?]+', '', 'g'), '\\s+', ' ', 'g')"
+)
+
+
+def normalize_notation_tokens(text: str) -> list:
+    """Превращает PGN/фрагмент нотации в список SAN-ходов."""
+    if not text:
+        return []
+    cleaned = NOTATION_COMMENT_RE.sub(' ', text)
+    cleaned = NOTATION_MOVENUM_RE.sub(' ', cleaned)
+    cleaned = NOTATION_ANNOT_RE.sub('', cleaned)
+    cleaned = NOTATION_RESULT_RE.sub(' ', cleaned)
+    return NOTATION_SAN_RE.findall(cleaned)
+
+
+def find_notation_sequence(tokens: list, query_tokens: list):
+    """Индекс начала последовательности или None."""
+    if not query_tokens or len(query_tokens) > len(tokens):
+        return None
+    size = len(query_tokens)
+    for start in range(0, len(tokens) - size + 1):
+        if tokens[start:start + size] == query_tokens:
+            return start
+    return None
+
+
 def get_games_filtered(
     username,
     opening=None,
@@ -1052,6 +1091,7 @@ def get_games_filtered(
     date_to=None,
     opponent=None,
     speed=None,
+    notation=None,
     page=1,
     per_page=50,
 ):
@@ -1117,6 +1157,10 @@ def get_games_filtered(
         where.append(f"({time_control_speed_sql('time_control')}) = %s")
         params.append(speed)
 
+    if notation:
+        where.append(f"{NOTATION_SQL} ILIKE %s")
+        params.append(f"%{notation}%")
+
     where_sql = ("WHERE " + " AND ".join(where)) if where else ""
     page = max(1, int(page or 1))
     per_page = max(1, int(per_page or 50))
@@ -1136,7 +1180,8 @@ def get_games_filtered(
             result,
             opening_name,
             game_url,
-            game_analysis
+            game_analysis,
+            pgn_moves
         FROM "{table_name}"
         {where_sql}
         ORDER BY game_date DESC, id DESC
@@ -1153,6 +1198,29 @@ def get_games_filtered(
 
                 cur.execute(data_sql, params + [per_page, offset])
                 for r in cur.fetchall():
+                    notation_tokens = []
+                    notation_match_start = 0
+                    notation_match_end = 0
+                    notation_ply = None
+                    notation_has_before = False
+                    notation_has_after = False
+                    if notation:
+                        pgn_tokens = normalize_notation_tokens(r[12] or '')
+                        query_tokens = notation.split()
+                        match_start = find_notation_sequence(pgn_tokens, query_tokens)
+                        if match_start is not None:
+                            window_start = max(0, match_start - 4)
+                            window_end = min(
+                                len(pgn_tokens),
+                                match_start + len(query_tokens) + 4
+                            )
+                            notation_tokens = pgn_tokens[window_start:window_end]
+                            notation_match_start = match_start - window_start
+                            notation_match_end = notation_match_start + len(query_tokens)
+                            notation_ply = match_start + 1
+                            notation_has_before = window_start > 0
+                            notation_has_after = window_end < len(pgn_tokens)
+
                     results_list.append({
                         'game_id': r[0],
                         'date': r[1],
@@ -1166,6 +1234,12 @@ def get_games_filtered(
                         'opening': r[9],
                         'game_url': r[10],
                         'analysis': r[11] or '',
+                        'notation_tokens': notation_tokens,
+                        'notation_match_start': notation_match_start,
+                        'notation_match_end': notation_match_end,
+                        'notation_ply': notation_ply,
+                        'notation_has_before': notation_has_before,
+                        'notation_has_after': notation_has_after,
                     })
     except Exception as e:
         print(f"❌ Ошибка get_games_filtered: {e}")
@@ -2122,6 +2196,16 @@ def player_openings(username):
     if speed not in SPEED_LABELS:
         speed = None
 
+    notation_raw = request.args.get('notation', '').strip()
+    notation_tokens = normalize_notation_tokens(notation_raw)
+    notation = ' '.join(notation_tokens) if len(notation_tokens) >= 2 else None
+    notation_error = None
+    if notation_raw and not notation:
+        notation_error = (
+            'Введите минимум 2 полухода в нотации, например: '
+            '1.e4 e5 2.Nf3 Nc6'
+        )
+
     date_from_raw = request.args.get('date_from', '').strip()
     date_to_raw = request.args.get('date_to', '').strip()
     date_from = _parse_filter_date(date_from_raw)
@@ -2160,6 +2244,7 @@ def player_openings(username):
         date_to=date_to,
         opponent=opponent,
         speed=speed,
+        notation=notation,
         page=page,
         per_page=per_page,
     )
@@ -2176,6 +2261,7 @@ def player_openings(username):
             date_to=date_to,
             opponent=opponent,
             speed=speed,
+            notation=notation,
             page=page,
             per_page=per_page,
         )
@@ -2192,6 +2278,8 @@ def player_openings(username):
         query_params.append(('opponent', opponent))
     if speed:
         query_params.append(('speed', speed))
+    if notation:
+        query_params.append(('notation', notation))
     if date_from_raw and date_from:
         query_params.append(('date_from', date_from_raw))
     if date_to_raw and date_to:
@@ -2220,6 +2308,11 @@ def player_openings(username):
         active_filters.append({
             'label': f'Контроль: {SPEED_LABELS[speed]}',
             'url': url_without('speed'),
+        })
+    if notation:
+        active_filters.append({
+            'label': f'Нотация: {notation}',
+            'url': url_without('notation'),
         })
     if color:
         color_label = 'белые' if color == 'white' else 'чёрные'
@@ -2321,6 +2414,7 @@ def player_openings(username):
         base_query=base_query,
         active_filters=active_filters,
         date_error=date_error,
+        notation_error=notation_error,
         speed_labels=SPEED_LABELS,
         speed_categories=speed_categories,
         popular_openings=popular_openings,
@@ -2333,6 +2427,7 @@ def player_openings(username):
             'color': color or '',
             'opponent': opponent or '',
             'speed': speed or '',
+            'notation': notation_raw,
             'date_from': date_from_raw,
             'date_to': date_to_raw,
             'per_page': per_page,
