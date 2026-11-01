@@ -91,6 +91,7 @@
                 const w = container.clientWidth;
                 elBoard.style.width  = w + 'px';
                 elBoard.style.height = w + 'px';
+                container.style.height = w + 'px';
             } else {
                 // Десктоп: доска адаптируется под доступную высоту layout
                 const layout = document.querySelector('.viewer-layout');
@@ -112,6 +113,11 @@
                 const size = Math.max(minSize, Math.min(cfg.boardSizeDesktop, availableHeight));
                 elBoard.style.width  = size + 'px';
                 elBoard.style.height = size + 'px';
+                const boardWrap = elBoard.parentElement;
+                if (boardWrap) {
+                    boardWrap.style.width = size + 'px';
+                    boardWrap.style.height = size + 'px';
+                }
                 const page = document.querySelector('.game-view-page');
                 if (page) {
                     page.style.setProperty('--board-size', size + 'px');

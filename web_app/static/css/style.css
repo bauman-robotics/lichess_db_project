@@ -655,6 +655,14 @@ thead.table-light th {
    ДОСКА ПРОСМОТРА ПАРТИИ
    ============================================ */
 
+.viewer-board-wrap {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+}
+
 #viewBoard,
 #chessBoard {
     display: grid;
@@ -3149,18 +3157,21 @@ thead.table-light th {
 }
 
 .engine-bottom-row {
-    position: relative;
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
     flex: 0 0 auto;
-    width: 100%;
+    width: var(--board-size, 500px);
+    max-width: 100%;
+    margin: 0 auto;
     padding-top: 8px;
 }
 
 .engine-bottom-row .engine-eval-card {
     display: flex;
-    margin: 0 auto;
-    width: var(--board-size, 500px);
-    max-width: 100%;
+    flex: 1 1 auto;
+    width: auto;
     min-width: 0;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -3207,10 +3218,9 @@ thead.table-light th {
 }
 
 .game-view-page .viewer-controls-side {
-    position: absolute;
-    top: 8px;
-    left: calc(50% + var(--board-half, 250px) + 12px);
-    width: 112px;
+    position: static;
+    flex: 0 0 96px;
+    width: 96px;
     margin-top: 0;
     padding: 0;
     border-top: none;
@@ -3261,11 +3271,13 @@ thead.table-light th {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
+        width: 100%;
         padding-top: 6px;
     }
 
     .engine-bottom-row .engine-eval-card {
         width: 100%;
+        flex: 0 0 auto;
         flex-direction: column;
     }
 
