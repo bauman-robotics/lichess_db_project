@@ -8,7 +8,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from flask import Flask
+from flask import Flask, request
 from flask_wtf.csrf import CSRFProtect
 
 from web_app.config import WebConfig
@@ -28,6 +28,13 @@ def create_app():
     app.config['DEBUG'] = WebConfig.DEBUG
      
     csrf = CSRFProtect(app)  
+    
+    @app.context_processor
+    def inject_current_player():
+        """Имя игрока из URL — для чипа в шапке."""
+        return {
+            'current_player': (request.view_args or {}).get('username'),
+        }
     
     # Регистрируем блюпринт БЕЗ префикса
     app.register_blueprint(main_bp)

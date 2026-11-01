@@ -1,26 +1,39 @@
+<div class="player-title-row">
+    <h1 class="player-title">♟️ {{ username }}</h1>
+    <a href="/lichess-analyzer/search" class="player-title-switch" title="Сменить игрока">
+        Сменить
+    </a>
+</div>
+
 <nav class="player-nav mb-4">
     <a href="/lichess-analyzer/player/{{ username }}"
-       class="{% if current_section == 'games' %}active{% endif %}">
+       class="{% if current_section == 'games' %}active{% endif %}"
+       {% if current_section == 'games' %}aria-current="page"{% endif %}>
         📋 <span class="nav-label nav-label-long">Игры</span><span class="nav-label nav-label-short">Игры</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/progression"
-       class="{% if current_section == 'progression' %}active{% endif %}">
+       class="{% if current_section == 'progression' %}active{% endif %}"
+       {% if current_section == 'progression' %}aria-current="page"{% endif %}>
         📈 <span class="nav-label nav-label-long">Прогресс</span><span class="nav-label nav-label-short">Прогресс</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/time-control"
-       class="{% if current_section == 'time-control' %}active{% endif %}">
+       class="{% if current_section == 'time-control' %}active{% endif %}"
+       {% if current_section == 'time-control' %}aria-current="page"{% endif %}>
         ⏰ <span class="nav-label nav-label-long">Контроль</span><span class="nav-label nav-label-short">Время</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/move-length"
-       class="{% if current_section == 'move-length' %}active{% endif %}">
+       class="{% if current_section == 'move-length' %}active{% endif %}"
+       {% if current_section == 'move-length' %}aria-current="page"{% endif %}>
         📏 <span class="nav-label nav-label-long">Длина партий</span><span class="nav-label nav-label-short">Длина</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/debuts"
-       class="{% if current_section == 'debuts' %}active{% endif %}">
+       class="{% if current_section == 'debuts' %}active{% endif %}"
+       {% if current_section == 'debuts' %}aria-current="page"{% endif %}>
         📖 <span class="nav-label nav-label-long">Топ дебютов</span><span class="nav-label nav-label-short">Топ</span>
     </a>
     <a href="/lichess-analyzer/player/{{ username }}/openings"
-       class="{% if current_section == 'openings' %}active{% endif %}">
+       class="{% if current_section == 'openings' %}active{% endif %}"
+       {% if current_section == 'openings' %}aria-current="page"{% endif %}>
         🔍 <span class="nav-label nav-label-long">Партии по дебютам</span><span class="nav-label nav-label-short">Поиск</span>
     </a>
 </nav>

@@ -1420,19 +1420,28 @@ thead.table-light th {
     .player-nav {
         display: flex;
         flex-wrap: nowrap;
-        gap: 4px;
-        overflow: hidden;
+        gap: 6px;
+        overflow-x: auto;
+        overflow-y: hidden;
         padding-bottom: 6px;
-        justify-content: space-between;
+        justify-content: flex-start;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .player-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .player-nav a {
-        flex: 1 1 0;
+        flex: 0 0 auto;
         min-width: 0;
-        padding: 6px 4px;
-        font-size: 11px;
+        padding: 8px 10px;
+        font-size: 12px;
         justify-content: center;
         gap: 3px;
+        scroll-snap-align: start;
     }
 
     /* Показываем короткие названия, скрываем длинные */
@@ -1443,8 +1452,8 @@ thead.table-light th {
 /* ---- Очень узкий экран ---- */
 @media (max-width: 400px) {
     .player-nav a {
-        font-size: 10px;
-        padding: 5px 2px;
+        font-size: 11px;
+        padding: 8px 8px;
         gap: 2px;
     }
 }
@@ -1741,4 +1750,124 @@ thead.table-light th {
     .game-view-page .viewer-controls .viewer-keyboard-hint {
         display: none;
     }
+}
+/* ============================================
+   ТЕКУЩИЙ ИГРОК В ШАПКЕ
+   ============================================ */
+
+.navbar-player-btn {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 190px;
+}
+
+.navbar-player-btn:hover,
+.navbar-player-btn:focus {
+    color: var(--accent-gold);
+    background: rgba(255, 215, 0, 0.08);
+    border-color: rgba(255, 215, 0, 0.35);
+}
+
+.navbar-player-name {
+    max-width: 135px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.player-context-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+}
+
+.player-context-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    max-width: 72vw;
+    color: var(--accent-gold);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.player-context-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.player-context-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.player-context-switch:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+@media (max-width: 991.98px) {
+    .player-context-bar {
+        display: flex;
+    }
+}
+
+/* ============================================
+   ЗАГОЛОВОК ИГРОКА НА СТРАНИЦАХ
+   ============================================ */
+
+.player-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.player-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .player-title {
+        font-size: 20px;
+    }
+}
+
+.player-title-switch {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 10px;
+}
+
+.player-title-switch:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
 }
