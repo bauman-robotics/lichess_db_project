@@ -135,21 +135,27 @@ python scripts/deploy/update_remote.py --yes
 
 ## 6. Ручной запуск на сервере
 
-Серверный скрипт можно запустить и без локального:
+Серверный скрипт можно запустить и без локального. `PROJECT_PATH` определяется
+автоматически по расположению скрипта, `USE_SUDO` — по пользователю (0 для root):
 
 ```bash
-cd /home/ubuntu/lichess_db_project
-PROJECT_PATH="$PWD" \
-BRANCH=dev_1_service \
-SERVICE=lichess-analyzer \
+cd /root/lichess_db_project
+bash scripts/deploy/server_update.sh
+# или
+cd scripts/deploy && ./server_update.sh
+```
+
+Если нужно явно:
+
+```bash
+PROJECT_PATH="$PWD" BRANCH=dev_1_service SERVICE=lichess-analyzer \
 bash scripts/deploy/server_update.sh
 ```
 
 Проверка без изменений:
 
 ```bash
-PROJECT_PATH="$PWD" BRANCH=dev_1_service DRY_RUN=1 \
-bash scripts/deploy/server_update.sh
+DRY_RUN=1 bash scripts/deploy/server_update.sh
 ```
 
 ---

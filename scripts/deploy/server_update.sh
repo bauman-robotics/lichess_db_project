@@ -3,32 +3,44 @@
 # Обновление приложения на сервере.
 #
 # Обычно вызывается локальным scripts/deploy/update_remote.py,
-# но может запускаться и вручную:
+# но может запускаться и вручную из любой точки репозитория:
 #
-#   PROJECT_PATH=/home/ubuntu/lichess_db_project \
-#   BRANCH=dev_1_service \
-#   SERVICE=lichess-analyzer \
 #   bash scripts/deploy/server_update.sh
+#   cd scripts/deploy && ./server_update.sh
 #
 # Переменные:
-#   PROJECT_PATH    — путь к проекту на сервере (обязательно)
+#   PROJECT_PATH    — путь к проекту; по умолчанию вычисляется от расположения скрипта
 #   BRANCH          — ветка; пусто = текущая ветка сервера
 #   SERVICE         — имя systemd-сервиса (по умолчанию lichess-analyzer)
 #   RUN_MIGRATIONS  — 1/0, запускать setup_db.py --action create
 #   SKIP_RESTART    — 1/0, не перезапускать сервис
-#   USE_SUDO        — 1/0, использовать sudo -n для systemctl
+#   USE_SUDO        — 1/0; по умолчанию 0 для root, иначе 1
 #   PYTHON_BIN      — путь к python; по умолчанию venv/bin/python или python3
 #   HEALTHCHECK_URL — URL для проверки после рестарта (опционально)
 #   DRY_RUN         — 1/0, только показать команды
 #
 set -euo pipefail
 
-PROJECT_PATH="${PROJECT_PATH:-}"
+# Если PROJECT_PATH не задан, определяем корень репозитория по пути скрипта.
+if [ -z "${PROJECT_PATH:-}" ]; then
+    SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+    if [ -f "$SCRIPT_SOURCE" ]; then
+        SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_SOURCE")" && pwd)"
+        PROJECT_PATH="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+    fi
+fi
+
 BRANCH="${BRANCH:-}"
 SERVICE="${SERVICE:-lichess-analyzer}"
 RUN_MIGRATIONS="${RUN_MIGRATIONS:-1}"
 SKIP_RESTART="${SKIP_RESTART:-0}"
-USE_SUDO="${USE_SUDO:-1}"
+if [ -z "${USE_SUDO:-}" ]; then
+    if [ "$(id -u)" -eq 0 ]; then
+        USE_SUDO=0
+    else
+        USE_SUDO=1
+    fi
+fi
 PYTHON_BIN="${PYTHON_BIN:-}"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-}"
 DRY_RUN="${DRY_RUN:-0}"
@@ -51,7 +63,7 @@ run() {
     fi
 }
 
-[ -n "$PROJECT_PATH" ] || die "PROJECT_PATH не задан"
+[ -n "$PROJECT_PATH" ] || die "PROJECT_PATH не задан. Запустите скрипт из репозитория или укажите PROJECT_PATH=/path/to/project"
 [ -d "$PROJECT_PATH" ] || die "каталог проекта не найден: $PROJECT_PATH"
 [ -d "$PROJECT_PATH/.git" ] || die "это не git-репозиторий: $PROJECT_PATH"
 [ -n "$SERVICE" ] || die "SERVICE не задан"
