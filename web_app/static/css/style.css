@@ -3665,3 +3665,10 @@ thead.table-light th {
         height: 184px;
     }
 }
+
+/* Чуть больше запаса, чтобы «Действия» полностью уходили при скролле */
+@media (max-width: 768px) {
+    .game-view-engine .game-view-page.engine-enabled {
+        height: calc(100dvh - 68px + 100px);
+    }
+}
