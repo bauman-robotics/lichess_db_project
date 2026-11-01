@@ -64,7 +64,7 @@
                         <canvas id="ratingProgressionChart"></canvas>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive desktop-table">
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
                                 <tr>
@@ -136,6 +136,61 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- МОБИЛЬНЫЕ КАРТОЧКИ -->
+                    <div class="mobile-cards">
+                        {% for game in table_games %}
+                            <div class="game-card-compact">
+                                <div class="gc-header">
+                                    <span class="gc-num">#{{ loop.index }}</span>
+                                    <span class="gc-date">{{ game.date if game.date else '—' }}</span>
+                                    <span class="gc-color">
+                                        {% if game.color == 'white' %}⚪ белые{% else %}⚫ чёрные{% endif %}
+                                    </span>
+                                    <span class="gc-rating">{{ game.my_rating if game.my_rating else '—' }}</span>
+                                    {% if game.result == 'Win' %}
+                                        <span class="badge-result badge-result-win">✅ Победа</span>
+                                    {% elif game.result == 'Loss' %}
+                                        <span class="badge-result badge-result-loss">❌ Поражение</span>
+                                    {% else %}
+                                        <span class="badge-result badge-result-draw">➖ Ничья</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="gc-opponent">
+                                    👤 {{ game.opponent if game.opponent else '—' }}
+                                    <small>({{ game.opponent_rating if game.opponent_rating else '?' }})</small>
+                                </div>
+
+                                {% if game.opening %}
+                                    <div class="gc-opening">📖 {{ game.opening }}</div>
+                                {% endif %}
+
+                                <div class="gc-actions">
+                                    <span class="badge bg-secondary">⏱ {{ game.time_control if game.time_control else '?' }}</span>
+                                    {% set next_idx = loop.index0 + 1 %}
+                                    {% if next_idx < table_games|length %}
+                                        {% set prev_rating = table_games[next_idx].my_rating %}
+                                        {% if game.my_rating and prev_rating %}
+                                            {% set diff = game.my_rating - prev_rating %}
+                                            {% if diff > 0 %}
+                                                <span class="text-success">Δ +{{ diff }}</span>
+                                            {% elif diff < 0 %}
+                                                <span class="text-danger">Δ {{ diff }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Δ 0</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if game.game_id %}
+                                        {{ note_button(username, game.game_id, game.game_id in note_ids) }}
+                                        <a href="/lichess-analyzer/player/{{ username }}/game/{{ game.game_id }}/view"
+                                           class="btn btn-sm btn-outline-secondary">👁 Смотреть</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
 
                     <div class="row mt-3">
