@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import favorite_button %}
 
 {% block content %}
 <div class="row">
@@ -216,6 +217,7 @@
                                     <th>Соперник</th>
                                     <th>Дебют</th>
                                     <th>Ссылка</th>
+                                    <th class="text-center">★</th>
                                     <th class="text-center">Смотреть</th>
                                     <th class="text-center">Анализ</th>
                                 </tr>
@@ -256,6 +258,9 @@
                                             {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
                                             {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}
                                             <a href="{{ base_url }}{{ orientation }}" target="_blank" rel="noopener" title="Открыть на Lichess">↗</a>
+                                        </td>
+                                        <td class="text-center">
+                                            {{ favorite_button(username, g.game_id, g.game_id in favorite_ids) }}
                                         </td>
                                         <td class="text-center">
                                             <a href="/lichess-analyzer/player/{{ username }}/game/{{ g.game_id }}/view"
@@ -328,6 +333,7 @@
 
                                 <!-- Строка 4: кнопки действий -->
                                 <div class="gc-actions">
+                                    {{ favorite_button(username, g.game_id, g.game_id in favorite_ids, with_label=True) }}
                                     {% if g.game_id %}
                                         {% set base_url = g.game_url if g.game_url else 'https://lichess.org/' + g.game_id %}
                                         {% set orientation = '/white' if g.color == 'white' else ('/black' if g.color == 'black' else '') %}

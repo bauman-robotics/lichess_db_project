@@ -12,7 +12,7 @@ from flask import Flask, request
 from flask_wtf.csrf import CSRFProtect
 
 from web_app.config import WebConfig
-from web_app.routes import main_bp
+from web_app.routes import get_favorites_count, main_bp
 
 
 def create_app():
@@ -31,9 +31,10 @@ def create_app():
     
     @app.context_processor
     def inject_current_player():
-        """Имя игрока из URL — для чипа в шапке."""
+        """Имя игрока из URL — для чипа в шапке, и счётчик избранного."""
         return {
             'current_player': (request.view_args or {}).get('username'),
+            'favorite_count': get_favorites_count(),
         }
     
     # Регистрируем блюпринт БЕЗ префикса

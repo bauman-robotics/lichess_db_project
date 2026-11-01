@@ -22,3 +22,19 @@
     <span class="known-player-arrow" aria-hidden="true">→</span>
 </a>
 {% endmacro %}
+
+{% macro favorite_button(username, game_id, is_favorite, with_label=False) %}
+<button type="button"
+        class="btn btn-sm btn-favorite {% if is_favorite %}is-favorite{% endif %}"
+        data-username="{{ username }}"
+        data-game-id="{{ game_id }}"
+        data-favorited="{{ 'true' if is_favorite else 'false' }}"
+        aria-pressed="{{ 'true' if is_favorite else 'false' }}"
+        aria-label="{{ 'Убрать из избранного' if is_favorite else 'В избранное' }}"
+        title="{{ 'Убрать из избранного' if is_favorite else 'В избранное' }}">
+    <span class="favorite-icon" aria-hidden="true">{{ '★' if is_favorite else '☆' }}</span>
+    {% if with_label %}
+        <span class="favorite-label">{{ 'В избранном' if is_favorite else 'В избранное' }}</span>
+    {% endif %}
+</button>
+{% endmacro %}

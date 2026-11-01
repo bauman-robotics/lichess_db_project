@@ -12,6 +12,7 @@ import uuid
 import threading
 import logging
 from math import ceil
+from typing import Optional
 from urllib.parse import urlencode
 
 import chess
@@ -157,6 +158,274 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
     _KNOWN_PLAYERS_CACHE['ts'] = now
     _KNOWN_PLAYERS_CACHE['data'] = players
     return players[:limit]
+
+
+# ============================================================
+# ИЗБРАННОЕ
+# ============================================================
+
+FAVORITES_TABLE = 'favorite_games'
+NOTE_MAX_LENGTH = 2000
+
+
+def get_favorites_count() -> int:
+    """Общее количество избранных партий (для счётчика в шапке)."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE};')
+                return int(cur.fetchone()[0] or 0)
+    except Exception:
+        # Таблицы может ещё не быть до миграции — счётчик просто 0.
+        return 0
+    finally:
+        db.close()
+
+
+def get_favorite_ids(username: str, game_ids: list) -> set:
+    """Множество game_id, которые уже в избранном у игрока."""
+    if not game_ids:
+        return set()
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    SELECT game_id
+                    FROM {FAVORITES_TABLE}
+                    WHERE player_username = %s AND game_id = ANY(%s);
+                    """,
+                    (username.lower(), list(game_ids)),
+                )
+                return {row[0] for row in cur.fetchall()}
+    except Exception:
+        return set()
+    finally:
+        db.close()
+
+
+def get_game_snapshot(username: str, game_id: str) -> Optional[dict]:
+    """Метаданные партии для снимка в избранном."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    table_name = get_safe_table_name(username)
+    original_table = db.table_name
+    db.table_name = table_name
+    if not db.table_exists():
+        db.table_name = original_table
+        db.close()
+        return None
+
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    SELECT
+                        game_date, opponent_name, opponent_rating, player_color,
+                        result, opening_name, time_control, move_count,
+                        my_rating, game_url
+                    FROM "{table_name}"
+                    WHERE game_id = %s
+                    LIMIT 1;
+                    """,
+                    (game_id,),
+                )
+                row = cur.fetchone()
+                if not row:
+                    return None
+                return {
+                    'player_username': username.lower(),
+                    'game_id': game_id,
+                    'game_date': row[0],
+                    'opponent_name': row[1],
+                    'opponent_rating': row[2],
+                    'player_color': row[3],
+                    'result': row[4],
+                    'opening_name': row[5],
+                    'time_control': row[6],
+                    'move_count': row[7],
+                    'my_rating': row[8],
+                    'game_url': row[9],
+                }
+    finally:
+        db.table_name = original_table
+        db.close()
+
+
+def add_favorite(username: str, game_id: str) -> Optional[int]:
+    """
+    Добавляет партию в избранное (идемпотентно).
+
+    Returns:
+        Новое количество избранного или None, если партия не найдена.
+    """
+    snapshot = get_game_snapshot(username, game_id)
+    if not snapshot:
+        return None
+
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    INSERT INTO {FAVORITES_TABLE} (
+                        player_username, game_id, game_date, opponent_name,
+                        opponent_rating, player_color, result, opening_name,
+                        time_control, move_count, my_rating, game_url
+                    ) VALUES (
+                        %(player_username)s, %(game_id)s, %(game_date)s,
+                        %(opponent_name)s, %(opponent_rating)s, %(player_color)s,
+                        %(result)s, %(opening_name)s, %(time_control)s,
+                        %(move_count)s, %(my_rating)s, %(game_url)s
+                    )
+                    ON CONFLICT (player_username, game_id) DO NOTHING;
+                    """,
+                    snapshot,
+                )
+                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE};')
+                count = int(cur.fetchone()[0] or 0)
+            conn.commit()
+        return count
+    finally:
+        db.close()
+
+
+def remove_favorite(username: str, game_id: str) -> int:
+    """Удаляет партию из избранного, возвращает новый счётчик."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f'DELETE FROM {FAVORITES_TABLE} '
+                    'WHERE player_username = %s AND game_id = %s;',
+                    (username.lower(), game_id),
+                )
+                cur.execute(f'SELECT COUNT(*) FROM {FAVORITES_TABLE};')
+                count = int(cur.fetchone()[0] or 0)
+            conn.commit()
+        return count
+    finally:
+        db.close()
+
+
+def update_favorite_note(username: str, game_id: str, note: str) -> bool:
+    """Обновляет заметку к избранной партии."""
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"""
+                    UPDATE {FAVORITES_TABLE}
+                    SET note = %s, updated_at = NOW()
+                    WHERE player_username = %s AND game_id = %s;
+                    """,
+                    (note[:NOTE_MAX_LENGTH], username.lower(), game_id),
+                )
+                updated = cur.rowcount > 0
+            conn.commit()
+        return updated
+    finally:
+        db.close()
+
+
+def get_favorites(q: str = '', sort: str = 'added', page: int = 1,
+                  per_page: int = 25, username: Optional[str] = None):
+    """
+    Глобальный список избранного с поиском и пагинацией.
+
+    Returns:
+        tuple[list[dict], int]
+    """
+    where = []
+    params = []
+
+    normalized_username = username.lower() if username else None
+    if normalized_username:
+        where.append('player_username = %s')
+        params.append(normalized_username)
+
+    if q:
+        like = f'%{q}%'
+        where.append(
+            '(player_username ILIKE %s OR opponent_name ILIKE %s '
+            'OR opening_name ILIKE %s OR note ILIKE %s)'
+        )
+        params.extend([like, like, like, like])
+
+    where_sql = ('WHERE ' + ' AND '.join(where)) if where else ''
+    order_sql = {
+        'added': 'created_at DESC, player_username, game_id',
+        'game_date': 'game_date DESC NULLS LAST, created_at DESC',
+        'opponent': 'opponent_name ASC NULLS LAST, created_at DESC',
+    }.get(sort, 'created_at DESC, player_username, game_id')
+
+    page = max(1, int(page or 1))
+    per_page = max(1, int(per_page or 25))
+    offset = (page - 1) * per_page
+
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    items = []
+    total = 0
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f'SELECT COUNT(*) FROM {FAVORITES_TABLE} {where_sql};',
+                    params,
+                )
+                total = int(cur.fetchone()[0] or 0)
+
+                cur.execute(
+                    f"""
+                    SELECT
+                        player_username, game_id, game_date, opponent_name,
+                        opponent_rating, player_color, result, opening_name,
+                        time_control, move_count, my_rating, game_url,
+                        note, created_at, updated_at
+                    FROM {FAVORITES_TABLE}
+                    {where_sql}
+                    ORDER BY {order_sql}
+                    LIMIT %s OFFSET %s;
+                    """,
+                    params + [per_page, offset],
+                )
+                for row in cur.fetchall():
+                    items.append({
+                        'player_username': row[0],
+                        'game_id': row[1],
+                        'date': row[2],
+                        'opponent': row[3],
+                        'opponent_rating': row[4],
+                        'color': row[5],
+                        'result': row[6],
+                        'opening': row[7],
+                        'time_control': row[8],
+                        'move_count': row[9],
+                        'my_rating': row[10],
+                        'game_url': row[11],
+                        'note': row[12] or '',
+                        'created_at': row[13],
+                        'updated_at': row[14],
+                    })
+    except Exception as e:
+        db.logger.warning(f'Не удалось прочитать избранное: {e}')
+    finally:
+        db.close()
+
+    return items, total
+
 
 def get_player_stats(username: str) -> dict:
     """Получает статистику игрока из таблицы игрока"""
@@ -379,7 +648,7 @@ def get_game_for_analysis(username: str, game_id: str) -> dict:
                 row = cur.fetchone()
                 if not row:
                     return None
-                return {
+                game = {
                     'game_id': row[0],
                     'game_date': row[1],
                     'color': row[2],
@@ -392,6 +661,8 @@ def get_game_for_analysis(username: str, game_id: str) -> dict:
                     'pgn_moves': row[9] or '',
                     'game_analysis': row[10] or '',
                 }
+                game['is_favorite'] = game_id in get_favorite_ids(username, [game_id])
+                return game
     finally:
         db.table_name = original_table
         db.close()
@@ -1250,6 +1521,143 @@ def render_search_page(form):
     )
 
 
+@main_bp.route('/favorites')
+def favorites_list():
+    """Глобальный список избранных партий с поиском."""
+    q = request.args.get('q', '').strip()
+    sort = request.args.get('sort', 'added').strip()
+    if sort not in ('added', 'game_date', 'opponent'):
+        sort = 'added'
+
+    try:
+        per_page = int(request.args.get('per_page', 25))
+    except (TypeError, ValueError):
+        per_page = 25
+    if per_page not in (25, 50, 100):
+        per_page = 25
+
+    page = max(1, request.args.get('page', 1, type=int) or 1)
+    items, total = get_favorites(q=q, sort=sort, page=page, per_page=per_page)
+    pages = max(1, ceil(total / per_page)) if total else 1
+    if page > pages:
+        page = pages
+        items, total = get_favorites(q=q, sort=sort, page=page, per_page=per_page)
+
+    query_params = []
+    if q:
+        query_params.append(('q', q))
+    if sort != 'added':
+        query_params.append(('sort', sort))
+    if per_page != 25:
+        query_params.append(('per_page', str(per_page)))
+
+    page_numbers = list(range(1, pages + 1))
+    page_links = [
+        {
+            'number': number,
+            'url': '?' + urlencode(query_params + [('page', number)]),
+            'active': number == page,
+        }
+        for number in page_numbers
+    ]
+    per_page_links = [
+        {
+            'size': size,
+            'url': '?' + urlencode(
+                [p for p in query_params if p[0] != 'per_page']
+                + [('per_page', size)]
+            ),
+            'active': size == per_page,
+        }
+        for size in (25, 50, 100)
+    ]
+    prev_url = (
+        '?' + urlencode(query_params + [('page', page - 1)])
+        if page > 1 else None
+    )
+    next_url = (
+        '?' + urlencode(query_params + [('page', page + 1)])
+        if page < pages else None
+    )
+
+    return render_template(
+        'favorites.html',
+        favorites=items,
+        total=total,
+        page=page,
+        pages=pages,
+        per_page=per_page,
+        page_links=page_links,
+        per_page_links=per_page_links,
+        prev_url=prev_url,
+        next_url=next_url,
+        q=q,
+        sort=sort,
+    )
+
+
+def _favorite_payload():
+    data = request.get_json(silent=True) or {}
+    raw_username = data.get('player_username') or data.get('username')
+    game_id = str(data.get('game_id') or '').strip()
+    try:
+        username = normalize_lichess_username(raw_username)
+    except LichessUsernameError as e:
+        return None, None, (jsonify({'error': str(e)}), 400)
+    if not re.fullmatch(r'[A-Za-z0-9]{1,20}', game_id):
+        return None, None, (jsonify({'error': 'Неверный game_id'}), 400)
+    return username, game_id, None
+
+
+@main_bp.route('/favorites', methods=['POST'])
+def favorites_add():
+    """Добавляет партию в избранное (AJAX)."""
+    username, game_id, error = _favorite_payload()
+    if error:
+        return error
+    try:
+        count = add_favorite(username, game_id)
+    except Exception as e:
+        return jsonify({'error': f'Избранное недоступно: {e}'}), 503
+    if count is None:
+        return jsonify({'error': 'Партия не найдена'}), 404
+    return jsonify({'favorited': True, 'count': count})
+
+
+@main_bp.route('/favorites/<username>/<game_id>', methods=['DELETE'])
+def favorites_remove(username, game_id):
+    """Удаляет партию из избранного (AJAX)."""
+    try:
+        username = normalize_lichess_username(username)
+    except LichessUsernameError as e:
+        return jsonify({'error': str(e)}), 400
+    try:
+        count = remove_favorite(username, game_id)
+    except Exception as e:
+        return jsonify({'error': f'Избранное недоступно: {e}'}), 503
+    return jsonify({'favorited': False, 'count': count})
+
+
+@main_bp.route('/favorites/<username>/<game_id>', methods=['PATCH'])
+def favorites_note(username, game_id):
+    """Обновляет заметку к избранной партии (AJAX)."""
+    try:
+        username = normalize_lichess_username(username)
+    except LichessUsernameError as e:
+        return jsonify({'error': str(e)}), 400
+    data = request.get_json(silent=True) or {}
+    note = str(data.get('note') or '')
+    if len(note) > NOTE_MAX_LENGTH:
+        return jsonify({'error': f'Заметка длиннее {NOTE_MAX_LENGTH} символов'}), 400
+    try:
+        updated = update_favorite_note(username, game_id, note)
+    except Exception as e:
+        return jsonify({'error': f'Избранное недоступно: {e}'}), 503
+    if not updated:
+        return jsonify({'error': 'Партия не найдена в избранном'}), 404
+    return jsonify({'ok': True, 'note': note})
+
+
 @main_bp.route('/')
 def index():
     """Главная страница"""
@@ -1306,12 +1714,15 @@ def player_stats(username):
                                    username=username,
                                    stats=None,
                                    exists=False,
+                                   games=[],
+                                   favorite_ids=[],
                                    current_section='games')
 
     # Лимит последних игр из конфига
     config_loader = ConfigLoader()
     recent_limit = config_loader.get('statistics.recent_games_limit', 25)
     games = get_recent_games(username, limit=recent_limit)
+    favorite_ids = get_favorite_ids(username, [g['game_id'] for g in games])
 
     # Конфиг просмотрщика партии
     _default_tab = (config_loader.get('viewer.default_tab', 'comments') or 'comments').lower()
@@ -1331,6 +1742,7 @@ def player_stats(username):
                            stats=stats,
                            exists=True,
                            games=games,
+                           favorite_ids=favorite_ids,
                            viewer_config=viewer_config,
                            current_section='games')
 
@@ -1362,6 +1774,16 @@ def delete_player(username):
     try:
         if db.table_exists():
             db.drop_table()
+            try:
+                with db.connection.get_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            'DELETE FROM favorite_games WHERE player_username = %s;',
+                            (username.lower(),),
+                        )
+                    conn.commit()
+            except Exception as fav_error:
+                db.logger.warning(f'Не удалось очистить избранное игрока: {fav_error}')
             flash(f'🗑️ Таблица игрока {username} удалена', 'success')
         else:
             flash(f'Таблица {username} не найдена', 'warning')
@@ -1556,6 +1978,7 @@ def player_openings(username):
     )
 
     popular_openings = get_popular_openings()
+    favorite_ids = get_favorite_ids(username, [g['game_id'] for g in games])
 
     # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
     running_ids = analysis_tasks.get_running_game_ids(username)
@@ -1577,6 +2000,7 @@ def player_openings(username):
         username=username,
         games=games,
         total=total,
+        favorite_ids=favorite_ids,
         page=page,
         pages=pages,
         per_page=per_page,

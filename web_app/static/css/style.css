@@ -2249,3 +2249,173 @@ thead.table-light th {
         height: 240px;
     }
 }
+
+/* ============================================
+   ИЗБРАННОЕ
+   ============================================ */
+
+.favorite-count-badge {
+    display: inline-block;
+    min-width: 20px;
+    padding: 0 5px;
+    margin-left: 2px;
+    border-radius: 999px;
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--accent-gold);
+    font-size: 11px;
+    text-align: center;
+}
+
+.btn-favorite {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 36px;
+    min-height: 36px;
+    justify-content: center;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    background: transparent;
+}
+
+.btn-favorite:hover {
+    color: var(--accent-gold);
+    border-color: var(--accent-gold);
+}
+
+.btn-favorite.is-favorite {
+    color: var(--accent-gold);
+    border-color: rgba(255, 215, 0, 0.45);
+    background: rgba(255, 215, 0, 0.08);
+}
+
+.btn-favorite .favorite-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.favorite-card {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.favorite-card-main {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.favorite-card-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 6px;
+}
+
+.favorite-player {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.favorite-player:hover {
+    color: var(--accent-gold);
+}
+
+.favorite-date {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.favorite-opponent,
+.favorite-opening {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 4px;
+    overflow-wrap: anywhere;
+}
+
+.favorite-note-view {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-left: 3px solid var(--accent-gold);
+    background: rgba(255, 215, 0, 0.05);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.favorite-note-view.favorite-note-empty {
+    border-left-color: var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.favorite-note-editor textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.favorite-card-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 140px;
+}
+
+.app-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 2000;
+    max-width: calc(100vw - 32px);
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #2a2a2a;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+.app-toast-hide {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+}
+
+@media (max-width: 768px) {
+    .favorite-card {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .favorite-card-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .favorite-card-actions .btn {
+        flex: 1 1 auto;
+        min-height: 42px;
+    }
+
+    .favorite-card-actions .favorite-label {
+        display: inline;
+    }
+}

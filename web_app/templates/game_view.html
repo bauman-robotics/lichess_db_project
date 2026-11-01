@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import favorite_button %}
 
 {% block main_class %}container-fluid mt-2{% endblock %}
 
@@ -26,6 +27,7 @@
         <button type="button" class="btn btn-sm btn-outline-secondary" id="copyLinkBtn" title="Скопировать ссылку">
             🔗 Скопировать
         </button>
+        {{ favorite_button(username, game.game_id, game.is_favorite, with_label=True) }}
     </div>
 
     <!-- Основной layout -->
