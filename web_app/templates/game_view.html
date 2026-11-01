@@ -101,51 +101,36 @@
     </div>
     <!-- закрытие .viewer-layout -->
 
-    <!-- Кнопки навигации + счётчик — под layout, на всю ширину (только десктоп) -->
-    <div class="viewer-controls">
-        <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <button id="viewFlip"  class="btn btn-sm btn-secondary" title="Повернуть">🔄</button>
-            <button id="viewFirst" class="btn btn-sm btn-secondary" title="В начало">⏮</button>
-            <button id="viewPlay"  class="btn btn-sm btn-primary" title="Играть / Пауза">⏯</button>
-            <button id="viewLast"  class="btn btn-sm btn-secondary" title="В конец">⏭</button>
-            <button id="viewPrev"  class="btn btn-sm btn-secondary" title="Назад">◀</button>
-            <button id="viewNext"  class="btn btn-sm btn-secondary" title="Вперёд">▶</button>
+    {% if engine_enabled %}
+    <div class="engine-bottom-row" id="engineBottomRow">
+        <div class="engine-eval-card shadow-sm" id="engineEvalPanel">
+            <div class="engine-eval-side">
+                <h6 class="mb-1">📈</h6>
+                <small class="text-muted" id="engineEvalSource">Lichess / Stockfish · depth {{ engine_depth }}</small>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="engineGraphToggle">
+                    Скрыть график
+                </button>
+            </div>
+            <div class="engine-eval-main" id="engineEvalBody">
+                <div class="engine-chart-wrap">
+                    <canvas id="engineEvalChart"></canvas>
+                </div>
+                <div class="engine-eval-empty" id="engineEvalEmpty">
+                    <p class="mb-2 text-muted" id="engineEvalEmptyText">Компьютерных оценок для этой партии нет.</p>
+                    <button type="button" class="btn btn-sm btn-primary" id="engineAnalyzeBtn">
+                        🧠 Анализ движком · depth {{ engine_depth }}
+                    </button>
+                    <div class="small mt-2" id="engineTaskStatus" role="status"></div>
+                </div>
+            </div>
         </div>
-
-        <div class="mt-2 text-center viewer-move-counter">
-            <small class="text-muted">
-                Ход <span id="viewMoveCounter">0</span> из <span id="viewMoveTotal">0</span>
-            </small>
-            <br>
-            <small class="text-muted viewer-keyboard-hint">
-                ← → перемотка, Space — play/pause
-            </small>
+        <div class="viewer-controls viewer-controls-side">
+            {% include "_viewer_controls.html" %}
         </div>
     </div>
-
-    {% if engine_enabled %}
-    <div class="card shadow-sm engine-eval-card mt-3" id="engineEvalPanel">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h6 class="mb-0">📈 Преимущество</h6>
-                <small class="text-muted" id="engineEvalSource">Lichess / Stockfish · depth {{ engine_depth }}</small>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="engineGraphToggle">
-                Скрыть график
-            </button>
-        </div>
-        <div class="card-body" id="engineEvalBody">
-            <div class="engine-chart-wrap">
-                <canvas id="engineEvalChart"></canvas>
-            </div>
-            <div class="engine-eval-empty" id="engineEvalEmpty">
-                <p class="mb-2 text-muted" id="engineEvalEmptyText">Компьютерных оценок для этой партии нет.</p>
-                <button type="button" class="btn btn-sm btn-primary" id="engineAnalyzeBtn">
-                    🧠 Анализ движком · depth {{ engine_depth }}
-                </button>
-                <div class="small mt-2" id="engineTaskStatus" role="status"></div>
-            </div>
-        </div>
+    {% else %}
+    <div class="viewer-controls">
+        {% include "_viewer_controls.html" %}
     </div>
     {% endif %}
 

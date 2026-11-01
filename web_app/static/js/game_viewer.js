@@ -107,6 +107,11 @@
                 const size = Math.max(minSize, Math.min(cfg.boardSizeDesktop, availableHeight));
                 elBoard.style.width  = size + 'px';
                 elBoard.style.height = size + 'px';
+                const page = document.querySelector('.game-view-page');
+                if (page) {
+                    page.style.setProperty('--board-size', size + 'px');
+                    page.style.setProperty('--board-half', (size / 2) + 'px');
+                }
 
                 if (layout) {
                     if (engineMode) {

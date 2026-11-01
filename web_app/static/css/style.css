@@ -3127,3 +3127,188 @@ thead.table-light th {
         padding: 10px;
     }
 }
+
+/* ============================================
+   КОМПАКТНЫЙ БЛОК: ГРАФИК + УПРАВЛЕНИЕ
+   ============================================ */
+
+#viewBoard,
+#chessBoard {
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+}
+
+.engine-bottom-row {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    padding-top: 8px;
+}
+
+.engine-bottom-row .engine-eval-card {
+    display: flex;
+    margin: 0 auto;
+    width: var(--board-size, 500px);
+    max-width: 100%;
+    min-width: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.engine-eval-side {
+    flex: 0 0 92px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--border-color);
+}
+
+.engine-eval-side h6 {
+    margin-bottom: 4px;
+}
+
+.engine-eval-side small {
+    font-size: 10px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.engine-eval-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px;
+}
+
+.engine-eval-main .engine-chart-wrap {
+    height: 150px;
+}
+
+.engine-eval-main .engine-eval-empty {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.game-view-page .viewer-controls-side {
+    position: absolute;
+    top: 8px;
+    left: calc(50% + var(--board-half, 250px) + 12px);
+    width: 112px;
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+}
+
+.viewer-controls-side .viewer-nav-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.viewer-controls-side .viewer-nav-buttons .btn {
+    min-height: 38px;
+    padding: 6px 4px;
+    font-size: 15px;
+    border-radius: 6px;
+}
+
+.viewer-controls-side .viewer-move-counter {
+    margin-top: 8px;
+}
+
+.viewer-controls-side .viewer-keyboard-hint {
+    display: none;
+}
+
+@media (max-height: 800px) {
+    .engine-eval-main .engine-chart-wrap {
+        height: 120px;
+    }
+
+    .engine-eval-side {
+        flex-basis: 82px;
+        padding: 6px;
+    }
+
+    .engine-eval-side small {
+        font-size: 9px;
+    }
+
+    .viewer-controls-side .viewer-nav-buttons .btn {
+        min-height: 34px;
+    }
+}
+
+@media (max-width: 768px) {
+    .engine-bottom-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding-top: 6px;
+    }
+
+    .engine-bottom-row .engine-eval-card {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .engine-eval-side {
+        flex: 0 0 auto;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .engine-eval-side h6 {
+        margin: 0;
+    }
+
+    .engine-eval-side small {
+        flex: 1 1 auto;
+    }
+
+    .engine-eval-side .btn {
+        margin-top: 0 !important;
+    }
+
+    .engine-eval-main {
+        padding: 8px;
+    }
+
+    .engine-eval-main .engine-chart-wrap {
+        height: 140px;
+    }
+
+    .game-view-page .viewer-controls-side {
+        position: static;
+        width: 100%;
+        margin-top: 0;
+    }
+
+    .viewer-controls-side .viewer-nav-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .viewer-controls-side .viewer-nav-buttons .btn {
+        flex: 1 1 auto;
+        min-height: 44px;
+        padding: 10px 0;
+        font-size: 16px;
+    }
+
+    .viewer-controls-side .viewer-move-counter {
+        display: block;
+        margin-top: 4px;
+    }
+}
