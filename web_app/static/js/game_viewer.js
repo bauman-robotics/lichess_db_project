@@ -56,6 +56,7 @@
         let board = null;
         let renderer = null;
         let positions = [];
+        let moveIndex = null;
         let currentIndex = 0;
         let playing = false;
         let timer = null;
@@ -166,6 +167,26 @@
 
             // Комментарий к текущему ходу (мобильный)
             renderMoveComment(currentIndex);
+
+            // Синхронизация подсветки с текстом анализа
+            if (window.AnalysisMoves) {
+                window.AnalysisMoves.setActive(
+                    document.getElementById('viewComments'), currentIndex
+                );
+                window.AnalysisMoves.setActive(
+                    document.getElementById('viewMobileAnalysis'), currentIndex
+                );
+            }
+        }
+
+        function goToPly(ply) {
+            showPosition(ply);
+            if (window.innerWidth < 768) {
+                const board = document.getElementById('viewBoard');
+                if (board) {
+                    board.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
         }
 
         // ---------- Список ходов ----------
@@ -433,6 +454,9 @@
                     html = DOMPurify.sanitize(html);
                 }
                 elComments.innerHTML = html;
+                if (window.AnalysisMoves && moveIndex) {
+                    window.AnalysisMoves.linkify(elComments, moveIndex, goToPly);
+                }
             } catch (e) {
                 console.error('Markdown error:', e);
                 elComments.textContent = text;
@@ -455,6 +479,9 @@
                     html = DOMPurify.sanitize(html);
                 }
                 elMobile.innerHTML = html;
+                if (window.AnalysisMoves && moveIndex) {
+                    window.AnalysisMoves.linkify(elMobile, moveIndex, goToPly);
+                }
             } catch (e) {
                 console.error('Markdown error (mobile):', e);
                 elMobile.textContent = text;
@@ -462,7 +489,7 @@
         }
 
         // ---------- Открытие модалки ----------
-        async function openViewer(username, gameId) {
+        async function openViewer(username, gameId, options) {
             initBoard();
 
             // Сброс активной вкладки к дефолтной из конфига
@@ -520,6 +547,11 @@
                     board.flipped = false;
                 }
 
+                positions = data.positions;
+                moveIndex = window.AnalysisMoves
+                    ? window.AnalysisMoves.buildIndex(positions)
+                    : null;
+
                 // Выводим анализ в левую колонку (десктоп)
                 renderAnalysis(data.analysis || '');
 
@@ -529,9 +561,12 @@
                 // Парсим комментарии к ходам
                 parseAnalysisComments(data.analysis || '');
 
-                positions = data.positions;
                 buildMovesList();
-                showPosition(0);
+
+                const startPly = options && Number.isFinite(options.startPly)
+                    ? options.startPly
+                    : 0;
+                showPosition(startPly);
 
                 // Ещё раз — на случай, если размер контейнера изменился
                 applyBoardSize();
@@ -570,9 +605,20 @@
             });
         });
 
+        // Публичный API для текста анализа
+        window.GameViewer = {
+            showPosition: showPosition,
+            getPositions: function () { return positions; },
+            getCurrentIndex: function () { return currentIndex; },
+        };
+
         // ---------- Автозапуск в режиме страницы ----------
         if (isPageMode && window.GAME_CONTEXT) {
-            openViewer(window.GAME_CONTEXT.username, window.GAME_CONTEXT.gameId);
+            openViewer(
+                window.GAME_CONTEXT.username,
+                window.GAME_CONTEXT.gameId,
+                { startPly: window.GAME_CONTEXT.startPly || 0 }
+            );
         }
 
     });

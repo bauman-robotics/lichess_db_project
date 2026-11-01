@@ -2610,6 +2610,7 @@ def game_view_route(username, game_id):
         username=username,
         game=game,
         viewer_config=viewer_config,
+        start_ply=max(0, request.args.get('ply', 0, type=int) or 0),
     )  
 
 @main_bp.route('/player/<username>/game/<game_id>/positions', methods=['GET'])

@@ -161,6 +161,7 @@ window.VIEWER_CONFIG = {
 window.GAME_CONTEXT = {
     username: {{ username|tojson }},
     gameId:   {{ game.game_id|tojson }},
+    startPly: {{ start_ply|tojson }},
 };
 
 document.getElementById('copyLinkBtn')?.addEventListener('click', function () {

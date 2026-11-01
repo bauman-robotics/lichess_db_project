@@ -2955,3 +2955,38 @@ thead.table-light th {
 #analysisRerunBtn:disabled {
     opacity: 0.55;
 }
+
+/* ============================================
+   КЛИКАБЕЛЬНЫЕ ХОДЫ В АНАЛИЗЕ
+   ============================================ */
+
+.analysis-move {
+    color: var(--accent-gold);
+    border-bottom: 1px dotted rgba(255, 215, 0, 0.65);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.analysis-move:hover,
+.analysis-move:focus {
+    color: #fff3c4;
+    background: rgba(255, 215, 0, 0.12);
+    outline: none;
+}
+
+.analysis-move.active {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: rgba(255, 215, 0, 0.25);
+    color: #fff3c4;
+}
+
+.analysis-move-variant {
+    color: var(--text-secondary);
+    border-bottom: 1px dotted var(--border-color);
+    cursor: help;
+}
+
+.analysis-move-ambiguous {
+    font-style: italic;
+}

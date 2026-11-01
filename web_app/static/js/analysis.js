@@ -47,6 +47,7 @@
 
         // ---------- Состояние ----------
         let currentGame = null;  // { username, gameId }
+        let analysisMoveIndex = null;
         let selectedPrompt = '';
 
         function selectPrompt(key) {
@@ -124,9 +125,47 @@
                     html = DOMPurify.sanitize(html);
                 }
                 elContent.innerHTML = html;
+                if (window.AnalysisMoves && analysisMoveIndex) {
+                    window.AnalysisMoves.linkify(
+                        elContent,
+                        analysisMoveIndex,
+                        function (ply) { navigateToPly(currentGame, ply); }
+                    );
+                }
             } catch (e) {
                 console.error('Markdown error:', e);
                 elContent.textContent = text;
+            }
+        }
+
+        function navigateToPly(game, ply) {
+            if (!game) return;
+            const url = `/lichess-analyzer/player/${encodeURIComponent(game.username)}`
+                + `/game/${encodeURIComponent(game.gameId)}/view?ply=${ply}`;
+            if (typeof window.openGameViewer === 'function'
+                && document.getElementById('viewGameModal')) {
+                modal.hide();
+                window.openGameViewer(game.username, game.gameId, { startPly: ply });
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        async function loadAnalysisPositions(username, gameId) {
+            analysisMoveIndex = null;
+            try {
+                const response = await fetch(
+                    `/lichess-analyzer/player/${encodeURIComponent(username)}`
+                    + `/game/${encodeURIComponent(gameId)}/positions`,
+                    { credentials: 'same-origin' }
+                );
+                if (!response.ok) return;
+                const data = await response.json();
+                if (window.AnalysisMoves && data.positions) {
+                    analysisMoveIndex = window.AnalysisMoves.buildIndex(data.positions);
+                }
+            } catch (e) {
+                analysisMoveIndex = null;
             }
         }
 
@@ -169,6 +208,7 @@
             elGameId.textContent = gameId;
             modal.show();
             loadPgn(username, gameId);
+            await loadAnalysisPositions(username, gameId);
 
             try {
                 const r = await fetch(
