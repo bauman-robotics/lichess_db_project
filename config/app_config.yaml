@@ -120,3 +120,13 @@ viewer:
   default_flipped: false    # или true для игры за чёрных
   default_tab: comments     # 'moves' или 'comments' — какая вкладка открывается первой на мобильном
   show_coords: true         # ← показывать координаты клеток a-h, 1-8
+# Анализ позиций Stockfish.
+# enabled: false — полностью отключает движок и оставляет текущий layout
+# страницы просмотра без графика (для сравнения).
+engine:
+  enabled: true
+  path: "/usr/games/stockfish"
+  depth: 14
+  hash_mb: 16
+  threads: 1
+  nice: 19

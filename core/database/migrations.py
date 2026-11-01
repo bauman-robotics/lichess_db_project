@@ -268,3 +268,113 @@ def annotations_table_status(db_manager: Optional[DatabaseManager] = None) -> di
 def favorites_table_status(db_manager: Optional[DatabaseManager] = None) -> dict:
     """Устаревшее имя; статус game_annotations."""
     return annotations_table_status(db_manager)
+
+
+# ============================================================
+# STOCKFISH: ОЦЕНКИ И ОЧЕРЕДЬ
+# ============================================================
+
+ENGINE_EVALS_TABLE = "game_engine_evals"
+ENGINE_TASKS_TABLE = "engine_tasks"
+
+CREATE_ENGINE_EVALS_SQL = f"""
+CREATE TABLE IF NOT EXISTS {ENGINE_EVALS_TABLE} (
+    player_username VARCHAR(100) NOT NULL,
+    game_id         VARCHAR(20)  NOT NULL,
+    ply             INTEGER      NOT NULL,
+    san             VARCHAR(20),
+    eval_cp         INTEGER,
+    mate            INTEGER,
+    depth           INTEGER      NOT NULL,
+    engine          VARCHAR(50),
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (player_username, game_id, ply)
+);
+"""
+
+CREATE_ENGINE_EVALS_INDEXES_SQL = f"""
+CREATE INDEX IF NOT EXISTS idx_engine_evals_game
+    ON {ENGINE_EVALS_TABLE} (player_username, game_id);
+"""
+
+CREATE_ENGINE_TASKS_SQL = f"""
+CREATE TABLE IF NOT EXISTS {ENGINE_TASKS_TABLE} (
+    task_id         VARCHAR(36) PRIMARY KEY,
+    player_username VARCHAR(100) NOT NULL,
+    game_id         VARCHAR(20)  NOT NULL,
+    depth           INTEGER      NOT NULL,
+    status          VARCHAR(20)  NOT NULL DEFAULT 'queued',
+    progress        INTEGER      NOT NULL DEFAULT 0,
+    total           INTEGER      NOT NULL DEFAULT 0,
+    error           TEXT,
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    started_at      TIMESTAMPTZ,
+    finished_at     TIMESTAMPTZ
+);
+"""
+
+CREATE_ENGINE_TASKS_INDEXES_SQL = f"""
+CREATE UNIQUE INDEX IF NOT EXISTS one_running_engine_task
+    ON {ENGINE_TASKS_TABLE} (status) WHERE status = 'running';
+CREATE UNIQUE INDEX IF NOT EXISTS one_active_engine_task_per_game
+    ON {ENGINE_TASKS_TABLE} (player_username, game_id)
+    WHERE status IN ('queued', 'running');
+CREATE INDEX IF NOT EXISTS idx_engine_tasks_created
+    ON {ENGINE_TASKS_TABLE} (created_at);
+"""
+
+
+def ensure_engine_tables(db_manager: Optional[DatabaseManager] = None) -> bool:
+    """Создаёт game_engine_evals и engine_tasks (идемпотентно)."""
+    db = db_manager or _get_db()
+    own_db = db_manager is None
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT pg_advisory_xact_lock(20261025);")
+                cur.execute(CREATE_ENGINE_EVALS_SQL)
+                cur.execute(CREATE_ENGINE_EVALS_INDEXES_SQL)
+                cur.execute(CREATE_ENGINE_TASKS_SQL)
+                cur.execute(CREATE_ENGINE_TASKS_INDEXES_SQL)
+            conn.commit()
+        logger.info("Таблицы движка готовы")
+        return True
+    finally:
+        if own_db:
+            db.close()
+
+
+def engine_tables_status(db_manager: Optional[DatabaseManager] = None) -> dict:
+    db = db_manager or _get_db()
+    own_db = db_manager is None
+    status = {
+        "evals_table": ENGINE_EVALS_TABLE,
+        "tasks_table": ENGINE_TASKS_TABLE,
+        "exists": False,
+        "evals": 0,
+        "queued": 0,
+        "running": 0,
+    }
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT to_regclass(%s), to_regclass(%s);",
+                    (f"public.{ENGINE_EVALS_TABLE}", f"public.{ENGINE_TASKS_TABLE}"),
+                )
+                evals, tasks = cur.fetchone()
+                status["exists"] = bool(evals and tasks)
+                if not status["exists"]:
+                    return status
+                cur.execute(f"SELECT COUNT(*) FROM {ENGINE_EVALS_TABLE};")
+                status["evals"] = int(cur.fetchone()[0] or 0)
+                cur.execute(
+                    f"SELECT status, COUNT(*) FROM {ENGINE_TASKS_TABLE} "
+                    "WHERE status IN ('queued','running') GROUP BY status;"
+                )
+                for key, count in cur.fetchall():
+                    status[key] = int(count)
+    finally:
+        if own_db:
+            db.close()
+    return status

@@ -13,6 +13,9 @@ from flask_wtf.csrf import CSRFProtect
 
 from web_app.config import WebConfig
 from web_app.import_tasks import start_import_worker
+from web_app.engine_tasks import start_engine_worker
+from services.engine_analysis import get_engine_config
+from config.config_loader import ConfigLoader
 from services.deepseek_analyzer import list_prompt_variants
 from web_app.routes import get_favorites_count, get_notes_count, main_bp
 
@@ -46,5 +49,8 @@ def create_app():
 
     # Один фоновый worker на процесс: забирает queued-задачи импорта.
     start_import_worker()
+    # Движок запускаем только если он включён в конфиге.
+    if get_engine_config(ConfigLoader())['enabled']:
+        start_engine_worker()
     
     return app

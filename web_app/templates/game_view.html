@@ -8,7 +8,7 @@
 {% endblock %}
 
     {% block content %}
-    <div class="container-fluid game-view-page">
+    <div class="container-fluid game-view-page{% if engine_enabled %} engine-enabled{% endif %}">
 
     <!-- Кнопки действий — над доской, по центру -->
     <div class="game-view-actions d-flex gap-2 mb-2 flex-wrap justify-content-center">
@@ -122,6 +122,32 @@
             </small>
         </div>
     </div>
+
+    {% if engine_enabled %}
+    <div class="card shadow-sm engine-eval-card mt-3" id="engineEvalPanel">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h6 class="mb-0">📈 Преимущество</h6>
+                <small class="text-muted" id="engineEvalSource">Lichess / Stockfish · depth {{ engine_depth }}</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="engineGraphToggle">
+                Скрыть график
+            </button>
+        </div>
+        <div class="card-body" id="engineEvalBody">
+            <div class="engine-chart-wrap">
+                <canvas id="engineEvalChart"></canvas>
+            </div>
+            <div class="engine-eval-empty" id="engineEvalEmpty">
+                <p class="mb-2 text-muted" id="engineEvalEmptyText">Компьютерных оценок для этой партии нет.</p>
+                <button type="button" class="btn btn-sm btn-primary" id="engineAnalyzeBtn">
+                    🧠 Анализ движком · depth {{ engine_depth }}
+                </button>
+                <div class="small mt-2" id="engineTaskStatus" role="status"></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Мобильный блок: табы -->
     {% set _tab = viewer_config.default_tab|default('comments') %}
@@ -291,6 +317,17 @@ document.getElementById('copyLinkBtn')?.addEventListener('click', function () {
     button.addEventListener('click', function () { copyCurrent(button); });
 })();
 </script>
+{% if engine_enabled %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+window.ENGINE_CONTEXT = {
+    username: {{ username|tojson }},
+    gameId: {{ game.game_id|tojson }},
+    depth: {{ engine_depth|tojson }},
+};
+</script>
+<script src="/lichess-analyzer/static/js/engine_chart.js?v=1"></script>
+{% endif %}
 {% endblock %}
 
 {% block footer %}{% endblock %}

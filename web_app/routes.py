@@ -50,6 +50,8 @@ from services.streamers import get_streamer_cards, streamer_table_names
 
 from web_app import tasks as analysis_tasks
 from web_app.import_tasks import create_import_task, get_import_task
+from web_app.engine_tasks import create_engine_task, get_engine_task, get_active_engine_task
+from services.engine_analysis import get_engine_config, get_engine_evals
 from services.deepseek_analyzer import (
     analyze_game, check_health, clean_pgn, list_prompt_variants,
     DeepSeekError, DeepSeekUnavailable,
@@ -2514,10 +2516,13 @@ def parse_pgn_to_positions(pgn_moves: str) -> list:
         'color': None,
         'from': None,
         'to': None,
+        'eval_cp': None,
+        'mate': None,
     })
     
-    for move in game.mainline_moves():
+    for node in game.mainline():
         try:
+            move = node.move
             san = board.san(move)
             color = 'white' if board.turn == chess.WHITE else 'black'
             move_number = board.fullmove_number
@@ -2527,6 +2532,19 @@ def parse_pgn_to_positions(pgn_moves: str) -> list:
             to_sq = chess.square_name(move.to_square)      # 'e4'
             
             board.push(move)
+
+            eval_cp = None
+            mate = None
+            try:
+                score = node.eval()
+                if score is not None:
+                    white = score.white()
+                    if white.is_mate():
+                        mate = white.mate()
+                    else:
+                        eval_cp = white.score()
+            except Exception:
+                pass
             
             positions.append({
                 'fen': board.fen(),
@@ -2535,6 +2553,8 @@ def parse_pgn_to_positions(pgn_moves: str) -> list:
                 'color': color,
                 'from': from_sq,
                 'to': to_sq,
+                'eval_cp': eval_cp,
+                'mate': mate,
             })
         except Exception:
             break
@@ -2681,6 +2701,42 @@ def get_game_pgn_route(username, game_id):
         'pgn': pgn_clean,
     })    
 
+@main_bp.route('/player/<username>/game/<game_id>/engine', methods=['POST'])
+def engine_analyze_route(username, game_id):
+    """Запускает фоновый анализ Stockfish для выбранной партии."""
+    config = ConfigLoader()
+    cfg = get_engine_config(config)
+    if not cfg['enabled']:
+        return jsonify({'status': 'error', 'message': 'Движок отключён в конфиге'}), 403
+
+    game = get_game_for_analysis(username, game_id)
+    if not game:
+        return jsonify({'status': 'error', 'message': 'Партия не найдена'}), 404
+
+    task_id = create_engine_task(username, game_id, cfg['depth'])
+    if task_id:
+        return jsonify({'status': 'started', 'task_id': task_id,
+                        'depth': cfg['depth']})
+
+    active = get_active_engine_task(username, game_id)
+    if active:
+        return jsonify({'status': 'started', 'task_id': active['task_id'],
+                        'depth': active.get('depth', cfg['depth'])})
+    return jsonify({'status': 'error',
+                    'message': 'Не удалось создать задачу движка'}), 503
+
+
+@main_bp.route('/player/<username>/game/<game_id>/engine/status/<task_id>', methods=['GET'])
+def engine_status_route(username, game_id, task_id):
+    task = get_engine_task(task_id, username, game_id)
+    if not task:
+        return jsonify({'error': 'Задача не найдена'}), 404
+    for key in ('created_at', 'started_at', 'finished_at'):
+        value = task.get(key)
+        task[key] = value.isoformat() if value else None
+    return jsonify(task)
+
+
 @main_bp.route('/player/<username>/game/<game_id>/view')
 def game_view_route(username, game_id):
     """Страница просмотра партии с доской и навигацией."""
@@ -2707,6 +2763,8 @@ def game_view_route(username, game_id):
         game=game,
         viewer_config=viewer_config,
         start_ply=max(0, request.args.get('ply', 0, type=int) or 0),
+        engine_enabled=get_engine_config(config_loader)['enabled'],
+        engine_depth=get_engine_config(config_loader)['depth'],
     )  
 
 @main_bp.route('/player/<username>/game/<game_id>/positions', methods=['GET'])
@@ -2717,12 +2775,28 @@ def game_positions_route(username, game_id):
         return jsonify({'error': 'Партия не найдена'}), 404
     
     positions = parse_pgn_to_positions(game['pgn_moves'])
-    
+    engine_evals = get_engine_evals(username, game_id)
+    has_evals = False
+    for index, pos in enumerate(positions):
+        source = None
+        if pos.get('eval_cp') is not None or pos.get('mate') is not None:
+            source = 'lichess'
+        elif index in engine_evals:
+            item = engine_evals[index]
+            pos['eval_cp'] = item.get('eval_cp')
+            pos['mate'] = item.get('mate')
+            pos['engine_depth'] = item.get('depth')
+            source = 'engine'
+        pos['eval_source'] = source
+        if source:
+            has_evals = True
+
     return jsonify({
         'game_id': game_id,
         'positions': positions,
         'meta': _game_meta(game),
-        'analysis': game.get('game_analysis') or '',   # ← новое
+        'analysis': game.get('game_analysis') or '',
+        'has_evals': has_evals,
     })
 
 @main_bp.route('/player/<username>/debuts')

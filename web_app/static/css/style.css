@@ -3063,3 +3063,48 @@ thead.table-light th {
         white-space: normal;
     }
 }
+
+/* ============================================
+   ГРАФИК ПРЕИМУЩЕСТВА (STOCKFISH / LICHESS)
+   ============================================ */
+
+@media (min-width: 769px) {
+    .game-view-page.engine-enabled {
+        height: auto;
+        min-height: calc(100vh - 100px);
+        overflow: visible;
+    }
+
+    .game-view-page.engine-enabled .viewer-layout {
+        flex: 0 1 auto;
+    }
+}
+
+.engine-eval-card {
+    flex: 0 0 auto;
+}
+
+.engine-chart-wrap {
+    position: relative;
+    height: 170px;
+}
+
+#engineEvalChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.engine-eval-empty {
+    padding: 8px 0 4px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .engine-chart-wrap {
+        height: 145px;
+    }
+
+    .engine-eval-card .card-body {
+        padding: 10px;
+    }
+}

@@ -177,6 +177,10 @@
                     document.getElementById('viewMobileAnalysis'), currentIndex
                 );
             }
+
+            window.dispatchEvent(new CustomEvent('gameviewer:position', {
+                detail: { index: currentIndex, position: pos }
+            }));
         }
 
         function goToPly(ply) {
