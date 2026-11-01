@@ -14,7 +14,9 @@ from config.config_loader import ConfigLoader
 from core.database.db_manager import DatabaseManager
 from core.database.migrations import (
     ensure_favorites_table,
+    ensure_import_tasks_table,
     favorites_table_status,
+    import_tasks_status,
 )
 from core.exceptions.custom_exceptions import DatabaseError
 
@@ -106,8 +108,10 @@ def main():
                 try:
                     ensure_favorites_table(db_manager)
                     logger.info("✅ Таблица favorite_games готова")
+                    ensure_import_tasks_table(db_manager)
+                    logger.info("✅ Таблица import_tasks готова")
                 except Exception as e:
-                    logger.error(f"❌ Ошибка создания favorite_games: {e}")
+                    logger.error(f"❌ Ошибка создания служебных таблиц: {e}")
                     sys.exit(1)
             else:
                 logger.error("❌ Ошибка создания таблицы")
@@ -179,6 +183,14 @@ def main():
             if fav['exists']:
                 print(f"  Записей: {fav['records']}")
                 print(f"  Индексов: {fav['indexes']}")
+
+            queue = import_tasks_status(db_manager)
+            print("\n⏳ Очередь импорта:")
+            print(f"  Таблица: {queue['table']}")
+            print(f"  Существует: {'✅' if queue['exists'] else '❌'}")
+            if queue['exists']:
+                print(f"  В очереди: {queue['queued']}")
+                print(f"  Выполняется: {queue['running']}")
         
         db_manager.close()
         

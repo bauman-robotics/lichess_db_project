@@ -22,14 +22,30 @@
     </div>
 
     {% if show_actions %}
-    <div class="d-flex gap-2 flex-wrap">
-        <form method="POST" action="/lichess-analyzer/player/{{ username }}/refresh" class="d-inline">
+    {% set current_total = stats.total if stats is defined and stats and stats.total is defined else 0 %}
+    <div class="player-import-box">
+        <div class="player-import-count">
+            Игр в базе: <strong>{{ current_total }}</strong>
+        </div>
+        <form method="POST" action="/lichess-analyzer/player/{{ username }}/refresh"
+              class="player-import-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-primary"
-                    onclick="this.disabled=true; this.innerHTML='⏳ Загрузка…'; this.form.submit();">
-                🔄 Обновить игры
+            <select name="target_limit" class="form-select form-select-sm" title="Сколько игр должно быть в базе">
+                <option value="300" {% if current_total < 300 %}selected{% endif %}>300</option>
+                <option value="1000" {% if current_total >= 300 and current_total < 1000 %}selected{% endif %}>1000</option>
+                <option value="3000" {% if current_total >= 1000 %}selected{% endif %}>3000</option>
+            </select>
+            <button type="submit" name="action" value="fill" class="btn btn-sm btn-primary">
+                ⬇ Догрузить до
+            </button>
+            <button type="submit" name="action" value="refresh" class="btn btn-sm btn-outline-secondary">
+                🔄 Обновить
             </button>
         </form>
+        <small class="text-muted">Большие объёмы выполняются в фоне</small>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap mt-2">
         <form method="POST" action="/lichess-analyzer/player/{{ username }}/delete"
               onsubmit="return confirm('Удалить все игры игрока {{ username }}? Это действие необратимо.');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

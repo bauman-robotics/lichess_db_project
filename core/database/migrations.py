@@ -45,6 +45,34 @@ CREATE INDEX IF NOT EXISTS idx_fav_game_date
     ON {FAVORITES_TABLE} (game_date DESC);
 """
 
+IMPORT_TASKS_TABLE = "import_tasks"
+
+CREATE_IMPORT_TASKS_SQL = f"""
+CREATE TABLE IF NOT EXISTS {IMPORT_TASKS_TABLE} (
+    task_id       VARCHAR(36) PRIMARY KEY,
+    username      VARCHAR(100) NOT NULL,
+    mode          VARCHAR(20)  NOT NULL DEFAULT 'fill',
+    target_limit  INTEGER      NOT NULL DEFAULT 300,
+    status        VARCHAR(20)  NOT NULL DEFAULT 'queued',
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    started_at    TIMESTAMPTZ,
+    finished_at   TIMESTAMPTZ,
+    saved         INTEGER      NOT NULL DEFAULT 0,
+    total         INTEGER      NOT NULL DEFAULT 0,
+    error         TEXT
+);
+"""
+
+CREATE_IMPORT_TASKS_INDEXES_SQL = f"""
+CREATE UNIQUE INDEX IF NOT EXISTS one_running_import
+    ON {IMPORT_TASKS_TABLE} (status) WHERE status = 'running';
+CREATE UNIQUE INDEX IF NOT EXISTS one_active_import_per_player
+    ON {IMPORT_TASKS_TABLE} (lower(username))
+    WHERE status IN ('queued', 'running');
+CREATE INDEX IF NOT EXISTS idx_import_tasks_created
+    ON {IMPORT_TASKS_TABLE} (created_at);
+"""
+
 
 def _get_db(mode: str = "local") -> DatabaseManager:
     return DatabaseManager(ConfigLoader(), mode)
@@ -71,6 +99,54 @@ def ensure_favorites_table(db_manager: Optional[DatabaseManager] = None) -> bool
     finally:
         if own_db:
             db.close()
+
+
+def ensure_import_tasks_table(db_manager: Optional[DatabaseManager] = None) -> bool:
+    """Создаёт import_tasks и индексы (идемпотентно)."""
+    db = db_manager or _get_db()
+    own_db = db_manager is None
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT pg_advisory_xact_lock(20261023);")
+                cur.execute(CREATE_IMPORT_TASKS_SQL)
+                cur.execute(CREATE_IMPORT_TASKS_INDEXES_SQL)
+            conn.commit()
+        logger.info("Таблица %s готова", IMPORT_TASKS_TABLE)
+        return True
+    finally:
+        if own_db:
+            db.close()
+
+
+def import_tasks_status(db_manager: Optional[DatabaseManager] = None) -> dict:
+    """Краткий статус очереди импорта для setup_db --action status."""
+    db = db_manager or _get_db()
+    own_db = db_manager is None
+    status = {"table": IMPORT_TASKS_TABLE, "exists": False, "queued": 0, "running": 0}
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT 1 FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_name = %s;
+                    """,
+                    (IMPORT_TASKS_TABLE,),
+                )
+                status["exists"] = cur.fetchone() is not None
+                if not status["exists"]:
+                    return status
+                cur.execute(
+                    f"SELECT status, COUNT(*) FROM {IMPORT_TASKS_TABLE} "
+                    "WHERE status IN ('queued', 'running') GROUP BY status;"
+                )
+                for key, count in cur.fetchall():
+                    status[key] = int(count)
+    finally:
+        if own_db:
+            db.close()
+    return status
 
 
 def favorites_table_status(db_manager: Optional[DatabaseManager] = None) -> dict:

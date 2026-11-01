@@ -12,6 +12,7 @@ from flask import Flask, request
 from flask_wtf.csrf import CSRFProtect
 
 from web_app.config import WebConfig
+from web_app.import_tasks import start_import_worker
 from web_app.routes import get_favorites_count, main_bp
 
 
@@ -39,5 +40,8 @@ def create_app():
     
     # Регистрируем блюпринт БЕЗ префикса
     app.register_blueprint(main_bp)
+
+    # Один фоновый worker на процесс: забирает queued-задачи импорта.
+    start_import_worker()
     
     return app

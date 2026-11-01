@@ -49,6 +49,7 @@ from services.player_import import import_player_games
 from services.streamers import get_streamer_cards, streamer_table_names
 
 from web_app import tasks as analysis_tasks
+from web_app.import_tasks import create_import_task, get_import_task
 from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError, DeepSeekUnavailable, clean_pgn
 
 main_bp = Blueprint('main', __name__)
@@ -1324,103 +1325,6 @@ def get_move_stats(username: str) -> dict:
         'longest': longest,
     }
 
-def refresh_player_games(username: str) -> dict:
-    """
-    Скачивает только новые игры игрока (с даты последней игры в БД).
-    Не удаляет существующие игры, добавляет только новые.
-    """
-    try:
-        config = ConfigLoader()
-        db = DatabaseManager(config, 'local')
-        table_name = get_safe_table_name(username)
-        original_table = db.table_name
-        db.table_name = table_name
-
-        if not db.table_exists():
-            db.table_name = original_table
-            db.close()
-            return {'success': False, 'error': f'Таблица {table_name} не найдена'}
-
-        # 1. Дата последней игры
-        with db.connection.get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(f"SELECT MAX(game_date) FROM {table_name}")
-                last_date = cur.fetchone()[0]
-
-        db.table_name = original_table
-        db.close()
-
-        if not last_date:
-            # Нет игр — скачиваем всё
-            return download_player_games(username, limit=1000)
-
-        # 2. Вычитаем 1 день (на всякий случай, чтобы не пропустить)
-        from datetime import timedelta
-        since_date = last_date - timedelta(days=1)
-        since_str = since_date.strftime('%Y-%m-%d')
-
-        logger = logging.getLogger(__name__)
-        logger.info(f"[refresh] {username}: скачиваем игры с {since_str}")
-
-        # 3. Скачиваем новые игры
-        lichess = LichessClient(config)
-        pgn_content = lichess.download_games(
-            username=username,
-            max_games=1000,
-            since=since_str,
-        )
-
-        if not pgn_content or not pgn_content.strip():
-            return {'success': True, 'saved': 0, 'total': 0, 'message': 'Новых игр нет'}
-
-        # 4. Сохраняем во временный файл
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"data/downloads/{username}_refresh_{timestamp}.pgn"
-        Path("data/downloads").mkdir(parents=True, exist_ok=True)
-
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(pgn_content)
-
-        # 5. Импортируем (дубликаты пропустятся благодаря UNIQUE game_id)
-        db = DatabaseManager(config, 'local')
-        import_manager = ImportManager(config, db)
-
-        original_table = db.table_name
-        db.table_name = table_name
-
-        # Убедимся, что таблица существует
-        if not db.table_exists():
-            db.table_name = original_table
-            db.close()
-            return {'success': False, 'error': f'Таблица {table_name} не найдена'}
-
-        result = import_manager.import_from_file(
-            file_path=filename,
-            player_name=username,
-            delete_after_import=True,
-        )
-
-        db.table_name = original_table
-        db.close()
-
-        saved = result.get('saved_games', 0)
-        total = result.get('total_parsed', 0)
-        message = f'Добавлено {saved} новых игр (из {total} загруженных)' if saved else 'Новых игр нет'
-
-        logger.info(f"[refresh] {username}: {message}")
-
-        return {
-            'success': True,
-            'saved': saved,
-            'total': total,
-            'message': message,
-        }
-
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return {'success': False, 'error': str(e)}
-
 def download_player_games(username: str, limit: int = 1000) -> dict:
     """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока."""
     result = import_player_games(username, limit=limit)
@@ -1707,23 +1611,43 @@ def player_stats(username):
                            exists=True,
                            games=games,
                            favorite_ids=favorite_ids,
+                           import_task_id=request.args.get('import_task'),
                            viewer_config=viewer_config,
                            current_section='games')
 
 @main_bp.route('/player/<username>/refresh', methods=['POST'])
 def player_refresh(username):
-    """Обновляет игры игрока (добавляет новые с Lichess)."""
-    result = refresh_player_games(username)
+    """Ставит в очередь обновление истории или догрузку старых игр."""
+    action = request.form.get('action', 'refresh')
+    mode = 'refresh' if action == 'refresh' else 'fill'
+    try:
+        target_limit = int(request.form.get('target_limit', 300))
+    except (TypeError, ValueError):
+        target_limit = 300
+    if target_limit not in (300, 1000, 3000):
+        target_limit = 300
 
-    if result.get('success'):
-        if result.get('saved', 0) > 0:
-            flash(f'✅ {result["message"]}', 'success')
-        else:
-            flash(f'ℹ️ {result.get("message", "Новых игр нет")}', 'info')
-    else:
-        flash(f'❌ Ошибка обновления: {result.get("error", "Неизвестная")}', 'danger')
+    task_id = create_import_task(username, mode=mode, target_limit=target_limit)
+    if not task_id:
+        flash('⚠️ Для этого игрока уже есть задача импорта. Дождитесь её завершения.', 'warning')
+        return redirect(f'/lichess-analyzer/player/{username}')
 
-    return redirect(f'/lichess-analyzer/player/{username}')
+    action_label = 'обновление новых игр' if mode == 'refresh' else f'догрузка до {target_limit}'
+    flash(f'⏳ Задача добавлена в очередь: {action_label}.', 'info')
+    return redirect(f'/lichess-analyzer/player/{username}?import_task={task_id}')
+
+
+@main_bp.route('/player/<username>/import/status/<task_id>')
+def import_status(username, task_id):
+    """JSON-статус фоновой задачи импорта."""
+    task = get_import_task(task_id, username)
+    if not task:
+        return jsonify({'error': 'Задача не найдена'}), 404
+
+    for key in ('created_at', 'started_at', 'finished_at'):
+        value = task.get(key)
+        task[key] = value.isoformat() if value else None
+    return jsonify(task)
 
 @main_bp.route('/player/<username>/delete', methods=['POST'])
 def delete_player(username):

@@ -48,6 +48,16 @@
         {% elif stats and stats.total > 0 %}
         {% include "player_summary.html" %}
 
+            {% if import_task_id %}
+                <div class="alert alert-info d-flex align-items-center gap-2 import-task-banner"
+                     id="importTaskBanner"
+                     data-task-id="{{ import_task_id }}"
+                     data-username="{{ username }}">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span id="importTaskText">Задача импорта в очереди…</span>
+                </div>
+            {% endif %}
+
             <!-- ПОСЛЕДНИЕ ИГРЫ -->
             {% if games and games|length > 0 %}
                 <div class="card shadow-sm">

@@ -2776,3 +2776,58 @@ thead.table-light th {
         min-height: 42px;
     }
 }
+
+/* ============================================
+   ФОРМА ОБНОВЛЕНИЯ ИСТОРИИ
+   ============================================ */
+
+.player-import-box {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+}
+
+.player-import-count {
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.player-import-count strong {
+    color: var(--text-primary);
+}
+
+.player-import-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.player-import-form select {
+    width: 92px;
+    min-height: 32px;
+}
+
+.player-import-form .btn {
+    min-height: 32px;
+}
+
+@media (max-width: 768px) {
+    .player-import-form {
+        gap: 8px;
+    }
+
+    .player-import-form select {
+        flex: 0 0 100%;
+        width: 100%;
+        min-height: 42px;
+    }
+
+    .player-import-form .btn {
+        flex: 1 1 0;
+        min-height: 42px;
+    }
+}

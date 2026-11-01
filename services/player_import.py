@@ -44,9 +44,15 @@ def import_player_games(
     username: str,
     limit: int = 1000,
     config_loader: Optional[ConfigLoader] = None,
+    since: Optional[str] = None,
+    until: Optional[str] = None,
+    empty_ok: bool = False,
 ) -> dict:
     """
-    Скачивает последние игры игрока с Lichess и импортирует их.
+    Скачивает игры игрока с Lichess и импортирует их.
+
+    Args:
+        since/until: необязательные границы (YYYY-MM-DD) для API.
 
     Returns:
         {'success': bool, 'saved': int, 'total': int, 'error': str|None}
@@ -61,13 +67,21 @@ def import_player_games(
         table_name = player_table_name(username)
 
         lichess = LichessClient(config)
-        pgn_content = lichess.download_games(username=username, max_games=limit)
+        pgn_content = lichess.download_games(
+            username=username,
+            max_games=limit,
+            since=since,
+            until=until,
+        )
         if not pgn_content:
+            if empty_ok:
+                return {'success': True, 'error': None, 'saved': 0, 'total': 0,
+                        'message': 'Игр не найдено'}
             return {'success': False, 'error': 'Не удалось загрузить игры',
                     'saved': 0, 'total': 0}
 
         DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         temp_file = DOWNLOADS_DIR / f"{safe_filename_part(username)}_{timestamp}.pgn"
         temp_file.write_text(pgn_content, encoding='utf-8')
 
