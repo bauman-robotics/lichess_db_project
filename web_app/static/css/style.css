@@ -2990,3 +2990,20 @@ thead.table-light th {
 .analysis-move-ambiguous {
     font-style: italic;
 }
+
+/* Нумерация избранных карточек */
+.favorite-rank {
+    flex: 0 0 28px;
+    align-self: flex-start;
+    padding-top: 2px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .favorite-rank {
+        flex-basis: 22px;
+    }
+}
