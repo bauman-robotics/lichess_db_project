@@ -12,6 +12,7 @@ import time
 import uuid
 import threading
 import logging
+from collections import Counter
 from math import ceil
 from typing import Optional
 from urllib.parse import urlencode
@@ -2361,6 +2362,7 @@ def player_progression(username):
 
     period = request.args.get('period', '').strip()
     period_options = [
+        ('1d', '1 день'),
         ('1w', '1 неделя'),
         ('1m', '1 месяц'),
         ('3m', '3 месяца'),
@@ -2373,7 +2375,7 @@ def player_progression(username):
         if period not in valid_periods:
             period = '3m'
 
-    period_days = {'1w': 7, '1m': 30, '3m': 90, '6m': 180}
+    period_days = {'1d': 0, '1w': 7, '1m': 30, '3m': 90, '6m': 180}
     date_from = None
     if period in period_days:
         date_from = date.today() - timedelta(days=period_days[period])
@@ -2388,6 +2390,29 @@ def player_progression(username):
     period_wins = sum(1 for g in rating_progression if g.get('result') == 'Win')
     period_win_rate = round(period_wins * 100 / period_games, 1) if period_games else 0
     period_label = dict(period_options).get(period, period)
+
+    # Количество игр по дням за выбранный период и категорию.
+    daily_games_json = []
+    daily_counts = Counter()
+    for game in rating_progression:
+        try:
+            game_day = datetime.strptime(game.get('date', ''), '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            continue
+        daily_counts[game_day] += 1
+
+    if daily_counts:
+        day_start = date_from or min(daily_counts)
+        day_end = date.today()
+        if day_start > day_end:
+            day_start = day_end
+        current_day = day_start
+        while current_day <= day_end:
+            daily_games_json.append({
+                'date': current_day.isoformat(),
+                'count': daily_counts.get(current_day, 0),
+            })
+            current_day += timedelta(days=1)
     tc_label = SPEED_LABELS.get(tc, 'Все контроли') if tc else 'Все контроли'
 
     rating_stats = get_rating_stats(username)
@@ -2434,6 +2459,7 @@ def player_progression(username):
         period_games=period_games,
         period_wins=period_wins,
         period_win_rate=period_win_rate,
+        daily_games_json=daily_games_json,
         rating_progression_json=rating_progression_json,
         speed_categories=categories,
         current_tc=tc,

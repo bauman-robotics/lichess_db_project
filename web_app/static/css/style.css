@@ -2589,3 +2589,19 @@ thead.table-light th {
         text-align: center;
     }
 }
+
+
+/* ============================================
+   ГРАФИК ИГР ПО ДНЯМ
+   ============================================ */
+
+.daily-games-chart {
+    height: 190px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .daily-games-chart {
+        height: 160px;
+    }
+}
