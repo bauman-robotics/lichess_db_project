@@ -3672,3 +3672,24 @@ thead.table-light th {
         height: calc(100dvh - 68px + 100px);
     }
 }
+
+/* Индикатор наличия оценки Lichess у партии */
+.btn-analysis {
+    position: relative;
+}
+
+.btn-analysis.has-lichess-eval {
+    border-color: rgba(77, 163, 255, 0.75);
+    box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.3);
+}
+
+.analysis-eval-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4da3ff;
+    box-shadow: 0 0 4px rgba(77, 163, 255, 0.8);
+}

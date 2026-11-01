@@ -83,6 +83,8 @@ validation:
 deepseek:
   # Режим: bridge (Post-Bridge, бесплатно) | api (официальный DeepSeek) | disabled
   mode: "api"
+  # Перед анализом DeepSeek считать Stockfish, если у партии нет оценок
+  engine_prepass: true
 
   # Общие настройки (fallback)
   system_prompt: "Ты полезный помощник. Отвечай на русском языке."

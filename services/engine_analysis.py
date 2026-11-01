@@ -178,3 +178,90 @@ def run_engine_analysis(
         except Exception:
             pass
         db.close()
+
+
+def _lock_key(username: str, game_id: str) -> int:
+    import zlib
+    return zlib.crc32(f'{username.lower()}:{game_id}'.encode('utf-8')) & 0x7fffffff
+
+
+def ensure_engine_evals(
+    username: str,
+    game_id: str,
+    depth: int,
+    progress_cb: Optional[Callable[[int, int], None]] = None,
+    config: Optional[ConfigLoader] = None,
+) -> int:
+    """Считает evals, если их ещё нет; защищено advisory-lock по партии."""
+    config = config or ConfigLoader()
+    existing = get_engine_evals(username, game_id, config)
+    if existing:
+        return 0
+
+    db = DatabaseManager(config, 'local')
+    lock_key = _lock_key(username, game_id)
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute('SELECT pg_advisory_lock(%s);', (lock_key,))
+                try:
+                    if get_engine_evals(username, game_id, config):
+                        return 0
+                    return run_engine_analysis(
+                        username, game_id, depth,
+                        progress_cb=progress_cb,
+                        config=config,
+                    )
+                finally:
+                    cur.execute('SELECT pg_advisory_unlock(%s);', (lock_key,))
+                    conn.commit()
+    finally:
+        db.close()
+
+
+def build_eval_block(
+    username: str,
+    game_id: str,
+    config: Optional[ConfigLoader] = None,
+) -> str:
+    """Текст с оценками ходов для промпта DeepSeek."""
+    config = config or ConfigLoader()
+    pgn_text = get_game_pgn(username, game_id, config)
+    if not pgn_text:
+        return ''
+    game = chess.pgn.read_game(io.StringIO(pgn_text))
+    if not game:
+        return ''
+    engine_evals = get_engine_evals(username, game_id, config)
+    lines = []
+    for node in game.mainline():
+        if not node.move:
+            continue
+        eval_cp = None
+        mate = None
+        score = node.eval()
+        if score is not None:
+            white = score.white()
+            if white.is_mate():
+                mate = white.mate()
+            else:
+                eval_cp = white.score()
+        item = engine_evals.get(node.ply())
+        if item:
+            eval_cp = item.get('eval_cp')
+            mate = item.get('mate')
+        if eval_cp is None and mate is None:
+            continue
+        if mate is not None:
+            value = f'#{mate:+d}'
+        else:
+            value = f'{eval_cp / 100:+.2f}'
+        number = node.parent.board().fullmove_number if node.parent else 1
+        color = '...' if node.parent and node.parent.board().turn == chess.BLACK else '.'
+        lines.append(f'{number}{color} {node.san()} {value}')
+    if not lines:
+        return ''
+    return (
+        'Оценки позиций (Stockfish/Lichess, + = перевес белых):\n'
+        + '\n'.join(lines)
+    )

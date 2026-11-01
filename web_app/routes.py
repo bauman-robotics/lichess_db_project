@@ -51,7 +51,9 @@ from services.streamers import get_streamer_cards, streamer_table_names
 from web_app import tasks as analysis_tasks
 from web_app.import_tasks import create_import_task, get_import_task
 from web_app.engine_tasks import create_engine_task, get_engine_task, get_active_engine_task
-from services.engine_analysis import get_engine_config, get_engine_evals
+from services.engine_analysis import (
+    build_eval_block, ensure_engine_evals, get_engine_config, get_engine_evals,
+)
 from services.deepseek_analyzer import (
     analyze_game, check_health, clean_pgn, list_prompt_variants,
     DeepSeekError, DeepSeekUnavailable,
@@ -886,7 +888,8 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     opening_name,
                     my_rating,
                     opponent_rating,
-                    game_analysis
+                    game_analysis,
+                    pgn_moves LIKE '%%[%%eval%%' AS has_lichess_eval
                 FROM {table_name}
                 ORDER BY game_date DESC, id DESC
                 LIMIT %s;
@@ -905,7 +908,8 @@ def get_recent_games(username: str, limit: int = 10) -> list:
                     'opening': row[7],
                     'my_rating': row[8],
                     'opponent_rating': row[9],
-                    'analysis': row[10] or ''
+                    'analysis': row[10] or '',
+                    'has_lichess_eval': bool(row[11]),
                 })
     
     db.table_name = original_table
@@ -1018,8 +1022,30 @@ def _run_analysis_task(task_id: str, username: str, game_id: str,
         if not game:
             raise DeepSeekError(f"Партия {game_id} не найдена")
 
-        # 2. Вызываем DeepSeek
-        analysis = analyze_game(game, player_name=username, prompt_key=prompt_key)
+        # 2. При необходимости считаем оценки Stockfish перед DeepSeek
+        eval_block = ''
+        config = ConfigLoader()
+        engine_cfg = get_engine_config(config)
+        try:
+            prepass = bool(config.get('deepseek.engine_prepass', False))
+        except Exception:
+            prepass = False
+        if prepass and engine_cfg['enabled']:
+            try:
+                if '[%eval' not in (game.get('pgn_moves') or ''):
+                    logger.info(f"[task {task_id}] Stockfish prepass depth={engine_cfg['depth']}")
+                    ensure_engine_evals(
+                        username, game_id, engine_cfg['depth'], config=config
+                    )
+                eval_block = build_eval_block(username, game_id, config)
+            except Exception as e:
+                logger.warning(f"[task {task_id}] Stockfish prepass failed: {e}")
+
+        # 3. Вызываем DeepSeek
+        analysis = analyze_game(
+            game, player_name=username, prompt_key=prompt_key,
+            eval_block=eval_block,
+        )
         logger.info(f"[task {task_id}] Ответ получен, {len(analysis)} символов")
 
         # 3. Сохраняем в БД
@@ -1237,6 +1263,7 @@ def get_games_filtered(
                         'opening': r[9],
                         'game_url': r[10],
                         'analysis': r[11] or '',
+                        'has_lichess_eval': '[%eval' in (r[12] or ''),
                         'notation_tokens': notation_tokens,
                         'notation_match_start': notation_match_start,
                         'notation_match_end': notation_match_end,

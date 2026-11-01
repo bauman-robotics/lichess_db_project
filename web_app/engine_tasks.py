@@ -10,7 +10,7 @@ from typing import Optional
 from config.config_loader import ConfigLoader
 from core.database.db_manager import DatabaseManager
 from core.utils.lichess import normalize_lichess_username
-from services.engine_analysis import get_engine_config, run_engine_analysis
+from services.engine_analysis import ensure_engine_evals, get_engine_config
 
 logger = logging.getLogger(__name__)
 _worker_started = False
@@ -201,7 +201,7 @@ def _loop() -> None:
             time.sleep(3)
             continue
         try:
-            run_engine_analysis(
+            ensure_engine_evals(
                 task['username'], task['game_id'], task['depth'],
                 progress_cb=lambda done, total: _progress(task['task_id'], done, total),
             )

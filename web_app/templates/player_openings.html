@@ -311,15 +311,16 @@
                                         </td>
                                         <td class="text-center">
                                             {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
-                                            <button class="btn btn-sm btn-analysis"
+                                            <button class="btn btn-sm btn-analysis{% if g.has_lichess_eval and state != 'done' %} has-lichess-eval{% endif %}"
                                                     data-username="{{ username }}"
                                                     data-game-id="{{ g.game_id }}"
                                                     data-state="{{ state }}"
-                                                    title="Анализ партии через DeepSeek">
+                                                    title="Анализ партии через DeepSeek{% if g.has_lichess_eval %} · есть оценка Lichess{% endif %}">
                                                 {% if state == 'running' %}⏳
                                                 {% elif state == 'done' %}✅
                                                 {% elif state == 'error' %}❌
                                                 {% else %}🤖{% endif %}
+                                                {% if g.has_lichess_eval and state != 'done' %}<span class="analysis-eval-dot" title="Есть оценка Lichess"></span>{% endif %}
                                             </button>
                                         </td>
                                     </tr>
@@ -395,10 +396,11 @@
                                         </a>
                                     {% endif %}
                                     {% set state = 'running' if g.game_id in running_ids else ('done' if g.analysis else 'none') %}
-                                    <button class="btn btn-sm btn-analysis btn-analysis-with-text"
+                                    <button class="btn btn-sm btn-analysis btn-analysis-with-text{% if g.has_lichess_eval and state != 'done' %} has-lichess-eval{% endif %}"
                                             data-username="{{ username }}"
                                             data-game-id="{{ g.game_id }}"
-                                            data-state="{{ state }}">
+                                            data-state="{{ state }}"
+                                            title="Анализ партии через DeepSeek{% if g.has_lichess_eval %} · есть оценка Lichess{% endif %}">
                                         <span class="btn-analysis-icon">
                                             {% if state == 'running' %}⏳
                                             {% elif state == 'done' %}✅
@@ -406,6 +408,7 @@
                                             {% else %}🤖{% endif %}
                                         </span>
                                         <span class="btn-analysis-label">Анализ</span>
+                                        {% if g.has_lichess_eval and state != 'done' %}<span class="analysis-eval-dot" title="Есть оценка Lichess"></span>{% endif %}
                                     </button>
                                 </div>
 

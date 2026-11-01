@@ -416,7 +416,8 @@ def _call_deepseek(system: str, user: str) -> str:
 # ГЛАВНАЯ ФУНКЦИЯ
 # ============================================================
 
-def analyze_game(game: Dict, player_name: str, prompt_key: str | None = None) -> str:
+def analyze_game(game: Dict, player_name: str, prompt_key: str | None = None,
+                 eval_block: str | None = None) -> str:
     """
     Синхронно анализирует партию через DeepSeek.
 
@@ -439,6 +440,8 @@ def analyze_game(game: Dict, player_name: str, prompt_key: str | None = None) ->
     system, user = build_prompt(
         game, prompts, player_name, style_guide=style_guide
     )
+    if eval_block:
+        user = user + '\n\n' + eval_block
 
     logger.info(
         f"Анализ партии {game.get('game_id')} для {player_name} "
