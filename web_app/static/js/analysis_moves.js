@@ -3,7 +3,7 @@
 (function () {
     'use strict';
 
-    const SAN_RE = /\b(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)\b/g;
+    const SAN_RE = /\b(O-O-O|O-O|[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[+#]?)(?![A-Za-z0-9])/g;
     const SAN_CLEAN_RE = /[!?]+$/;
 
     function cleanSan(san) {
@@ -20,8 +20,15 @@
             if (!san) return;
             const key = pos.move_number + '|' + pos.color + '|' + san;
             byKey.set(key, index);
-            if (!bySan.has(san)) bySan.set(san, []);
-            bySan.get(san).push(index);
+            const variants = [san];
+            const base = san.replace(/[+#]$/, '');
+            if (base && base !== san) variants.push(base);
+            variants.forEach(function (key) {
+                if (!bySan.has(key)) bySan.set(key, []);
+                if (bySan.get(key).indexOf(index) === -1) {
+                    bySan.get(key).push(index);
+                }
+            });
         });
 
         return { byKey: byKey, bySan: bySan };
@@ -34,7 +41,10 @@
             const ply = index.byKey.get(moveNumber + '|' + color + '|' + clean);
             if (ply !== undefined) return { ply: ply, reason: 'exact' };
         }
-        const matches = index.bySan.get(clean) || [];
+        let matches = index.bySan.get(clean) || [];
+        if (!matches.length) {
+            matches = index.bySan.get(clean.replace(/[+#]$/, '')) || [];
+        }
         if (matches.length === 1) return { ply: matches[0], reason: 'unique' };
         if (matches.length > 1) return { ply: null, reason: 'ambiguous' };
         return { ply: null, reason: 'variant' };
