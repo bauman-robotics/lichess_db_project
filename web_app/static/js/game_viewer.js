@@ -382,7 +382,17 @@
         });
 
         // ---------- Клавиатура ----------
+        function isTypingTarget(target) {
+            if (!target) return false;
+            const tag = target.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+                || target.isContentEditable;
+        }
+
         document.addEventListener('keydown', (e) => {
+            // Не перехватываем пробелы/стрелки при вводе заметок и поиске.
+            if (isTypingTarget(e.target)) return;
+
             // В режиме модалки — только когда открыта. В режиме страницы — всегда.
             if (!isPageMode && !modalEl.classList.contains('show')) return;
 
@@ -393,8 +403,10 @@
                 e.preventDefault();
                 showPosition(currentIndex + 1);
             } else if (e.key === ' ') {
+                const playButton = document.getElementById('viewPlay');
+                if (!playButton) return;
                 e.preventDefault();
-                document.getElementById('viewPlay').click();
+                playButton.click();
             } else if (e.key === 'Home') {
                 e.preventDefault();
                 showPosition(0);

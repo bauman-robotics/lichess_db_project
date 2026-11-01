@@ -1983,6 +1983,7 @@ def player_openings(username):
     )
 
     popular_openings = get_popular_openings()
+    speed_categories, _ = get_speed_categories(username)
     favorite_ids = get_favorite_ids(username, [g['game_id'] for g in games])
 
     # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
@@ -2017,6 +2018,7 @@ def player_openings(username):
         active_filters=active_filters,
         date_error=date_error,
         speed_labels=SPEED_LABELS,
+        speed_categories=speed_categories,
         popular_openings=popular_openings,
         running_ids=running_ids or [],
         viewer_config=viewer_config,
@@ -2382,6 +2384,9 @@ def player_progression(username):
         date_from=date_from,
     )
     table_games = rating_progression[:50]
+    period_games = len(rating_progression)
+    period_wins = sum(1 for g in rating_progression if g.get('result') == 'Win')
+    period_win_rate = round(period_wins * 100 / period_games, 1) if period_games else 0
     period_label = dict(period_options).get(period, period)
     tc_label = SPEED_LABELS.get(tc, 'Все контроли') if tc else 'Все контроли'
 
@@ -2426,6 +2431,9 @@ def player_progression(username):
         rating_stats=rating_stats,
         rating_progression=rating_progression,
         table_games=table_games,
+        period_games=period_games,
+        period_wins=period_wins,
+        period_win_rate=period_win_rate,
         rating_progression_json=rating_progression_json,
         speed_categories=categories,
         current_tc=tc,

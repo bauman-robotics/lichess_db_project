@@ -37,9 +37,14 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">📈 {{ tc_label }} · {{ period_label }}</h5>
-                    <span class="badge bg-secondary">
-                        Игр: {{ rating_progression|length }} из {{ stats.total }}
-                    </span>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-secondary" title="Всего игр в базе: {{ stats.total }}">
+                            Игр: {{ period_games }}
+                        </span>
+                        <span class="badge bg-success">
+                            Побед: {{ period_wins }} ({{ period_win_rate }}%)
+                        </span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="chart-toolbar">

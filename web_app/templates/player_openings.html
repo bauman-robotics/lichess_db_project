@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% from "_macros.html" import favorite_button %}
 
+{% block title %}
+{{ username }} — Фильтр партий
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -54,9 +58,9 @@
                                 <label class="form-label" for="speedSelect">Контроль</label>
                                 <select name="speed" id="speedSelect" class="form-select">
                                     <option value="">Все</option>
-                                    {% for key, label in speed_labels.items() %}
-                                        <option value="{{ key }}" {% if filters.speed == key %}selected{% endif %}>
-                                            {{ label }}
+                                    {% for item in speed_categories %}
+                                        <option value="{{ item.key }}" {% if filters.speed == item.key %}selected{% endif %}>
+                                            {{ item.label }} ({{ item.games }})
                                         </option>
                                     {% endfor %}
                                 </select>
