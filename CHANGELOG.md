@@ -4,6 +4,27 @@
 
 ---
 
+## [2026-11-01] iteration 0.4 — обновление на сервере по SSH
+
+Добавлен локальный скрипт обновления: подключается к серверу, загружает
+серверный скрипт, делает `git pull`, миграции и перезапуск сервиса.
+
+### Добавлено
+
+- `scripts/deploy/update_remote.py` — локальный SSH-раннер: читает
+  `deploy`/`remote.ssh` из `config/secrets.yaml`, поддерживает ключ/пароль,
+  `--dry-run`, `--yes`, `--skip-migrations`, `--skip-restart`, `--no-sudo`,
+  healthcheck.
+- `scripts/deploy/server_update.sh` — серверный скрипт: проверка чистого
+  рабочего дерева, `git fetch/pull --ff-only`, `setup_db.py --action create`,
+  `systemctl restart`, `is-active`, healthcheck.
+- `docs/deployment.md` — настройка, sudoers, примеры запуска и ограничения.
+- `config/secrets.yaml.example` — секция `deploy`.
+
+### Изменено
+
+- `README.md` — ссылка на инструкцию по обновлению.
+
 ## [2026-11-01] iteration 0.3 — доработки веб-интерфейса
 
 Начата итерация улучшений UI: поиск по имени и ссылке на профиль,

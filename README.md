@@ -368,6 +368,9 @@ python3 scripts/06_list_tables.py
 
 Для продакшена рекомендуется запускать через **gunicorn** за **nginx** с HTTPS.
 
+Обновление на сервере по SSH: `python scripts/deploy/update_remote.py`
+(настройка и безопасность — в [docs/deployment.md](docs/deployment.md)).
+
 ### Пример systemd-сервиса
 
 Создайте `/etc/systemd/system/lichess-analyzer.service`:
