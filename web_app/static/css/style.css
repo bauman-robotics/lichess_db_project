@@ -3777,3 +3777,29 @@ thead.table-light th {
     color: #d7b4f0;
     animation: pulse-analysis 1.5s ease-in-out infinite;
 }
+
+/* Мобильная навигация по разделам: 3 кнопки в ряд, два ряда */
+@media (max-width: 768px) {
+    .player-footer-nav .player-section-nav {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px !important;
+        overflow: visible !important;
+        flex-wrap: wrap !important;
+        justify-content: stretch !important;
+    }
+
+    .player-footer-nav .player-section-nav .btn {
+        width: 100%;
+        min-height: 34px;
+        padding: 6px 4px !important;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 400px) {
+    .player-footer-nav .player-section-nav .btn {
+        font-size: 10px;
+        padding: 5px 2px !important;
+    }
+}
