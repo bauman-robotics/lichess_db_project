@@ -9,8 +9,14 @@
                 <form method="POST" action="/lichess-analyzer/search" id="searchForm">
                     {{ form.csrf_token }}
                     <div class="mb-3">
-                        <label class="form-label">Имя игрока на Lichess</label>
-                        {{ form.username(class="form-control form-control-lg", placeholder="например: MagnusCarlsen", id="usernameInput") }}
+                        <label class="form-label" for="usernameInput">Имя игрока или ссылка на профиль</label>
+                        {{ form.username(class="form-control form-control-lg", placeholder="DenNedelin или https://lichess.org/@/DenNedelin", id="usernameInput", autocomplete="off", autocapitalize="off", spellcheck="false") }}
+                        <div class="form-text">
+                            Можно вставить ссылку на профиль Lichess — имя извлечётся автоматически.
+                        </div>
+                        {% for error in form.username.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
                     </div>
                     <div class="row">
                         <div class="col-md-6">

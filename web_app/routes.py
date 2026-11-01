@@ -22,11 +22,17 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SubmitField
 
-from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, Optional, NumberRange, ValidationError
 
 # Импортируем существующие сервисы
 from config.config_loader import ConfigLoader
 from core.database.db_manager import DatabaseManager
+from core.utils.lichess import (
+    LichessUsernameError,
+    normalize_lichess_username,
+    player_table_name,
+    safe_filename_part,
+)
 from services.lichess_client import LichessClient
 from services.import_manager import ImportManager
 from services.pgn_parser import PGNParser
@@ -37,8 +43,19 @@ from services.deepseek_analyzer import analyze_game, check_health, DeepSeekError
 main_bp = Blueprint('main', __name__)
 
 # Формы
+def validate_lichess_username(form, field):
+    """Нормализует имя или ссылку на профиль Lichess до чистого имени."""
+    try:
+        field.data = normalize_lichess_username(field.data)
+    except LichessUsernameError as e:
+        raise ValidationError(str(e))
+
+
 class PlayerSearchForm(FlaskForm):
-    username = StringField('Имя игрока', validators=[DataRequired()])
+    username = StringField(
+        'Имя игрока или ссылка на профиль',
+        validators=[DataRequired(), validate_lichess_username],
+    )
     limit = SelectField('Количество игр', 
                         choices=[
                             ('100', '100 игр'),
@@ -53,9 +70,7 @@ class PlayerSearchForm(FlaskForm):
 
 def get_safe_table_name(username: str) -> str:
     """Возвращает безопасное имя таблицы для использования в SQL"""
-    # Заменяем дефисы и точки на подчеркивания
-    safe_username = username.replace('-', '_').replace('.', '_')
-    return f"games_{safe_username.lower()}"
+    return player_table_name(username)
 
 def get_player_stats(username: str) -> dict:
     """Получает статистику игрока из таблицы игрока"""
@@ -926,6 +941,7 @@ def refresh_player_games(username: str) -> dict:
 def download_player_games(username: str, limit: int = 1000) -> dict:
     """Скачивает игры игрока с Lichess и сохраняет в таблицу игрока"""
     try:
+        username = normalize_lichess_username(username)
         config = ConfigLoader()
         lichess = LichessClient(config)
         
@@ -939,7 +955,7 @@ def download_player_games(username: str, limit: int = 1000) -> dict:
         
         # Сохраняем во временный файл
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"data/downloads/{username}_{timestamp}.pgn"
+        filename = f"data/downloads/{safe_filename_part(username)}_{timestamp}.pgn"
         
         Path("data/downloads").mkdir(parents=True, exist_ok=True)
         

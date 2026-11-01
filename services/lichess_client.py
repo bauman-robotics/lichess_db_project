@@ -6,9 +6,10 @@ import logging
 import time
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from core.exceptions.custom_exceptions import LichessAPIError
+from core.utils.lichess import LichessUsernameError, normalize_lichess_username
 
 
 class LichessClient:
@@ -79,9 +80,14 @@ class LichessClient:
         username = username or self.username
         if not username:
             raise LichessAPIError("Имя пользователя не указано")
-        
+
+        try:
+            username = normalize_lichess_username(username)
+        except LichessUsernameError as e:
+            raise LichessAPIError(str(e))
+
         # Формируем URL
-        url = f"{self.base_url}/games/user/{username}"
+        url = f"{self.base_url}/games/user/{quote(username, safe='')}"
         
         # Параметры запроса
         params = {
@@ -114,7 +120,7 @@ class LichessClient:
         
         self.logger.info(f"Загрузка игр для {username} с параметрами: {params}")
         
-        # Выполняем запрос с ретраями
+        # Выполняем запрос с ретраями только для 429/5xx/сетевых ошибок.
         for attempt in range(self.max_retries):
             try:
                 response = self.session.get(
@@ -129,27 +135,48 @@ class LichessClient:
                     self.logger.info(f"Загружено {content.count('[Event ')} игр")
                     return content
                 
-                elif response.status_code == 429:
-                    # Too Many Requests
-                    retry_after = int(response.headers.get('Retry-After', 60))
-                    self.logger.warning(f"Превышен лимит запросов. Ожидание {retry_after} сек...")
+                if response.status_code == 429:
+                    try:
+                        retry_after = int(response.headers.get('Retry-After', 60))
+                    except (TypeError, ValueError):
+                        retry_after = 60
+                    retry_after = max(1, min(retry_after, 60))
+                    if attempt >= self.max_retries - 1:
+                        raise LichessAPIError(
+                            "Lichess ограничил частоту запросов (429). Попробуйте позже."
+                        )
+                    self.logger.warning(
+                        f"Превышен лимит запросов. Ожидание {retry_after} сек..."
+                    )
                     time.sleep(retry_after)
-                    
+                    continue
+
+                if 400 <= response.status_code < 500:
+                    # 404/400 и прочие клиентские ошибки не ретраим.
+                    reason = (response.reason or "").strip()
+                    message = f"Ошибка API Lichess: {response.status_code}"
+                    if reason:
+                        message += f" {reason}"
+                    self.logger.error(message)
+                    raise LichessAPIError(message)
+
+                # 5xx — можно повторить.
+                reason = (response.reason or "").strip()
+                error_msg = f"Ошибка API Lichess: {response.status_code}"
+                if reason:
+                    error_msg += f" {reason}"
+                self.logger.error(error_msg)
+                if attempt < self.max_retries - 1:
+                    time.sleep(self.retry_delay)
                 else:
-                    error_msg = f"Ошибка API: {response.status_code} - {response.text}"
-                    self.logger.error(error_msg)
-                    
-                    if attempt < self.max_retries - 1:
-                        time.sleep(self.retry_delay)
-                    else:
-                        raise LichessAPIError(error_msg)
+                    raise LichessAPIError(error_msg)
                         
             except requests.exceptions.RequestException as e:
                 self.logger.warning(f"Ошибка запроса (попытка {attempt + 1}): {e}")
                 if attempt < self.max_retries - 1:
                     time.sleep(self.retry_delay)
                 else:
-                    raise LichessAPIError(f"Ошибка запроса: {e}")
+                    raise LichessAPIError(f"Ошибка запроса к Lichess: {e}")
         
         raise LichessAPIError("Не удалось загрузить игры после нескольких попыток")
     
