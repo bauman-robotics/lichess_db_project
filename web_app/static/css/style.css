@@ -3833,3 +3833,35 @@ thead.table-light th {
         padding: 7px 2px !important;
     }
 }
+
+/* Популярные дебюты на мобильном — по одному в строку и крупнее */
+@media (max-width: 768px) {
+    .popular-openings-list {
+        display: flex !important;
+        flex-direction: column;
+        gap: 6px !important;
+    }
+
+    .popular-openings-list .badge {
+        display: block;
+        width: 100%;
+        padding: 9px 12px;
+        font-size: 1.35rem;
+        font-weight: 600;
+        line-height: 1.25;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .game-card-compact .gc-color {
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .progression-card-control {
+        font-size: 1.2rem !important;
+        font-weight: 600;
+        padding: 4px 8px !important;
+    }
+}

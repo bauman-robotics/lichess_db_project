@@ -174,7 +174,7 @@
                     </div>
 
                     <div class="collapse mt-2" id="popularOpenings">
-                        <div class="d-flex flex-wrap gap-1">
+                        <div class="popular-openings-list d-flex flex-wrap gap-1">
                             {% for op in popular_openings %}
                                 <a href="?opening={{ op|urlencode }}{% if base_query %}&{{ base_query }}{% endif %}"
                                    class="badge bg-secondary text-decoration-none"
@@ -345,7 +345,7 @@
                                     <span class="gc-date">
                                         {{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else g.date }}
                                     </span>
-                                    <span class="gc-color">{% if g.color == 'white' %}⚪{% else %}⚫{% endif %}</span>
+                                    <span class="gc-color">{% if g.color == 'white' %}⚪ Белые{% else %}⚫ Чёрные{% endif %}</span>
                                     <span class="gc-rating">{{ g.my_rating }}</span>
                                     {% if g.result == 'Win' %}
                                         <span class="badge-result badge-result-win">✅ Победа</span>

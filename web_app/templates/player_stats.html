@@ -173,7 +173,7 @@
                                         <span class="gc-date">
                                             {{ game.date.strftime('%d.%m.%y') if game.date is not string else game.date }}
                                         </span>
-                                        <span class="gc-color">{% if game.color == 'white' %}⚪{% else %}⚫{% endif %}</span>
+                                        <span class="gc-color">{% if game.color == 'white' %}⚪ Белые{% else %}⚫ Чёрные{% endif %}</span>
                                         <span class="gc-rating">{{ game.my_rating }}</span>
                                         {% if game.result == 'Win' %}
                                             <span class="badge-result badge-result-win">✅ Победа</span>

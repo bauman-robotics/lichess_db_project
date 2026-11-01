@@ -51,7 +51,7 @@
     <div class="gc-header">
         <span class="gc-num">#{{ rank }}</span>
         <span class="gc-date">{{ g.date.strftime('%d.%m.%y') if g.date is not string and g.date else (g.date or '—') }}</span>
-        <span class="gc-color">{% if g.color == 'white' %}⚪{% else %}⚫{% endif %}</span>
+        <span class="gc-color">{% if g.color == 'white' %}⚪ Белые{% else %}⚫ Чёрные{% endif %}</span>
         <span class="gc-rating">{{ g.full_moves }} ходов</span>
         {% if g.result == 'Win' %}
             <span class="badge-result badge-result-win">✅ Победа</span>

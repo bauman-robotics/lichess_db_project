@@ -168,7 +168,7 @@
                                 {% endif %}
 
                                 <div class="gc-actions">
-                                    <span class="badge bg-secondary">⏱ {{ game.time_control if game.time_control else '?' }}</span>
+                                    <span class="badge bg-secondary progression-card-control">⏱ {{ game.time_control if game.time_control else '?' }}</span>
                                     {% set next_idx = loop.index0 + 1 %}
                                     {% if next_idx < table_games|length %}
                                         {% set prev_rating = table_games[next_idx].my_rating %}
