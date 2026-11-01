@@ -3093,6 +3093,11 @@ thead.table-light th {
 
     .game-view-page.engine-enabled .viewer-board-col {
         justify-content: flex-start;
+        overflow: visible;
+    }
+
+    .game-view-page.engine-enabled .viewer-layout {
+        overflow: visible;
     }
 
     .game-view-page.engine-enabled .engine-bottom-row {

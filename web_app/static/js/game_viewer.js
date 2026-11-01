@@ -107,9 +107,10 @@
                 const engineRow = document.querySelector('.game-view-page.engine-enabled .engine-bottom-row');
                 if (engineMode && engineRow) {
                     // График и управление находятся под доской: вычитаем их высоту.
-                    availableHeight -= engineRow.offsetHeight + 8;
+                    const rowHeight = Math.max(engineRow.getBoundingClientRect().height, 170);
+                    availableHeight -= rowHeight + 12;
                 }
-                const minSize = engineMode ? 180 : 320;
+                const minSize = engineMode ? 140 : 320;
                 const size = Math.max(minSize, Math.min(cfg.boardSizeDesktop, availableHeight));
                 elBoard.style.width  = size + 'px';
                 elBoard.style.height = size + 'px';
@@ -595,8 +596,9 @@
                     : 0;
                 showPosition(startPly);
 
-                // Ещё раз — на случай, если размер контейнера изменился
+                // Ещё раз — на случай, если размеры графика/колонок изменились
                 applyBoardSize();
+                setTimeout(applyBoardSize, 80);
 
             } catch (e) {
                 if (elMovesList) elMovesList.innerHTML = `<div class="text-danger">Ошибка: ${e.message}</div>`;
