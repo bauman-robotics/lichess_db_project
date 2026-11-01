@@ -3693,3 +3693,10 @@ thead.table-light th {
     background: #4da3ff;
     box-shadow: 0 0 4px rgba(77, 163, 255, 0.8);
 }
+
+.game-analysis-cta {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    background: var(--bg-secondary);
+}

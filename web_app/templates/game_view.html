@@ -108,6 +108,12 @@
                         {{ game.time_control or '—' }} ·
                         <strong>{{ game.result or '—' }}</strong>
                     </div>
+                    {% if game.color %}
+                        <div>
+                            Вы играли:
+                            <strong>{{ 'белыми' if game.color == 'white' else 'чёрными' }}</strong>
+                        </div>
+                    {% endif %}
                     {% if game.opening_name %}
                         <div class="text-muted">{{ game.opening_name }}</div>
                     {% endif %}
@@ -118,6 +124,15 @@
 
             <!-- Комментарии -->
             <h6>📝 Комментарии</h6>
+            {% if not game.game_analysis %}
+            <div class="game-analysis-cta mb-2">
+                <button type="button" class="btn btn-sm btn-primary js-game-analyze"
+                        data-username="{{ username }}" data-game-id="{{ game.game_id }}">
+                    🤖 Сделать анализ
+                </button>
+                <div class="small text-muted mt-1 js-game-analyze-status" role="status"></div>
+            </div>
+            {% endif %}
             <div id="viewComments" class="markdown-body text-muted">
                 <p>Загрузка…</p>
             </div>
@@ -139,6 +154,9 @@
                     <div>
                         ⏱ {{ game.time_control or '—' }} · {{ game.result or '—' }}
                     </div>
+                    {% if game.color %}
+                        <div>Вы играли: {{ 'белыми' if game.color == 'white' else 'чёрными' }}</div>
+                    {% endif %}
                     {% if game.opening_name %}
                         <div>📖 {{ game.opening_name }}</div>
                     {% endif %}
@@ -231,6 +249,15 @@
 
         <div class="viewer-mobile-tab {% if _tab != 'comments' %}d-none{% endif %}" id="mobileTabComments">
             <div class="viewer-mobile-scroll">
+                {% if not game.game_analysis %}
+                <div class="game-analysis-cta mb-3">
+                    <button type="button" class="btn btn-sm btn-primary js-game-analyze"
+                            data-username="{{ username }}" data-game-id="{{ game.game_id }}">
+                        🤖 Сделать анализ
+                    </button>
+                    <div class="small text-muted mt-1 js-game-analyze-status" role="status"></div>
+                </div>
+                {% endif %}
                 <div id="viewMobileMoveComment" class="viewer-move-comment mb-3"></div>
                 <div id="viewMobileAnalysis" class="markdown-body"></div>
             </div>
@@ -399,6 +426,85 @@ window.GAME_CONTEXT = {
     }
 
     button.addEventListener('click', function () { copyCurrent(button); });
+})();
+
+(function () {
+    const buttons = document.querySelectorAll('.js-game-analyze');
+    if (!buttons.length) return;
+
+    function setStatus(text, isError) {
+        document.querySelectorAll('.js-game-analyze-status').forEach(function (el) {
+            el.textContent = text || '';
+            el.classList.toggle('text-danger', !!isError);
+        });
+    }
+
+    async function poll(taskId) {
+        const button = buttons[0];
+        const statusUrl = `/lichess-analyzer/player/${encodeURIComponent(button.dataset.username)}`
+            + `/game/${encodeURIComponent(button.dataset.gameId)}/analyze/status/${encodeURIComponent(taskId)}`;
+        try {
+            const response = await fetch(statusUrl, { credentials: 'same-origin' });
+            const data = await response.json().catch(function () { return {}; });
+            if (data.status === 'done') {
+                setStatus('Готово. Обновляем страницу…', false);
+                setTimeout(function () { window.location.reload(); }, 800);
+                return;
+            }
+            if (data.status === 'error') {
+                setStatus('Ошибка: ' + (data.message || data.error || 'неизвестная'), true);
+                buttons.forEach(function (b) { b.disabled = false; });
+                return;
+            }
+            setStatus('Анализ выполняется…', false);
+        } catch (e) {
+            setStatus('Не удалось получить статус: ' + e.message, true);
+            buttons.forEach(function (b) { b.disabled = false; });
+            return;
+        }
+        setTimeout(function () { poll(taskId); }, 1500);
+    }
+
+    async function startAnalysis() {
+        const button = buttons[0];
+        buttons.forEach(function (b) { b.disabled = true; });
+        setStatus('Запуск анализа…', false);
+        try {
+            const response = await fetch(
+                `/lichess-analyzer/player/${encodeURIComponent(button.dataset.username)}`
+                + `/game/${encodeURIComponent(button.dataset.gameId)}/analyze`,
+                {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || '',
+                    },
+                    body: '{}',
+                }
+            );
+            const data = await response.json().catch(function () { return {}; });
+            if (!response.ok || data.status === 'error') {
+                throw new Error(data.message || data.error || ('HTTP ' + response.status));
+            }
+            if (data.status === 'done') {
+                window.location.reload();
+                return;
+            }
+            if (data.status === 'started' && data.task_id) {
+                poll(data.task_id);
+                return;
+            }
+            throw new Error(data.message || 'Не удалось запустить анализ');
+        } catch (e) {
+            setStatus('Ошибка запуска: ' + e.message, true);
+            buttons.forEach(function (b) { b.disabled = false; });
+        }
+    }
+
+    buttons.forEach(function (button) {
+        button.addEventListener('click', startAnalysis);
+    });
 })();
 </script>
 {% if engine_enabled %}
