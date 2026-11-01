@@ -42,6 +42,18 @@
                     </span>
                 </div>
                 <div class="card-body">
+                    <div class="chart-toolbar">
+                        <div class="chart-mode-switch" role="group" aria-label="Отображение графика">
+                            <button type="button" class="chart-mode-btn" data-chart-mode="line">〰 Линия</button>
+                            <button type="button" class="chart-mode-btn" data-chart-mode="points">• Точки</button>
+                        </div>
+                        <label class="chart-opponent-toggle">
+                            <input type="checkbox" id="chartShowOpponent">
+                            Рейтинг соперника
+                        </label>
+                    </div>
+                    <div class="chart-hint">Нажмите на точку, чтобы открыть партию</div>
+
                     <div class="mb-3 progression-chart">
                         <canvas id="ratingProgressionChart"></canvas>
                     </div>
@@ -322,100 +334,202 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('ratingProgressionChart');
-    if (ctx) {
-        const data = {{ rating_progression_json|tojson }};
-        const reversed = [...data].reverse();
+    const canvas = document.getElementById('ratingProgressionChart');
+    if (!canvas) return;
 
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: reversed.map(d => (d.date || '').slice(5).replace('-', '.')),
-                datasets: [
-                    {
-                        label: 'Мой рейтинг',
-                        data: reversed.map(d => d.my_rating),
-                        borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                        tension: 0.1,
-                        fill: true,
-                        pointBackgroundColor: reversed.map(d => {
-                            if (d.result === 'Win') return 'rgb(40, 167, 69)';
-                            if (d.result === 'Loss') return 'rgb(220, 53, 69)';
-                            return 'rgb(255, 193, 7)';
-                        }),
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    },
-                    {
-                        label: 'Рейтинг соперника',
-                        data: reversed.map(d => d.opponent_rating || 0),
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        tension: 0.1,
-                        fill: true,
-                        borderDash: [5, 5],
-                        pointRadius: 3,
-                        pointHoverRadius: 5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: { font: { size: 12 } }
-                    },
-                    title: {
-                        display: true,
-                        text: {{ ('Динамика рейтинга · ' ~ tc_label ~ ' · ' ~ period_label)|tojson }},
-                        font: { size: 14 }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(items) {
-                                const idx = items[0].dataIndex;
-                                return reversed[idx] ? reversed[idx].date : '';
-                            },
-                            afterLabel: function(context) {
-                                const idx = context.dataIndex;
-                                const game = reversed[idx];
-                                return [
-                                    'Результат: ' + game.result,
-                                    'Дебют: ' + game.opening,
-                                    'Цвет: ' + game.color
-                                ];
-                            }
-                        }
-                    }
+    const data = {{ rating_progression_json|tojson }};
+    const reversed = [...data].reverse();
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    const store = {
+        get: function(key) {
+            try { return window.localStorage.getItem(key); } catch (e) { return null; }
+        },
+        set: function(key, value) {
+            try { window.localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+        }
+    };
+
+    let mode = store.get('la_chart_mode');
+    if (mode !== 'line' && mode !== 'points') {
+        mode = isMobile ? 'line' : 'points';
+    }
+
+    let showOpponent = store.get('la_chart_show_opponent');
+    if (showOpponent === null || showOpponent === undefined) {
+        showOpponent = !isMobile;
+    } else {
+        showOpponent = showOpponent === '1';
+    }
+
+    const chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: reversed.map(d => (d.date || '').slice(5).replace('-', '.')),
+            datasets: [
+                {
+                    label: 'Мой рейтинг',
+                    data: reversed.map(d => d.my_rating),
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.1,
+                    fill: true,
+                    pointBackgroundColor: reversed.map(d => {
+                        if (d.result === 'Win') return 'rgb(40, 167, 69)';
+                        if (d.result === 'Loss') return 'rgb(220, 53, 69)';
+                        return 'rgb(255, 193, 7)';
+                    }),
+                    pointHoverBackgroundColor: reversed.map(d => {
+                        if (d.result === 'Win') return 'rgb(40, 167, 69)';
+                        if (d.result === 'Loss') return 'rgb(220, 53, 69)';
+                        return 'rgb(255, 193, 7)';
+                    }),
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHitRadius: 12
                 },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Дата',
-                            font: { size: 11 }
+                {
+                    label: 'Рейтинг соперника',
+                    data: reversed.map(d => d.opponent_rating || 0),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.1,
+                    fill: true,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHitRadius: 8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: function(event, elements) {
+                if (!elements.length) return;
+                const game = reversed[elements[0].index];
+                if (game && game.url) {
+                    window.location.href = game.url;
+                }
+            },
+            onHover: function(event, elements) {
+                if (event.native && event.native.target) {
+                    event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { size: 12 } },
+                    onClick: function() { /* управляем видимостью отдельным чекбоксом */ }
+                },
+                title: {
+                    display: true,
+                    text: {{ ('Динамика рейтинга · ' ~ tc_label ~ ' · ' ~ period_label)|tojson }},
+                    font: { size: 14 }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            const idx = items[0].dataIndex;
+                            return reversed[idx] ? reversed[idx].date : '';
                         },
-                        ticks: {
-                            maxTicksLimit: 8,
-                            autoSkip: true,
-                            maxRotation: 0
+                        afterLabel: function(context) {
+                            const game = reversed[context.dataIndex];
+                            if (!game) return '';
+                            return [
+                                'Результат: ' + game.result,
+                                'Дебют: ' + game.opening,
+                                'Цвет: ' + game.color,
+                                'Нажмите, чтобы открыть партию'
+                            ];
                         }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Рейтинг',
-                            font: { size: 11 }
-                        },
-                        beginAtZero: false
                     }
                 }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Дата',
+                        font: { size: 11 }
+                    },
+                    ticks: {
+                        maxTicksLimit: 8,
+                        autoSkip: true,
+                        maxRotation: 0
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Рейтинг',
+                        font: { size: 11 }
+                    },
+                    beginAtZero: false
+                }
             }
+        }
+    });
+
+    const modeButtons = document.querySelectorAll('.chart-mode-btn');
+    const opponentToggle = document.getElementById('chartShowOpponent');
+
+    function updateYScale() {
+        const values = [];
+        reversed.forEach(function(game) {
+            if (game.my_rating) values.push(game.my_rating);
+            if (showOpponent && game.opponent_rating) values.push(game.opponent_rating);
+        });
+        if (!values.length) return;
+
+        const minValue = Math.min.apply(null, values);
+        const maxValue = Math.max.apply(null, values);
+        const pad = Math.max(20, Math.round((maxValue - minValue) * 0.08));
+        chart.options.scales.y.min = Math.floor((minValue - pad) / 25) * 25;
+        chart.options.scales.y.max = Math.ceil((maxValue + pad) / 25) * 25;
+    }
+
+    function applyChartSettings() {
+        const points = mode === 'points';
+        const myRating = chart.data.datasets[0];
+        const opponentRating = chart.data.datasets[1];
+
+        myRating.tension = points ? 0.1 : 0.35;
+        myRating.pointRadius = points ? 4 : 0;
+        myRating.pointHoverRadius = points ? 6 : 6;
+        opponentRating.tension = points ? 0.1 : 0.35;
+        opponentRating.pointRadius = (points && showOpponent) ? 2 : 0;
+        opponentRating.pointHoverRadius = 5;
+
+        chart.setDatasetVisibility(1, showOpponent);
+        if (opponentToggle) opponentToggle.checked = showOpponent;
+        updateYScale();
+        chart.update();
+
+        modeButtons.forEach(function(button) {
+            button.classList.toggle('active', button.dataset.chartMode === mode);
+            button.setAttribute('aria-pressed', button.dataset.chartMode === mode ? 'true' : 'false');
         });
     }
+
+    modeButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            mode = button.dataset.chartMode === 'points' ? 'points' : 'line';
+            store.set('la_chart_mode', mode);
+            applyChartSettings();
+        });
+    });
+
+    if (opponentToggle) {
+        opponentToggle.addEventListener('change', function() {
+            showOpponent = opponentToggle.checked;
+            store.set('la_chart_show_opponent', showOpponent ? '1' : '0');
+            applyChartSettings();
+        });
+    }
+
+    applyChartSettings();
 });
 </script>
 {% endblock %}

@@ -1159,7 +1159,8 @@ def get_rating_progression(
                         COALESCE(result, '—') as result,
                         COALESCE(opening_name, '—') as opening_name,
                         COALESCE(player_color, '—') as player_color,
-                        COALESCE(time_control, '—') as time_control
+                        COALESCE(time_control, '—') as time_control,
+                        game_id
                     FROM "{table_name}"
                     {where_sql}
                     ORDER BY game_date DESC, id DESC
@@ -1182,7 +1183,8 @@ def get_rating_progression(
                         'result': str(row[3]) if row[3] else '—',
                         'opening': str(row[4]) if row[4] else '—',
                         'color': str(row[5]) if row[5] else '—',
-                        'time_control': str(row[6]) if row[6] else '—'
+                        'time_control': str(row[6]) if row[6] else '—',
+                        'game_id': str(row[7]) if row[7] else '',
                     })
     except Exception as e:
         print(f"❌ ERROR in get_rating_progression: {e}")
@@ -2357,6 +2359,7 @@ def player_progression(username):
 
     period = request.args.get('period', '').strip()
     period_options = [
+        ('1w', '1 неделя'),
         ('1m', '1 месяц'),
         ('3m', '3 месяца'),
         ('6m', '6 месяцев'),
@@ -2368,7 +2371,7 @@ def player_progression(username):
         if period not in valid_periods:
             period = '3m'
 
-    period_days = {'1m': 30, '3m': 90, '6m': 180}
+    period_days = {'1w': 7, '1m': 30, '3m': 90, '6m': 180}
     date_from = None
     if period in period_days:
         date_from = date.today() - timedelta(days=period_days[period])
@@ -2395,6 +2398,12 @@ def player_progression(username):
             'opening': game.get('opening', '—'),
             'color': game.get('color', '—'),
             'time_control': game.get('time_control', '—'),
+            'game_id': game.get('game_id', ''),
+            'url': (
+                f'/lichess-analyzer/player/{username}/game/'
+                f"{game.get('game_id', '')}/view"
+                if game.get('game_id') else ''
+            ),
         }
         rating_progression_json.append(json_game)
 
