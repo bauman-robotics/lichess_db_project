@@ -52,6 +52,11 @@ import:
       evals: true
       accuracy: true
 
+# Настройки интерфейса
+ui:
+  show_known_players: true   # показывать список игроков, уже загруженных в базу
+  known_players_limit: 8     # сколько игроков показывать на главной/поиске
+
 # Настройки для статистики
 statistics:
   cache_enabled: true

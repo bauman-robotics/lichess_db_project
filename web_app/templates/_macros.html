@@ -1,0 +1,24 @@
+{% macro known_player_card(player) %}
+<a class="known-player-card"
+   href="/lichess-analyzer/player/{{ player.username|urlencode }}"
+   title="Открыть {{ player.username }}">
+    <span class="known-player-icon">♟️</span>
+    <span class="known-player-name">{{ player.username }}</span>
+    <span class="known-player-meta">
+        {{ player.games }} игр{% if player.last_game %} · {{ player.last_game.strftime('%d.%m.%Y') }}{% endif %}
+    </span>
+</a>
+{% endmacro %}
+
+{% macro known_player_row(player) %}
+<a class="known-player-row"
+   href="/lichess-analyzer/player/{{ player.username|urlencode }}"
+   title="Открыть {{ player.username }}">
+    <span class="known-player-icon">♟️</span>
+    <span class="known-player-name">{{ player.username }}</span>
+    <span class="known-player-meta">
+        {{ player.games }} игр{% if player.last_game %} · {{ player.last_game.strftime('%d.%m.%Y') }}{% endif %}
+    </span>
+    <span class="known-player-arrow" aria-hidden="true">→</span>
+</a>
+{% endmacro %}

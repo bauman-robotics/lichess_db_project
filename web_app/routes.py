@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import json
+import re
+import time
 import uuid
 import threading
 import logging
@@ -71,6 +73,85 @@ class PlayerSearchForm(FlaskForm):
 def get_safe_table_name(username: str) -> str:
     """Возвращает безопасное имя таблицы для использования в SQL"""
     return player_table_name(username)
+
+
+_KNOWN_PLAYERS_CACHE = {'ts': 0.0, 'data': []}
+_KNOWN_PLAYERS_TTL = 60
+
+
+def get_known_players(limit: int = 8, force: bool = False) -> list:
+    """
+    Список игроков, для которых в базе есть таблица games_<username>.
+
+    Возвращает [{'username', 'table_name', 'games', 'last_game'}],
+    отсортированный по дате последней игры.
+    """
+    now = time.monotonic()
+    if not force and (now - _KNOWN_PLAYERS_CACHE['ts']) < _KNOWN_PLAYERS_TTL:
+        return _KNOWN_PLAYERS_CACHE['data'][:limit]
+
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    players = []
+
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                      AND table_name LIKE 'games\\_%' ESCAPE '\\'
+                    ORDER BY table_name;
+                    """
+                )
+                tables = [row[0] for row in cur.fetchall()]
+
+                configured_username = config.get('secrets.lichess.username')
+                configured_table = (
+                    get_safe_table_name(configured_username)
+                    if configured_username
+                    else None
+                )
+
+                for table in tables:
+                    if not re.fullmatch(r'games_[a-z0-9_]+', table):
+                        continue
+                    try:
+                        cur.execute(
+                            f'SELECT COUNT(*), MAX(game_date) FROM "{table}";'
+                        )
+                        games_count, last_game = cur.fetchone()
+                    except Exception as e:
+                        db.logger.warning(f"Не удалось прочитать {table}: {e}")
+                        conn.rollback()
+                        continue
+
+                    display_name = (
+                        configured_username
+                        if configured_table == table
+                        else table[len('games_'):]
+                    )
+                    players.append({
+                        'username': display_name,
+                        'table_name': table,
+                        'games': int(games_count or 0),
+                        'last_game': last_game,
+                    })
+    except Exception as e:
+        db.logger.warning(f"Не удалось получить список игроков: {e}")
+        players = []
+    finally:
+        db.close()
+
+    players.sort(
+        key=lambda p: (p['last_game'] is not None, p['last_game'] or datetime.min),
+        reverse=True,
+    )
+    _KNOWN_PLAYERS_CACHE['ts'] = now
+    _KNOWN_PLAYERS_CACHE['data'] = players
+    return players[:limit]
 
 def get_player_stats(username: str) -> dict:
     """Получает статистику игрока из таблицы игрока"""
@@ -1035,10 +1116,30 @@ def get_popular_openings() -> list:
         print(f"❌ Ошибка чтения openings.yaml: {e}")
         return []
 
+def get_known_players_ui() -> list:
+    """Список игроков для UI с учётом флага show_known_players."""
+    config = ConfigLoader()
+    if not config.get('ui.show_known_players', True):
+        return []
+    try:
+        limit = int(config.get('ui.known_players_limit', 8))
+    except (TypeError, ValueError):
+        limit = 8
+    return get_known_players(limit=max(1, limit))
+
+
+def render_search_page(form):
+    return render_template(
+        'player_search.html',
+        form=form,
+        known_players=get_known_players_ui(),
+    )
+
+
 @main_bp.route('/')
 def index():
     """Главная страница"""
-    return render_template('index.html')
+    return render_template('index.html', known_players=get_known_players_ui())
 
 @main_bp.route('/about')
 def about():
@@ -1064,11 +1165,11 @@ def search():
                 flash(f'✅ Загружено {result["saved"]} игр для {username}', 'success')
             else:
                 flash(f'❌ Ошибка загрузки: {result.get("error", "Неизвестная ошибка")}', 'danger')
-                return render_template('player_search.html', form=form)
+                return render_search_page(form)
         
         return redirect(f'/lichess-analyzer/player/{username}')
     
-    return render_template('player_search.html', form=form)
+    return render_search_page(form)
 
 @main_bp.route('/player/<username>')
 def player_stats(username):

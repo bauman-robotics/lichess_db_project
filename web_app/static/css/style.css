@@ -1871,3 +1871,109 @@ thead.table-light th {
     color: var(--text-primary);
     background: var(--bg-hover);
 }
+
+/* ============================================
+   СПИСОК ИГРОКОВ В БАЗЕ
+   ============================================ */
+
+.known-players-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px 0 12px;
+    text-align: left;
+}
+
+.known-players-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.known-players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    text-align: left;
+}
+
+.known-player-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+}
+
+.known-player-card:hover {
+    border-color: var(--accent-gold);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.known-player-icon {
+    font-size: 18px;
+}
+
+.known-player-name {
+    font-weight: 700;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.known-player-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.known-players-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.known-player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.known-player-row:last-child {
+    border-bottom: none;
+}
+
+.known-player-row:hover {
+    color: var(--accent-gold);
+}
+
+.known-player-row .known-player-name {
+    flex: 1 1 auto;
+}
+
+.known-player-row .known-player-meta {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.known-player-arrow {
+    flex: 0 0 auto;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .known-players-grid {
+        grid-template-columns: 1fr;
+    }
+}

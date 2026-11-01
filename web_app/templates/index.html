@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import known_player_card %}
 
 {% block content %}
 <div class="row">
@@ -33,4 +34,20 @@
         </div>
     </div>
 </div>
+
+{% if known_players %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="known-players-header">
+            <h2 class="known-players-title">📂 Мои игроки</h2>
+            <span class="text-muted small">Уже загружены в базу</span>
+        </div>
+        <div class="known-players-grid">
+            {% for player in known_players %}
+                {{ known_player_card(player) }}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
