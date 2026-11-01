@@ -2497,8 +2497,8 @@ def player_opponents(username):
 
 def parse_pgn_to_positions(pgn_moves: str) -> list:
     positions = []
-    pgn_clean = clean_pgn(pgn_moves)
-    full_pgn = f'[Event "?"]\n\n{pgn_clean} *'
+    # Не чистим комментарии: в них лежат [%eval] для графика.
+    full_pgn = f'[Event "?"]\n\n{pgn_moves} *'
     
     try:
         game = chess.pgn.read_game(StringIO(full_pgn))
