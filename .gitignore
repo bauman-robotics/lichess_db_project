@@ -4,6 +4,7 @@ env/
 .venv/
 ENV/
 venv*/
+activate.sh
 
 # Конфиги с секретами
 config/secrets.yaml

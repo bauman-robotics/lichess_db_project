@@ -70,9 +70,13 @@ run() {
 
 cd "$PROJECT_PATH"
 
-if [ -n "$(git status --porcelain)" ]; then
-    git status --short >&2 || true
-    die "рабочее дерево содержит изменения. Закоммитьте/уберите их на сервере."
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    git status --short --untracked-files=no >&2 || true
+    die "рабочее дерево содержит изменения в отслеживаемых файлах. Закоммитьте/уберите их на сервере."
+fi
+
+if [ -n "$(git status --porcelain --untracked-files=normal | grep '^??' || true)" ]; then
+    warn "есть неотслеживаемые файлы — они не блокируют обновление"
 fi
 
 BEFORE_COMMIT="$(git rev-parse --short HEAD)"
