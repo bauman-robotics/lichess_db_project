@@ -13,6 +13,7 @@
 
     const url = '/lichess-analyzer/player/' + encodeURIComponent(username)
         + '/import/status/' + encodeURIComponent(taskId);
+    let reloading = false;
 
     function setText(value) {
         text.textContent = value;
@@ -31,10 +32,19 @@
             } else if (data.status === 'running') {
                 setText('Импорт выполняется… Это может занять несколько минут.');
             } else if (data.status === 'done') {
+                if (reloading) return;
+                reloading = true;
                 if (spinner) spinner.classList.add('d-none');
                 setText('Импорт завершён: сохранено ' + (data.saved || 0)
                     + ' из ' + (data.total || 0) + '. Обновляем страницу…');
-                window.setTimeout(function () { window.location.reload(); }, 1200);
+
+                // Убираем import_task из URL, иначе после reload баннер
+                // снова увидит status=done и перезагрузит страницу по кругу.
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('import_task');
+                window.setTimeout(function () {
+                    window.location.replace(cleanUrl.toString());
+                }, 1200);
                 return;
             } else if (data.status === 'error') {
                 if (spinner) spinner.classList.add('d-none');
