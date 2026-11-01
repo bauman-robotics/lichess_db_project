@@ -598,6 +598,29 @@ def get_note_ids(username: str, game_ids: list) -> set:
         db.close()
 
 
+def get_engine_eval_ids(username: str, game_ids: list) -> set:
+    """game_id, для которых уже есть оценки Stockfish."""
+    if not game_ids:
+        return set()
+    config = ConfigLoader()
+    db = DatabaseManager(config, 'local')
+    try:
+        with db.connection.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT DISTINCT game_id FROM game_engine_evals
+                    WHERE player_username = %s AND game_id = ANY(%s);
+                    """,
+                    (username.lower(), list(game_ids)),
+                )
+                return {row[0] for row in cur.fetchall()}
+    except Exception:
+        return set()
+    finally:
+        db.close()
+
+
 def get_notes_count() -> int:
     config = ConfigLoader()
     db = DatabaseManager(config, 'local')
@@ -2097,6 +2120,7 @@ def player_stats(username):
     game_ids = [g['game_id'] for g in games]
     favorite_ids = get_favorite_ids(username, game_ids)
     note_ids = get_note_ids(username, game_ids)
+    engine_eval_ids = get_engine_eval_ids(username, game_ids)
 
     featured_player = (
         config_loader.get('ui.featured_player')
@@ -2129,6 +2153,7 @@ def player_stats(username):
                            games=games,
                            favorite_ids=favorite_ids,
                            note_ids=note_ids,
+                           engine_eval_ids=engine_eval_ids,
                            featured_player=featured_player,
                            featured_is_current=featured_is_current,
                            featured_games_count=featured_games_count,
@@ -2411,6 +2436,7 @@ def player_openings(username):
     game_ids = [g['game_id'] for g in games]
     favorite_ids = get_favorite_ids(username, game_ids)
     note_ids = get_note_ids(username, game_ids)
+    engine_eval_ids = get_engine_eval_ids(username, game_ids)
 
     # Задачи в статусе running — чтобы подкрасить кнопки жёлтым при загрузке
     running_ids = analysis_tasks.get_running_game_ids(username)
@@ -2434,6 +2460,7 @@ def player_openings(username):
         total=total,
         favorite_ids=favorite_ids,
         note_ids=note_ids,
+        engine_eval_ids=engine_eval_ids,
         page=page,
         pages=pages,
         per_page=per_page,

@@ -3700,3 +3700,19 @@ thead.table-light th {
     border-radius: 7px;
     background: var(--bg-secondary);
 }
+
+.btn-analysis.has-engine-eval {
+    border-color: rgba(155, 89, 182, 0.8);
+    box-shadow: 0 0 0 1px rgba(155, 89, 182, 0.3);
+}
+
+.analysis-eval-dot.lichess {
+    right: 2px;
+    background: #4da3ff;
+}
+
+.analysis-eval-dot.engine {
+    right: 10px;
+    background: #9b59b6;
+    box-shadow: 0 0 4px rgba(155, 89, 182, 0.8);
+}
