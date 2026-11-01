@@ -3865,3 +3865,9 @@ thead.table-light th {
         padding: 4px 8px !important;
     }
 }
+
+.popular-opening-num {
+    font-weight: 700;
+    opacity: 0.75;
+    margin-right: 3px;
+}

@@ -179,7 +179,7 @@
                                 <a href="?opening={{ op|urlencode }}{% if base_query %}&{{ base_query }}{% endif %}"
                                    class="badge bg-secondary text-decoration-none"
                                    title="{{ op }}">
-                                    {{ op }}
+                                    <span class="popular-opening-num">{{ loop.index }}.</span> {{ op }}
                                 </a>
                             {% endfor %}
                         </div>
