@@ -98,6 +98,19 @@
 - Пустой период показывает отдельное состояние.
 - `statistics.progression_default_period` в конфиге.
 
+### Шаг 7 — таблица favorite_games и миграция
+
+**Добавлено:**
+- `core/database/migrations.py` — идемпотентное создание
+  `favorite_games` и индексов, advisory lock, статус таблицы.
+- `scripts/migrations/001_create_favorite_games.py` — `--status` / `--apply`.
+- `setup_db.py --action create` создаёт `favorite_games` после `games`;
+  `--action status` показывает записи и индексы избранного.
+
+**Изменено:**
+- `--action drop` и `--action recreate` не удаляют избранное:
+  это пользовательские данные, не схема партий.
+
 ---
 
 ## [2026-10-13] iteration 0.2 — третий промпт анализа: стиль канала «Шахматы — это Круто»

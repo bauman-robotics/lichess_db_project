@@ -12,6 +12,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.config_loader import ConfigLoader
 from core.database.db_manager import DatabaseManager
+from core.database.migrations import (
+    ensure_favorites_table,
+    favorites_table_status,
+)
 from core.exceptions.custom_exceptions import DatabaseError
 
 
@@ -99,6 +103,12 @@ def main():
             logger.info("Создание таблицы...")
             if db_manager.create_table(drop_existing=args.drop_table):
                 logger.info("✅ Таблица создана успешно")
+                try:
+                    ensure_favorites_table(db_manager)
+                    logger.info("✅ Таблица favorite_games готова")
+                except Exception as e:
+                    logger.error(f"❌ Ошибка создания favorite_games: {e}")
+                    sys.exit(1)
             else:
                 logger.error("❌ Ошибка создания таблицы")
                 sys.exit(1)
@@ -106,6 +116,9 @@ def main():
         elif args.action == 'drop':
             if args.drop_table:  # Для безопасности, явно требуем флаг
                 logger.info("Удаление таблицы...")
+                logger.warning(
+                    "Избранное (favorite_games) не удаляется: это пользовательские данные."
+                )
                 if db_manager.drop_table():
                     logger.info("✅ Таблица удалена")
                 else:
@@ -117,6 +130,9 @@ def main():
                 
         elif args.action == 'recreate':
             logger.info("Пересоздание таблицы...")
+            logger.warning(
+                "Избранное (favorite_games) сохранится: удаляется только games."
+            )
             if db_manager.drop_table() and db_manager.create_table(drop_existing=True):
                 logger.info("✅ Таблица пересоздана")
             else:
@@ -155,6 +171,14 @@ def main():
                     print("\n  Распределение результатов:")
                     for result, count in stats['results_distribution']:
                         print(f"    {result}: {count}")
+
+            fav = favorites_table_status(db_manager)
+            print("\n⭐ Избранное:")
+            print(f"  Таблица: {fav['table']}")
+            print(f"  Существует: {'✅' if fav['exists'] else '❌'}")
+            if fav['exists']:
+                print(f"  Записей: {fav['records']}")
+                print(f"  Индексов: {fav['indexes']}")
         
         db_manager.close()
         
