@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let mode = store.get('la_chart_mode');
     if (mode !== 'line' && mode !== 'points') {
-        mode = isMobile ? 'line' : 'points';
+        mode = 'line';
     }
 
     let showOpponent = store.get('la_chart_show_opponent');
