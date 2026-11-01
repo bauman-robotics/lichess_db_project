@@ -60,7 +60,7 @@
             <div class="card-body py-2">
                 <div class="known-players-list">
                     {% for player in known_players %}
-                        {{ known_player_row(player) }}
+                        {{ known_player_row(player, loop.index) }}
                     {% endfor %}
                 </div>
             </div>

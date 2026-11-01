@@ -1,5 +1,5 @@
 {% macro known_player_card(player) %}
-<a class="known-player-card"
+<a class="known-player-card {% if player.featured %}is-featured{% endif %}"
    href="/lichess-analyzer/player/{{ player.username|urlencode }}"
    title="Открыть {{ player.username }}">
     <span class="known-player-icon">♟️</span>
@@ -7,18 +7,25 @@
     <span class="known-player-meta">
         {{ player.games }} игр{% if player.last_game %} · {{ player.last_game.strftime('%d.%m.%Y') }}{% endif %}
     </span>
+    {% if player.featured %}
+        <span class="known-player-featured">★ избранный</span>
+    {% endif %}
 </a>
 {% endmacro %}
 
-{% macro known_player_row(player) %}
-<a class="known-player-row"
+{% macro known_player_row(player, rank=0) %}
+<a class="known-player-row {% if player.featured %}is-featured{% endif %}"
    href="/lichess-analyzer/player/{{ player.username|urlencode }}"
    title="Открыть {{ player.username }}">
+    {% if rank %}<span class="known-player-rank">{{ rank }}</span>{% endif %}
     <span class="known-player-icon">♟️</span>
     <span class="known-player-name">{{ player.username }}</span>
     <span class="known-player-meta">
         {{ player.games }} игр{% if player.last_game %} · {{ player.last_game.strftime('%d.%m.%Y') }}{% endif %}
     </span>
+    {% if player.featured %}
+        <span class="known-player-featured">★</span>
+    {% endif %}
     <span class="known-player-arrow" aria-hidden="true">→</span>
 </a>
 {% endmacro %}

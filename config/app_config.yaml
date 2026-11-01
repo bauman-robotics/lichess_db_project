@@ -56,6 +56,7 @@ import:
 ui:
   show_known_players: true   # показывать список игроков, уже загруженных в базу
   known_players_limit: 8     # сколько игроков показывать на главной/поиске
+  featured_player: "DenNedelin"  # показывать первым, если есть в базе
 
 # Настройки для статистики
 statistics:

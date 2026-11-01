@@ -193,8 +193,16 @@
         {% if daily_games_json %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 class="mb-0">📅 Игр по дням · {{ tc_label }} · {{ period_label }}</h5>
-                    <span class="badge bg-secondary">Всего: {{ period_games }}</span>
+                    <h5 class="mb-0">📅 Игр по дням · {{ period_label }}</h5>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        {% if current_tc %}
+                            <div class="daily-scope-switch" role="group" aria-label="Контроль на графике игр">
+                                <button type="button" class="daily-scope-btn" data-daily-scope="selected">{{ tc_label }}</button>
+                                <button type="button" class="daily-scope-btn" data-daily-scope="all">Все контроли</button>
+                            </div>
+                        {% endif %}
+                        <span class="badge bg-secondary" data-daily-total>{{ period_games }}</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="daily-games-chart">
@@ -552,14 +560,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const dailyCanvas = document.getElementById('gamesPerDayChart');
     if (dailyCanvas) {
-        const dailyData = {{ daily_games_json|tojson }};
-        new Chart(dailyCanvas, {
+        const dailySelected = {{ daily_games_json|tojson }};
+        const dailyAll = {{ daily_games_all_json|tojson }};
+        let dailyScope = store.get('la_daily_scope');
+        if (dailyScope !== 'selected' && dailyScope !== 'all') {
+            dailyScope = 'selected';
+        }
+
+        function dailyRows(scope) {
+            return scope === 'all' ? dailyAll : dailySelected;
+        }
+
+        function dailyTotal(rows) {
+            return rows.reduce(function(sum, row) { return sum + (row.count || 0); }, 0);
+        }
+
+        const dailyChart = new Chart(dailyCanvas, {
             type: 'bar',
             data: {
-                labels: dailyData.map(d => (d.date || '').slice(5).replace('-', '.')),
+                labels: dailySelected.map(d => (d.date || '').slice(5).replace('-', '.')),
                 datasets: [{
                     label: 'Игр за день',
-                    data: dailyData.map(d => d.count),
+                    data: dailySelected.map(d => d.count),
                     backgroundColor: 'rgba(54, 162, 235, 0.65)',
                     borderColor: 'rgb(54, 162, 235)',
                     borderWidth: 1,
@@ -575,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     tooltip: {
                         callbacks: {
                             title: function(items) {
-                                return dailyData[items[0].dataIndex].date;
+                                return dailySelected[items[0].dataIndex].date;
                             },
                             label: function(context) {
                                 return 'Игр: ' + context.parsed.y;
@@ -601,6 +623,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        const dailyScopeButtons = document.querySelectorAll('.daily-scope-btn');
+        const dailyTotalBadge = document.querySelector('[data-daily-total]');
+
+        function applyDailyScope() {
+            const rows = dailyRows(dailyScope);
+            dailyChart.data.datasets[0].data = rows.map(d => d.count);
+            dailyChart.update();
+            if (dailyTotalBadge) {
+                dailyTotalBadge.textContent = String(dailyTotal(rows));
+            }
+            dailyScopeButtons.forEach(function(button) {
+                button.classList.toggle('active', button.dataset.dailyScope === dailyScope);
+                button.setAttribute('aria-pressed', button.dataset.dailyScope === dailyScope ? 'true' : 'false');
+            });
+        }
+
+        dailyScopeButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                dailyScope = button.dataset.dailyScope === 'all' ? 'all' : 'selected';
+                store.set('la_daily_scope', dailyScope);
+                applyDailyScope();
+            });
+        });
+
+        applyDailyScope();
     }
 });
 </script>

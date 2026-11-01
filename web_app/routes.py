@@ -91,8 +91,8 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
     """
     Список игроков, для которых в базе есть таблица games_<username>.
 
-    Возвращает [{'username', 'table_name', 'games', 'last_game'}],
-    отсортированный по дате последней игры.
+    Возвращает [{'username', 'table_name', 'games', 'last_game', 'featured'}],
+    избранный игрок первым, остальные — по дате последней игры.
     """
     now = time.monotonic()
     if not force and (now - _KNOWN_PLAYERS_CACHE['ts']) < _KNOWN_PLAYERS_TTL:
@@ -117,6 +117,9 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
                 tables = [row[0] for row in cur.fetchall()]
 
                 configured_username = config.get('secrets.lichess.username')
+                featured_username = (
+                    config.get('ui.featured_player') or configured_username
+                )
                 configured_table = (
                     get_safe_table_name(configured_username)
                     if configured_username
@@ -146,6 +149,10 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
                         'table_name': table,
                         'games': int(games_count or 0),
                         'last_game': last_game,
+                        'featured': bool(
+                            featured_username
+                            and display_name.lower() == str(featured_username).lower()
+                        ),
                     })
     except Exception as e:
         db.logger.warning(f"Не удалось получить список игроков: {e}")
@@ -154,8 +161,10 @@ def get_known_players(limit: int = 8, force: bool = False) -> list:
         db.close()
 
     players.sort(
-        key=lambda p: (p['last_game'] is not None, p['last_game'] or datetime.min),
-        reverse=True,
+        key=lambda p: (
+            0 if p['featured'] else 1,
+            -(p['last_game'].toordinal() if p['last_game'] else 0),
+        ),
     )
     _KNOWN_PLAYERS_CACHE['ts'] = now
     _KNOWN_PLAYERS_CACHE['data'] = players
@@ -2391,9 +2400,18 @@ def player_progression(username):
     period_win_rate = round(period_wins * 100 / period_games, 1) if period_games else 0
     period_label = dict(period_options).get(period, period)
 
-    # Количество игр по дням за выбранный период и категорию.
+    # Количество игр по дням: выбранный контроль и все контроли.
+    all_progression = (
+        get_rating_progression(username, speed=None, date_from=date_from)
+        if tc else rating_progression
+    )
+    period_games_all = len(all_progression)
+
     daily_games_json = []
+    daily_games_all_json = []
     daily_counts = Counter()
+    daily_all_counts = Counter()
+
     for game in rating_progression:
         try:
             game_day = datetime.strptime(game.get('date', ''), '%Y-%m-%d').date()
@@ -2401,16 +2419,29 @@ def player_progression(username):
             continue
         daily_counts[game_day] += 1
 
-    if daily_counts:
-        day_start = date_from or min(daily_counts)
+    for game in all_progression:
+        try:
+            game_day = datetime.strptime(game.get('date', ''), '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            continue
+        daily_all_counts[game_day] += 1
+
+    if daily_counts or daily_all_counts:
+        known_days = list(daily_counts) + list(daily_all_counts)
+        day_start = date_from or min(known_days)
         day_end = date.today()
         if day_start > day_end:
             day_start = day_end
         current_day = day_start
         while current_day <= day_end:
+            day_key = current_day.isoformat()
             daily_games_json.append({
-                'date': current_day.isoformat(),
+                'date': day_key,
                 'count': daily_counts.get(current_day, 0),
+            })
+            daily_games_all_json.append({
+                'date': day_key,
+                'count': daily_all_counts.get(current_day, 0),
             })
             current_day += timedelta(days=1)
     tc_label = SPEED_LABELS.get(tc, 'Все контроли') if tc else 'Все контроли'
@@ -2459,7 +2490,9 @@ def player_progression(username):
         period_games=period_games,
         period_wins=period_wins,
         period_win_rate=period_win_rate,
+        period_games_all=period_games_all,
         daily_games_json=daily_games_json,
+        daily_games_all_json=daily_games_all_json,
         rating_progression_json=rating_progression_json,
         speed_categories=categories,
         current_tc=tc,
