@@ -3,8 +3,7 @@
 """
 import sys
 from pathlib import Path
-from datetime import datetime
-from datetime import date, time as dt_time, timedelta
+from datetime import date, datetime, time as dt_time, timedelta
 import json
 import re
 import time
@@ -1467,6 +1466,7 @@ def download_player_games(username: str, limit: int = 1000) -> dict:
         # Восстанавливаем имя таблицы
         db.table_name = original_table
         db.close()
+        _KNOWN_PLAYERS_CACHE['ts'] = 0.0
         
         return {
             'success': True,
@@ -1792,6 +1792,7 @@ def delete_player(username):
     finally:
         db.table_name = original_table
         db.close()
+        _KNOWN_PLAYERS_CACHE['ts'] = 0.0
 
     return redirect(f'/lichess-analyzer/')  
 
