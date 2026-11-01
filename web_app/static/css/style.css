@@ -249,13 +249,13 @@ table tbody tr:last-child td { border-bottom: none; }
     text-align: center;
     white-space: nowrap;
 }
-.badge.bg-success { background: #198754; color: #ffffff; }
-.badge.bg-danger { background: #2a1a1d; color: #f1f1f1; border: 1px solid rgba(220, 53, 69, 0.45); }
-.badge.bg-warning { background: #ffc107; color: #1a1a2e; }
-.badge.bg-secondary { background: #495057; color: #ffffff; }
-.badge.bg-light { background: #f8f9fa; color: #1a1a2e; }
-.badge.bg-dark { background: #212529; color: #ffffff; }
-.badge.bg-info { background: #0dcaf0; color: #1a1a2e; }
+.badge.bg-success { background: #198754 !important; color: #ffffff !important; }
+.badge.bg-danger { background: #2a1a1d !important; color: #f1f1f1 !important; border: 1px solid rgba(220, 53, 69, 0.45); }
+.badge.bg-warning { background: #ffc107 !important; color: #1a1a2e !important; }
+.badge.bg-secondary { background: #495057 !important; color: #ffffff !important; }
+.badge.bg-light { background: #f8f9fa !important; color: #1a1a2e !important; }
+.badge.bg-dark { background: #212529 !important; color: #ffffff !important; }
+.badge.bg-info { background: #0dcaf0 !important; color: #1a1a2e !important; }
 
 /* ============================================
    БЕЙДЖИ РЕЗУЛЬТАТА (мягкие цвета)

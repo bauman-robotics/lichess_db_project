@@ -67,7 +67,7 @@
                             <span class="badge {% if item.color == 'white' %}bg-light text-dark border{% else %}bg-dark text-white{% endif %}">
                                 {{ item.color or '?' }}
                             </span>
-                            <span class="badge {% if item.result == 'Win' %}bg-success{% elif item.result == 'Loss' %}bg-danger{% else %}bg-warning{% endif %}">
+                            <span class="badge-result {% if item.result == 'Win' %}badge-result-win{% elif item.result == 'Loss' %}badge-result-loss{% else %}badge-result-draw{% endif %}">
                                 {{ item.result or '—' }}
                             </span>
                         </div>

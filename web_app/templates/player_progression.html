@@ -115,11 +115,11 @@
                                         <td>{{ game.opponent_rating if game.opponent_rating else '?' }}</td>
                                         <td>
                                             {% if game.result == 'Win' %}
-                                                <span class="badge bg-success">✅ Win</span>
+                                                <span class="badge-result badge-result-win">✅ Win</span>
                                             {% elif game.result == 'Loss' %}
-                                                <span class="badge bg-danger">❌ Loss</span>
+                                                <span class="badge-result badge-result-loss">❌ Loss</span>
                                             {% else %}
-                                                <span class="badge bg-warning">➖ Draw</span>
+                                                <span class="badge-result badge-result-draw">➖ Draw</span>
                                             {% endif %}
                                         </td>
                                         <td style="max-width: 150px; white-space: normal; word-wrap: break-word;">
