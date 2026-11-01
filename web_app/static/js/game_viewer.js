@@ -51,6 +51,8 @@
         const elMoveTotal   = document.getElementById('viewMoveTotal');
         const elMovesList   = document.getElementById('viewMovesList');
         const elOpenLichess = document.getElementById('viewOpenLichess');
+        const enginePanel = document.getElementById('engineEvalPanel');
+        const mobileContent = document.querySelector('.viewer-mobile-content');
 
         // ---------- Состояние ----------
         let board = null;
@@ -516,24 +518,42 @@
             }
         }
 
+        function applyViewerTab(tabName) {
+            document.querySelectorAll('.viewer-tab-btn').forEach(function (b) {
+                b.classList.toggle('active', b.dataset.tab === tabName);
+            });
+
+            const mobile = window.innerWidth < 768;
+            if (!mobile) {
+                if (enginePanel) enginePanel.classList.remove('d-none');
+                if (mobileContent) mobileContent.classList.remove('d-none');
+                return;
+            }
+
+            if (tabName === 'graph' && enginePanel) {
+                if (mobileContent) mobileContent.classList.add('d-none');
+                enginePanel.classList.remove('d-none');
+            } else {
+                if (mobileContent) mobileContent.classList.remove('d-none');
+                if (enginePanel) enginePanel.classList.add('d-none');
+                document.querySelectorAll('.viewer-mobile-tab').forEach(function (t) {
+                    t.classList.add('d-none');
+                });
+                const target = document.getElementById(
+                    tabName === 'moves' ? 'mobileTabMoves' : 'mobileTabComments'
+                );
+                if (target) target.classList.remove('d-none');
+            }
+            window.dispatchEvent(new Event('resize'));
+        }
+
         // ---------- Открытие модалки ----------
         async function openViewer(username, gameId, options) {
             initBoard();
 
             // Сброс активной вкладки к дефолтной из конфига
-            (function resetViewerTabs() {
-                const defaultTab = getCfg().defaultTab || 'comments';
-                document.querySelectorAll('.viewer-tab-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.tab === defaultTab);
-                });
-                document.querySelectorAll('.viewer-mobile-tab').forEach(t => {
-                    t.classList.add('d-none');
-                });
-                const target = document.getElementById(
-                    defaultTab === 'moves' ? 'mobileTabMoves' : 'mobileTabComments'
-                );
-                if (target) target.classList.remove('d-none');
-            })();            
+            const defaultTab = getCfg().defaultTab || 'comments';
+            applyViewerTab(defaultTab);
 
             if (elGameId) elGameId.textContent = gameId;
             if (elMovesList) elMovesList.innerHTML = '<div class="text-muted">Загрузка…</div>';
@@ -618,19 +638,8 @@
 
         // ---------- Переключение вкладок (footer) ----------
         document.querySelectorAll('.viewer-tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Снимаем active со всех кнопок
-                document.querySelectorAll('.viewer-tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                const tabName = btn.dataset.tab;
-
-                // Скрываем все мобильные вкладки
-                document.querySelectorAll('.viewer-mobile-tab').forEach(t => t.classList.add('d-none'));
-
-                // Показываем нужную
-                const target = document.getElementById(tabName === 'moves' ? 'mobileTabMoves' : 'mobileTabComments');
-                if (target) target.classList.remove('d-none');
+            btn.addEventListener('click', function () {
+                applyViewerTab(btn.dataset.tab);
             });
         });
 

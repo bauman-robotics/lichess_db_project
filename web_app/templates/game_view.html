@@ -14,27 +14,27 @@
     <div class="game-view-actions d-flex gap-2 mb-2 flex-wrap justify-content-center">
         <a href="/lichess-analyzer/player/{{ username }}"
            class="btn btn-sm btn-outline-secondary" title="К игроку">
-            ← К игроку
+            ← <span class="action-label">К игроку</span>
         </a>
         <a href="https://lichess.org/{{ game.game_id }}" target="_blank" rel="noopener"
            class="btn btn-sm btn-outline-secondary" title="Открыть на Lichess">
-            ↗ Lichess
+            ↗ <span class="action-label">Lichess</span>
         </a>
         <a href="/lichess-analyzer/player/{{ username }}/openings"
            class="btn btn-sm btn-outline-secondary" title="Дебюты">
-            📖 Топ дебютов
+            📖 <span class="action-label">Топ дебютов</span>
         </a>
         <a href="/lichess-analyzer/player/{{ username }}/openings{% if game.opening_name %}?opening={{ game.opening_name|urlencode }}{% endif %}"
            class="btn btn-sm btn-outline-secondary"
            title="Открыть фильтр партий{% if game.opening_name %} с этим дебютом{% endif %}">
-            🔍 Фильтр партий
+            🔍 <span class="action-label">Фильтр партий</span>
         </a>
         <button type="button" class="btn btn-sm btn-outline-secondary" id="copyLinkBtn" title="Скопировать ссылку">
-            🔗 Скопировать
+            🔗 <span class="action-label">Скопировать</span>
         </button>
         <button type="button" class="btn btn-sm btn-outline-secondary js-copy-notation"
                 title="Скопировать нотацию партии">
-            📋 Нотация
+            📋 <span class="action-label">Нотация</span>
         </button>
         {{ favorite_button(username, game.game_id, game.is_favorite, with_label=True) }}
         {{ note_button(username, game.game_id, game.has_note, with_label=True) }}
@@ -170,6 +170,13 @@
                 data-tab="comments">
             📝 Комментарии
         </button>
+        {% if engine_enabled %}
+        <button type="button"
+                class="viewer-tab-btn"
+                data-tab="graph">
+            📈 График
+        </button>
+        {% endif %}
         <div class="viewer-footer-current">
             <strong id="viewFooterMove">—</strong>
             <span id="viewFooterMoveNumber">Ход 0 из 0</span>

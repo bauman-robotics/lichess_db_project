@@ -3364,3 +3364,69 @@ thead.table-light th {
     padding-top: 6px;
     padding-bottom: 6px;
 }
+
+/* ============================================
+   МОБИЛЬНЫЙ РЕЖИМ С ГРАФИКОМ
+   ============================================ */
+
+@media (max-width: 768px) {
+    .game-view-page.engine-enabled {
+        height: calc(100dvh - 100px);
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 50px;
+    }
+
+    .game-view-page.engine-enabled .game-view-actions {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        gap: 6px;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .game-view-page.engine-enabled .game-view-actions .btn {
+        flex: 0 0 auto;
+        min-width: 40px;
+        min-height: 40px;
+        padding: 6px 8px;
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .game-view-page.engine-enabled .game-view-actions .action-label,
+    .game-view-page.engine-enabled .game-view-actions .favorite-label,
+    .game-view-page.engine-enabled .game-view-actions .note-label {
+        display: none;
+    }
+
+    .game-view-page.engine-enabled .viewer-layout {
+        flex: 0 0 auto;
+        gap: 8px;
+        overflow: visible;
+    }
+
+    .game-view-page.engine-enabled .viewer-board-col {
+        flex: 0 0 auto;
+        overflow: visible;
+    }
+
+    .game-view-page.engine-enabled .viewer-mobile-content {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .game-view-page.engine-enabled .viewer-mobile-tab {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .game-view-page.engine-enabled .viewer-mobile-scroll {
+        max-height: none;
+        height: 100%;
+        overflow-y: auto;
+    }
+}
