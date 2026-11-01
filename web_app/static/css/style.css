@@ -250,7 +250,7 @@ table tbody tr:last-child td { border-bottom: none; }
     white-space: nowrap;
 }
 .badge.bg-success { background: #198754; color: #ffffff; }
-.badge.bg-danger { background: #dc3545; color: #ffffff; }
+.badge.bg-danger { background: #2a1a1d; color: #f1f1f1; border: 1px solid rgba(220, 53, 69, 0.45); }
 .badge.bg-warning { background: #ffc107; color: #1a1a2e; }
 .badge.bg-secondary { background: #495057; color: #ffffff; }
 .badge.bg-light { background: #f8f9fa; color: #1a1a2e; }
@@ -271,7 +271,7 @@ table tbody tr:last-child td { border-bottom: none; }
     white-space: nowrap;
 }
 .badge-result-win { background: #198754; color: #ffffff; border: 1px solid #198754; }
-.badge-result-loss { background: #dc3545; color: #ffffff; border: 1px solid #dc3545; }
+.badge-result-loss { background: #2a1a1d; color: #f1f1f1; border: 1px solid rgba(220, 53, 69, 0.45); }
 .badge-result-draw { background: #ffc107; color: #1a1a2e; border: 1px solid #ffc107; font-weight: 800; }
 .badge-result-unknown { background: #495057; color: #ffffff; border: 1px solid #495057; }
 
