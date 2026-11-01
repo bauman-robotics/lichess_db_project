@@ -14,6 +14,7 @@
     const toggle = document.getElementById('engineGraphToggle');
     const sourceLabel = document.getElementById('engineEvalSource');
     const body = document.getElementById('engineEvalBody');
+    const currentEval = document.getElementById('engineCurrentEval');
 
     let chart = null;
     let positions = [];
@@ -28,6 +29,27 @@
         if (mate !== null && mate !== undefined) return '#' + mate;
         if (cp === null || cp === undefined) return '—';
         return (cp / 100).toFixed(2);
+    }
+
+    function renderCurrentEval(pos) {
+        if (!currentEval) return;
+        if (!pos || (pos.eval_cp === null && pos.mate === null)) {
+            currentEval.textContent = '—';
+            currentEval.className = 'engine-current-eval neutral';
+            return;
+        }
+        let text;
+        let cls;
+        if (pos.mate !== null && pos.mate !== undefined) {
+            text = '#' + (pos.mate > 0 ? '+' : '') + pos.mate;
+            cls = pos.mate > 0 ? 'positive' : 'negative';
+        } else {
+            const n = pos.eval_cp / 100;
+            text = (n > 0 ? '+' : '') + n.toFixed(2);
+            cls = n > 0 ? 'positive' : (n < 0 ? 'negative' : 'neutral');
+        }
+        currentEval.textContent = text;
+        currentEval.className = 'engine-current-eval ' + cls;
     }
 
     function valueOf(pos) {
@@ -207,7 +229,9 @@
                 }
             }
         });
-        updatePointStyles(window.GameViewer ? window.GameViewer.getCurrentIndex() : 0);
+        const initialIndex = window.GameViewer ? window.GameViewer.getCurrentIndex() : 0;
+        updatePointStyles(initialIndex);
+        renderCurrentEval(positions[initialIndex]);
         updateLegend();
         setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 0);
     }
@@ -307,6 +331,7 @@
         if (index === undefined || index === null) return;
         try {
             updatePointStyles(index);
+            renderCurrentEval(event.detail.position || positions[index]);
         } catch (e) {}
     });
 

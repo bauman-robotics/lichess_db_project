@@ -200,6 +200,7 @@
             <div class="engine-eval-main" id="engineEvalBody">
                 <div class="engine-chart-wrap">
                     <canvas id="engineEvalChart"></canvas>
+                    <div class="engine-current-eval" id="engineCurrentEval" title="Оценка позиции (белые +)">—</div>
                 </div>
                 <div class="engine-eval-empty" id="engineEvalEmpty">
                     <p class="mb-2 text-muted" id="engineEvalEmptyText">Компьютерных оценок для этой партии нет.</p>
@@ -517,7 +518,7 @@ window.ENGINE_CONTEXT = {
     playerColor: {{ game.color|tojson }},
 };
 </script>
-<script src="/lichess-analyzer/static/js/engine_chart.js?v=5"></script>
+<script src="/lichess-analyzer/static/js/engine_chart.js?v=6"></script>
 {% endif %}
 {% endblock %}
 
