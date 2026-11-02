@@ -49,6 +49,12 @@ def target_point(page, step: dict) -> tuple[float, float]:
         box = locator.bounding_box()
         if not box:
             raise RuntimeError(f"Не удалось получить координаты: {selector}")
+        rel = step.get("relative")
+        if rel:
+            return (
+                box["x"] + box["width"] * float(rel.get("x", 0.5)),
+                box["y"] + box["height"] * float(rel.get("y", 0.5)),
+            )
         return box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
     if "x" in step and "y" in step:
         return float(step["x"]), float(step["y"])
@@ -108,6 +114,55 @@ def run_step(page, step: dict, defaults: dict, base_url: str) -> None:
         page.mouse.wheel(int(args.get("x", 0)), int(args.get("y", 500)))
         return
 
+    if "wait_hidden" in step:
+        page.locator(step["wait_hidden"]).first.wait_for(state="hidden", timeout=15000)
+        return
+
+    if "scroll_to" in step:
+        page.locator(step["scroll_to"]).first.scroll_into_view_if_needed()
+        page.wait_for_timeout(350)
+        return
+
+    if "highlight" in step:
+        args = step["highlight"] if isinstance(step["highlight"], dict) else {"selector": step["highlight"]}
+        locator = page.locator(args["selector"]).first
+        locator.wait_for(state="visible", timeout=15000)
+        locator.scroll_into_view_if_needed()
+        locator.evaluate("el => el.classList.add('demo-highlight')")
+        page.wait_for_timeout(int(args.get("duration", 1000)))
+        locator.evaluate("el => el.classList.remove('demo-highlight')")
+        return
+
+    if "select" in step:
+        args = step["select"]
+        page.locator(args["selector"]).first.select_option(args["value"])
+        return
+
+    if "chart_click" in step:
+        args = step["chart_click"]
+        point = page.evaluate(
+            """([selector, index, datasetIndex]) => {
+                const canvas = document.querySelector(selector);
+                if (!canvas || typeof Chart === 'undefined') return null;
+                const chart = Chart.getChart(canvas);
+                if (!chart) return null;
+                const ds = chart.data.datasets[datasetIndex || 0];
+                const points = chart.getDatasetMeta(datasetIndex || 0).data;
+                if (!ds || !points || !points.length) return null;
+                const i = index === 'last' ? points.length - 1 : Number(index || 0);
+                const p = points[Math.max(0, Math.min(i, points.length - 1))];
+                if (!p) return null;
+                const rect = canvas.getBoundingClientRect();
+                return {x: rect.left + p.x, y: rect.top + p.y};
+            }""",
+            [args["selector"], args.get("index", 0), args.get("dataset", 0)],
+        )
+        if not point:
+            raise RuntimeError("Не удалось найти точку на графике")
+        move_mouse(page, point["x"], point["y"], int(defaults.get("move_ms", 450)))
+        page.mouse.click(point["x"], point["y"])
+        return
+
     if "pause" in step:
         page.wait_for_timeout(int(step["pause"]))
         return
@@ -160,7 +215,11 @@ def record(config_path: Path, base_url_override: str | None, output_override: st
             for scene in config.get("scenes", []):
                 print(f"  • {scene.get('name', 'сцена')}")
                 for step in scene.get("steps", []):
-                    run_step(page, step, defaults, base_url)
+                    try:
+                        run_step(page, step, defaults, base_url)
+                    except Exception:
+                        print(f"    URL при ошибке: {page.url}")
+                        raise
                     page.wait_for_timeout(int(defaults.get("pause", 200)))
         finally:
             if video is not None:

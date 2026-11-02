@@ -1,0 +1,174 @@
+output: demo/output/overview-demo.mp4
+base_url: https://5-187-0-91.nip.io/lichess-analyzer
+
+video:
+  width: 1920
+  height: 1080
+  fps: 30
+
+cursor:
+  enabled: true
+
+defaults:
+  move_ms: 450
+  pause: 650
+
+scenes:
+  - name: "Вступление и поиск"
+    steps:
+      - goto: /search
+      - wait_for: ".streamer-list"
+      - caption: "Lichess Analyzer — обзор возможностей"
+      - pause: 1200
+      - highlight:
+          selector: ".streamer-list"
+          duration: 1200
+      - caption: "Стримеры с аккаунтами Lichess"
+      - move_to:
+          selector: "a[href='/lichess-analyzer/player/ValentinaGunina']"
+      - click:
+          selector: "a[href='/lichess-analyzer/player/ValentinaGunina']"
+      - wait_for: "text=Последние игры"
+      - caption: "Пример: игры Валентины Гуниной"
+      - pause: 900
+
+  - name: "Игрок и анализ"
+    steps:
+      - highlight:
+          selector: ".player-summary"
+          duration: 1200
+      - caption: "Игр в базе: 111 · статистика игрока"
+      - highlight:
+          selector: ".pagination-wrap"
+          duration: 1000
+      - caption: "Пагинация последних игр"
+      - move_to:
+          selector: "button.btn-analysis[data-game-id='hzfMz2dG']"
+      - click:
+          selector: "button.btn-analysis[data-game-id='hzfMz2dG']"
+      - wait_for: "#analysisModal.show"
+      - wait_for: "#analysis-content"
+      - caption: "Готовый разбор DeepSeek · Stockfish: 36 позиций · ~7 секунд"
+      - pause: 1200
+      - highlight:
+          selector: "#analysisPromptButtons"
+          duration: 1000
+      - caption: "Выбор стиля разбора"
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis_sarcastic']"
+      - pause: 700
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis_shahmaty_eto_kruto']"
+      - pause: 700
+      - click:
+          selector: "#analysisModal .btn-close"
+      - wait_hidden: "#analysisModal.show"
+      - pause: 500
+
+  - name: "Просмотр партии"
+    steps:
+      - click:
+          selector: "a[href$='/game/hzfMz2dG/view']"
+      - wait_for: "#chessBoard"
+      - caption: "Партия: доска, комментарии и график"
+      - pause: 900
+      - highlight:
+          selector: ".viewer-game-meta"
+          duration: 1000
+      - caption: "Рейтинги, цвет и дебют"
+      - highlight:
+          selector: "#viewComments"
+          duration: 1000
+      - click:
+          selector: "#viewComments .analysis-move"
+      - caption: "Переход к ходу по клику из комментария"
+      - pause: 900
+      - caption: "Перелистывание ходов"
+      - click:
+          selector: "#viewNext"
+      - pause: 700
+      - click:
+          selector: "#viewNext"
+      - pause: 700
+
+  - name: "График и движок"
+    steps:
+      - scroll_to: "#engineEvalPanel"
+      - highlight:
+          selector: "#engineEvalPanel"
+          duration: 1200
+      - caption: "График оценки Stockfish"
+      - chart_click:
+          selector: "#engineEvalChart"
+          index: 20
+      - pause: 900
+      - highlight:
+          selector: "#engineCurrentEval"
+          duration: 1200
+      - caption: "Текущая оценка меняется вместе с ходом"
+      - pause: 900
+
+  - name: "Дебют и фильтр"
+    steps:
+      - click:
+          selector: "a.viewer-opening-link"
+      - wait_for: "#openingInput"
+      - caption: "Переход к фильтру по дебюту"
+      - pause: 900
+      - select:
+          selector: "#colorSelect"
+          value: black
+      - click:
+          selector: "form[action$='/openings'] button[type='submit']"
+      - wait_for: "#results"
+      - caption: "Фильтр партий по дебюту и цвету"
+      - highlight:
+          selector: "#results"
+          duration: 1200
+      - click:
+          selector: "button[data-bs-target='#popularOpenings']"
+      - wait_for: "#popularOpenings"
+      - caption: "Популярные дебюты — быстрый поиск"
+      - highlight:
+          selector: "#popularOpenings"
+          duration: 1400
+
+  - name: "Прогресс"
+    steps:
+      - goto: /player/ValentinaGunina/progression?period=all&tc=rapid
+      - wait_for: "#ratingProgressionChart"
+      - caption: "Прогресс рейтинга"
+      - pause: 900
+      - chart_click:
+          selector: "#ratingProgressionChart"
+          index: 5
+      - wait_for: "#chessBoard"
+      - caption: "Клик по точке графика открывает партию"
+      - pause: 1000
+
+  - name: "Заметки и избранное"
+    steps:
+      - goto: /favorites
+      - wait_for: "[data-favorite-card]"
+      - caption: "Избранные партии"
+      - highlight:
+          selector: "[data-favorite-card]"
+          duration: 1200
+      - goto: /notes
+      - wait_for: "[data-note-card]"
+      - caption: "Заметки с поиском"
+      - highlight:
+          selector: "[data-note-card]"
+          duration: 1200
+
+  - name: "Lichess"
+    steps:
+      - goto: /player/ValentinaGunina/game/hzfMz2dG/view
+      - wait_for: "#chessBoard"
+      - caption: "Ссылки на Lichess"
+      - highlight:
+          selector: "a[href*='lichess.org']"
+          duration: 1300
+      - caption: "Спасибо за просмотр"
+      - pause: 1200
+      - caption: ""

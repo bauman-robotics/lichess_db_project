@@ -22,6 +22,12 @@
             from { opacity: 1; transform: scale(.5); }
             to   { opacity: 0; transform: scale(3.2); }
         }
+        .demo-highlight {
+            outline: 3px solid #ffd700 !important;
+            outline-offset: 3px !important;
+            box-shadow: 0 0 0 6px rgba(255, 215, 0, .18) !important;
+            transition: outline-color .2s ease, box-shadow .2s ease;
+        }
         #demo-caption {
             position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%);
             z-index: 2147483645; max-width: 80vw; padding: 10px 18px;
