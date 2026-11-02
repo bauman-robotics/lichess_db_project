@@ -99,6 +99,24 @@ demo/.venv/bin/python demo/tts/test_voices.py \
 - `Tatyana` — женский;
 - `Maxim` — мужской.
 
+## Варианты Lichess
+
+В `samples/` лежат варианты для сравнения:
+
+- `yandex-filipp-lichess-plus.mp3` — `Л+ичесс`;
+- `yandex-filipp-lichess-pause60.mp3` — пауза 60 мс;
+- `yandex-filipp-lichess-pause80.mp3` — пауза 80 мс;
+- `yandex-filipp-lichess-pause120.mp3` — пауза 120 мс;
+- `yandex-filipp-lichess-hyphen.mp3` — `Ли-чесс`;
+- то же для голоса `alena`.
+
+Во всех вариантах:
+
+```text
+Стокф+иш
+Дипс+ик
+```
+
 ## Проверка
 
 ```bash
