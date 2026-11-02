@@ -126,7 +126,11 @@
                         </div>
                     {% endif %}
                     {% if game.opening_name %}
-                        <div class="text-muted">{{ game.opening_name }}</div>
+                        <div class="text-muted">
+                            📖 <a class="viewer-opening-link"
+                                  href="/lichess-analyzer/player/{{ username }}/openings?opening={{ game.opening_name|urlencode }}"
+                                  title="Показать партии с этим дебютом">{{ game.opening_name }}</a>
+                        </div>
                     {% endif %}
                 </div>
 
@@ -169,7 +173,11 @@
                         <div>Вы играли: {{ 'белыми' if game.color == 'white' else 'чёрными' }}</div>
                     {% endif %}
                     {% if game.opening_name %}
-                        <div>📖 {{ game.opening_name }}</div>
+                        <div>
+                            📖 <a class="viewer-opening-link"
+                                  href="/lichess-analyzer/player/{{ username }}/openings?opening={{ game.opening_name|urlencode }}"
+                                  title="Показать партии с этим дебютом">{{ game.opening_name }}</a>
+                        </div>
                     {% endif %}
                 </div>
             </details>
@@ -179,7 +187,8 @@
                 <div class="text-muted small">
                     {{ game.time_control or '—' }} · {{ game.result or '—' }}
                     {% if game.opening_name %}
-                        · {{ game.opening_name }}
+                        · <a class="viewer-opening-link"
+                             href="/lichess-analyzer/player/{{ username }}/openings?opening={{ game.opening_name|urlencode }}">{{ game.opening_name }}</a>
                     {% endif %}
                 </div>
             </div>

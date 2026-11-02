@@ -3972,3 +3972,12 @@ thead.table-light th {
 .viewer-ratings {
     color: var(--text-secondary);
 }
+
+.viewer-opening-link {
+    color: var(--accent-gold);
+    text-decoration: none;
+}
+
+.viewer-opening-link:hover {
+    text-decoration: underline;
+}
