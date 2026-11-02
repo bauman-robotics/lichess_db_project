@@ -117,6 +117,12 @@ demo/.venv/bin/python demo/tts/test_voices.py \
 Дипс+ик
 ```
 
+## Сценарий и сарказм
+
+- `script/desktop_script.md` — полный сценарий по сценам;
+- `sarcastic_sample.txt` — фрагмент саркастичного разбора;
+- `samples/yandex-filipp-sarcastic.mp3` — тестовая озвучка этого фрагмента.
+
 ## Проверка
 
 ```bash
