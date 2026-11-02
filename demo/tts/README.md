@@ -10,7 +10,14 @@
 
 ## Секреты
 
-Создайте `demo/tts/.secrets/tts.env`:
+Создайте каталог и файл:
+
+```bash
+mkdir -p demo/tts/.secrets
+cp demo/tts/tts.env.example demo/tts/.secrets/tts.env
+```
+
+Заполните `demo/tts/.secrets/tts.env`:
 
 ```bash
 YANDEX_API_KEY=
