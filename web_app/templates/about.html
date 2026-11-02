@@ -59,6 +59,23 @@
             </div>
         </div>
 
+        <!-- README проекта -->
+        <div class="card shadow-sm mb-5" id="readme">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0">📚 README проекта</h5>
+                <a href="https://github.com/bauman-robotics/lichess_db_project/blob/dev_1_service/README.md"
+                   target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                    Открыть на GitHub ↗
+                </a>
+            </div>
+            <div class="card-body">
+                <div id="readme-toc" class="readme-toc mb-3"></div>
+                <div id="readme-content" class="readme-content markdown-body">
+                    <p class="text-muted mb-0">Загрузка README…</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Что умеет -->
         <div class="card shadow-sm mb-5">
             <div class="card-header">
@@ -188,4 +205,88 @@
 
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+    const content = document.getElementById('readme-content');
+    const toc = document.getElementById('readme-toc');
+    if (!content || !toc) return;
+
+    function slugify(text) {
+        return String(text || '')
+            .toLowerCase()
+            .replace(/[^\p{L}\p{N}\s-]/gu, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'section';
+    }
+
+    fetch('/lichess-analyzer/about/readme', { credentials: 'same-origin' })
+        .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.text();
+        })
+        .then(function (text) {
+            const html = marked.parse(text);
+            content.innerHTML = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+
+            // Убираем старую таблицу оглавления из README.
+            const children = Array.from(content.children);
+            const oldToc = children.find(function (el) {
+                return el.tagName === 'H2' && el.textContent.indexOf('Оглавление') !== -1;
+            });
+            if (oldToc) {
+                let node = oldToc;
+                while (node) {
+                    const next = node.nextElementSibling;
+                    node.remove();
+                    if (next && next.tagName === 'H2') break;
+                    node = next;
+                }
+            }
+
+            // Новые якоря и оглавление.
+            const entries = [];
+            content.querySelectorAll('h2, h3').forEach(function (heading, index) {
+                const id = 'readme-' + index + '-' + slugify(heading.textContent);
+                heading.id = id;
+                entries.push({
+                    level: heading.tagName === 'H2' ? 2 : 3,
+                    text: heading.textContent.trim(),
+                    id: id,
+                });
+            });
+
+            const list = document.createElement('ul');
+            list.className = 'readme-toc-list';
+            entries.forEach(function (entry) {
+                const item = document.createElement('li');
+                item.className = 'readme-toc-level-' + entry.level;
+                const link = document.createElement('a');
+                link.href = '#' + entry.id;
+                link.textContent = entry.text;
+                item.appendChild(link);
+                list.appendChild(item);
+            });
+            toc.innerHTML = '<div class="readme-toc-title">Содержание</div>';
+            toc.appendChild(list);
+
+            // Относительные ссылки ведут в GitHub.
+            const repo = 'https://github.com/bauman-robotics/lichess_db_project/blob/dev_1_service/';
+            content.querySelectorAll('a[href]').forEach(function (link) {
+                const href = link.getAttribute('href');
+                if (href && !/^(https?:|mailto:|tel:|#)/i.test(href)) {
+                    link.href = repo + href.replace(/^\.\//, '');
+                }
+            });
+        })
+        .catch(function (error) {
+            content.innerHTML = '<p class="text-danger mb-0">Не удалось загрузить README: ' +
+                DOMPurify.sanitize(error.message) + '</p>';
+        });
+})();
+</script>
 {% endblock %}

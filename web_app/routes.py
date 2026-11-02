@@ -2154,6 +2154,19 @@ def about():
     """Страница с описанием проекта и видеопрезентацией."""
     return render_template('about.html')
 
+@main_bp.route('/about/readme')
+def about_readme():
+    """Текущий README проекта для страницы «О проекте»."""
+    readme_path = Path(__file__).resolve().parent.parent / 'README.md'
+    try:
+        text = readme_path.read_text(encoding='utf-8')
+    except OSError:
+        return ('README не найден', 404)
+    return make_response((text, 200, {
+        'Content-Type': 'text/markdown; charset=utf-8',
+    }))
+
+
 @main_bp.route('/search', methods=['GET', 'POST'])
 def search():
     """Поиск игрока с автоматическим скачиванием"""
