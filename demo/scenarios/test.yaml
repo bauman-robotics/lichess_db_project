@@ -1,0 +1,61 @@
+output: demo/output/test-demo.mp4
+base_url: https://5-187-0-91.nip.io/lichess-analyzer
+
+video:
+  width: 1920
+  height: 1080
+  fps: 30
+
+cursor:
+  enabled: true
+
+defaults:
+  move_ms: 450
+  pause: 700
+
+scenes:
+  - name: "Поиск игрока"
+    steps:
+      - goto: /search
+      - wait_for: "a.known-player-row[href$='/player/DenNedelin']"
+      - caption: "Поиск игрока"
+      - pause: 900
+      - move_to:
+          selector: "a.known-player-row[href$='/player/DenNedelin']"
+      - click:
+          selector: "a.known-player-row[href$='/player/DenNedelin']"
+      - wait_for: "text=Последние игры"
+      - caption: "Страница игрока"
+      - pause: 1100
+
+  - name: "Фильтр партий"
+    steps:
+      - click:
+          selector: "a[href$='/player/DenNedelin/openings']"
+      - wait_for: "#openingInput"
+      - caption: "Фильтр партий"
+      - pause: 900
+      - click:
+          selector: "#openingInput"
+      - type:
+          selector: "#openingInput"
+          text: "Caro-Kann"
+      - pause: 500
+
+  - name: "Просмотр партии"
+    steps:
+      - goto: /player/DenNedelin/game/0b43Lfb6/view
+      - wait_for: "#chessBoard"
+      - caption: "Просмотр партии и график"
+      - pause: 1000
+      - click:
+          selector: "#viewNext"
+      - pause: 700
+      - scroll:
+          y: 430
+      - pause: 600
+      - caption: "График оценки"
+      - move_to:
+          selector: "#engineEvalChart"
+      - pause: 1500
+      - caption: ""
