@@ -4006,3 +4006,23 @@ thead.table-light th {
 .engine-move-info.positive { color: #5cd679; }
 .engine-move-info.negative { color: #e6858f; }
 .engine-move-info.neutral { color: var(--text-secondary); }
+
+
+/* Вертикальное видео на странице «О проекте» */
+.video-vertical-frame {
+    position: relative;
+    width: min(100%, 360px);
+    margin: 0 auto;
+    padding-top: 216.41%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.video-vertical-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
