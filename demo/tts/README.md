@@ -1,148 +1,68 @@
-# Тест голосов TTS
+# Озвучка демо
 
-Сравнение русских голосов на одном тексте:
+## Готовые версии
 
-- Edge TTS — бесплатный baseline;
-- Yandex SpeechKit;
-- Azure Neural TTS;
-- Google Cloud TTS;
-- Amazon Polly.
+| Версия | Видео | Аудио | Сценарий |
+|---|---|---|---|
+| Десктоп, Alena | [overview-final-v5-voice-alena-sync.mp4](../output/overview-final-v5-voice-alena-sync.mp4) | [desktop-alena-sync.m4a](final/desktop-alena-sync.m4a) | [desktop-script.md](final/desktop-script.md) |
+| Мобильная, Filipp | [overview-mobile-voice-filipp.mp4](../output/overview-mobile-voice-filipp.mp4) | [mobile-filipp.m4a](final/mobile-filipp.m4a) | [mobile-script.md](final/mobile-script.md) |
+
+## Структура
+
+```text
+demo/tts/
+├── final/                 # готовые сценарии и аудиодорожки
+├── source/
+│   ├── desktop/blocks/    # блоки десктопной озвучки
+│   └── mobile/blocks/     # блоки мобильной озвучки
+├── archive/
+│   ├── edge/              # тесты Edge TTS
+│   ├── lichess-variants/  # варианты произношения Lichess
+│   ├── full-takes/        # старые цельные дорожки
+│   ├── old-scripts/       # старые сценарии
+│   └── test-texts/        # тестовые тексты
+├── pronunciation.md       # ударения и произношение
+└── test_voices.py         # генерация тестовых сэмплов
+```
 
 ## Секреты
-
-Создайте каталог и файл:
 
 ```bash
 mkdir -p demo/tts/.secrets
 cp demo/tts/tts.env.example demo/tts/.secrets/tts.env
 ```
 
-Заполните `demo/tts/.secrets/tts.env`:
+Заполните `demo/tts/.secrets/tts.env`. Файл исключён из git.
 
-```bash
-YANDEX_API_KEY=
-YANDEX_FOLDER_ID=
-
-AZURE_SPEECH_KEY=
-AZURE_SPEECH_REGION=westeurope
-
-GOOGLE_TTS_API_KEY=
-
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_REGION=eu-central-1
-```
-
-Файл исключён из git.
-
-## Установка
+## Установка и генерация
 
 ```bash
 demo/.venv/bin/pip install -r demo/tts/requirements.txt
-```
 
-## Генерация
-
-```bash
 set -a
 source demo/tts/.secrets/tts.env
 set +a
 
-demo/.venv/bin/python demo/tts/test_voices.py --provider all
+demo/.venv/bin/python demo/tts/test_voices.py --provider yandex
 ```
 
-Будут созданы файлы в `demo/tts/samples/`:
-
-- `yandex-filipp.mp3`;
-- `yandex-alena.mp3`;
-- `azure-dmitry.mp3`;
-- `azure-svetlana.mp3`;
-- `google-wavenet-d.mp3`;
-- `google-wavenet-a.mp3`;
-- `polly-tatyana.mp3`;
-- `polly-maxim.mp3`.
+Тестовые файлы создаются в `demo/tts/samples/` — этот каталог временный
+и исключён из git.
 
 ## Ударения
 
-Для Yandex используйте `sample_text_yandex.txt`:
-
-```bash
-demo/.venv/bin/python demo/tts/test_voices.py \
-  --provider yandex \
-  --text-file demo/tts/sample_text_yandex.txt
-```
-
-Разметка и варианты произношения — в [pronunciation.md](pronunciation.md).
-
-## Голоса
-
-### Yandex
-
-- `filipp` — мужской;
-- `ermil` — мужской;
-- `alena` — женский;
-- `jane` — женский.
-
-### Azure
-
-- `ru-RU-DmitryNeural`;
-- `ru-RU-SvetlanaNeural`;
-- `ru-RU-DariyaNeural`.
-
-### Google
-
-- `ru-RU-Wavenet-D` — мужской;
-- `ru-RU-Wavenet-A` — женский.
-
-### Polly
-
-- `Tatyana` — женский;
-- `Maxim` — мужской.
-
-## Варианты Lichess
-
-В `samples/` лежат варианты для сравнения:
-
-- `yandex-filipp-lichess-plus.mp3` — `Л+ичесс`;
-- `yandex-filipp-lichess-pause60.mp3` — пауза 60 мс;
-- `yandex-filipp-lichess-pause80.mp3` — пауза 80 мс;
-- `yandex-filipp-lichess-pause120.mp3` — пауза 120 мс;
-- `yandex-filipp-lichess-hyphen.mp3` — `Ли-чесс`;
-- то же для голоса `alena`.
-
-Во всех вариантах:
+Для Yandex используйте `+` перед ударной гласной:
 
 ```text
+Л+ичесс
+анализ+атор
 Стокф+иш
 Дипс+ик
 ```
 
-## Сценарий и сарказм
+Подробнее — в [pronunciation.md](pronunciation.md).
 
-- `script/desktop_script.md` — полный сценарий по сценам;
-- `sarcastic_sample.txt` — фрагмент саркастичного разбора;
-- `samples/yandex-filipp-sarcastic.mp3` — тестовая озвучка этого фрагмента.
+## Перегенерация блоков
 
-## Полная озвучка
-
-- `script/desktop_humorous.md` — полный сценарий с лёгким сарказмом;
-- `desktop_humorous.txt` — текст для TTS с разметкой;
-- `samples/yandex-filipp-humorous-full.mp3` — полная озвучка Filipp, 4:07.
-
-Финальное видео с голосом: `demo/output/overview-final-v5-voice.mp4`.
-
-## Женский голос
-
-- `desktop_humorous_female.txt` — текст для Alena;
-- `samples/yandex-alena-humorous-full.mp3` — полная озвучка, 4:05;
-- `demo/output/overview-final-v5-voice-alena.mp4` — видео с женским голосом.
-
-## Проверка
-
-```bash
-for f in demo/tts/samples/*.mp3; do
-  echo "$f"
-  ffprobe -v error -show_entries format=duration \
-    -of default=noprint_wrappers=1:nokey=1 "$f"
-done
-```
+Тексты блоков лежат в `source/desktop/blocks/*.txt` и
+`source/mobile/blocks/*.txt`. Тайминги — в `timeline.json` рядом с блоками.

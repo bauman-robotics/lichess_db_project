@@ -231,6 +231,8 @@ def record(config_path: Path, base_url_override: str | None, output_override: st
     print(f"▶ Сценарий: {config_path.name}")
     print(f"▶ Размер: {width}×{height}, {fps} fps")
 
+    timeline = []
+    record_start = time.monotonic()
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
@@ -253,6 +255,7 @@ def record(config_path: Path, base_url_override: str | None, output_override: st
 
         try:
             for scene in config.get("scenes", []):
+                scene_started = time.monotonic() - record_start
                 print(f"  • {scene.get('name', 'сцена')}")
                 for step in scene.get("steps", []):
                     try:
@@ -261,12 +264,20 @@ def record(config_path: Path, base_url_override: str | None, output_override: st
                         print(f"    URL при ошибке: {page.url}")
                         raise
                     page.wait_for_timeout(int(defaults.get("pause", 200)))
+                timeline.append({
+                    "name": scene.get("name", "сцена"),
+                    "start": round(scene_started, 3),
+                    "end": round(time.monotonic() - record_start, 3),
+                })
         finally:
             if video is not None:
                 video_path = Path(video.path())
             context.close()
             browser.close()
 
+    timeline_path = output.with_name(output.stem + "-timeline.json")
+    timeline_path.write_text(json.dumps(timeline, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"▶ Таймлайн: {timeline_path}")
     raw_video = video_path
     if not raw_video.exists():
         raise RuntimeError(f"Playwright не сохранил видео: {raw_video}")

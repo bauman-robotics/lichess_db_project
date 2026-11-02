@@ -1,1 +1,4 @@
 .secrets/
+samples/
+__pycache__/
+*.pyc
