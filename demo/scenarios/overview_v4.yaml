@@ -1,0 +1,267 @@
+output: demo/output/overview-v4.mp4
+base_url: https://5-187-0-91.nip.io/lichess-analyzer
+
+video:
+  width: 1920
+  height: 1080
+  fps: 30
+
+defaults:
+  move_ms: 380
+  pause: 500
+
+scenes:
+  - name: "Страница игрока"
+    steps:
+      - goto: /player/AnishGiri
+      - wait_for: "text=Последние игры"
+      - caption: "300 последних игр AnishGiri загружены"
+      - pause: 1000
+      - highlight:
+          selector: ".player-summary"
+          duration: 1200
+      - highlight:
+          selector: ".pagination-wrap"
+          duration: 1000
+      - caption: "Пагинация по 30 игр"
+      - click:
+          selector: ".pagination-wrap a.page-btn[href='?page=2']"
+      - wait_for: "text=Последние игры"
+      - pause: 800
+      - goto: /player/AnishGiri
+
+  - name: "Топ дебютов"
+    steps:
+      - click:
+          selector: "a[href$='/player/AnishGiri/debuts']"
+      - wait_for: "text=Топ дебютов"
+      - caption: "Топ дебютов"
+      - pause: 700
+      - click:
+          selector: "input[name='sort'][value='wins']"
+      - wait_for: "text=Топ дебютов"
+      - caption: "Сортировка по победам"
+      - pause: 900
+      - click:
+          selector: "input[name='sort'][value='losses']"
+      - wait_for: "text=Топ дебютов"
+      - caption: "Сортировка по поражениям"
+      - pause: 900
+      - click:
+          selector: "tr:has-text('Sicilian Defense: Modern Variations, Main Line') a:has-text('Партии')"
+      - wait_for: "#results"
+      - caption: "Переход к партиям проблемного дебюта"
+      - pause: 800
+      - highlight:
+          selector: "#results"
+          duration: 1000
+      - click:
+          selector: "button.btn-analysis[data-game-id='WwQ2QmxT']"
+      - wait_for: "#analysisModal.show"
+      - wait_for: "#analysis-content"
+      - caption: "Разбор DeepSeek: стиль «Шахматы — это Круто»"
+      - pause: 900
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis_sarcastic']"
+      - caption: "Переключаемся на саркастичный промпт"
+      - pause: 900
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis']"
+      - caption: "И на обычный разбор"
+      - pause: 900
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis_shahmaty_eto_kruto']"
+      - pause: 500
+      - click:
+          selector: "#analysisModal .btn-close"
+      - wait_hidden: "#analysisModal.show"
+      - click:
+          selector: "a[href$='/game/WwQ2QmxT/view']"
+      - wait_for: "#chessBoard"
+
+  - name: "Просмотр партии"
+    steps:
+      - caption: "Переход к партии из фильтра"
+      - pause: 800
+      - click:
+          selector: "#viewFlip"
+      - caption: "Переворот доски"
+      - pause: 700
+      - click:
+          selector: "#viewFlip"
+      - click:
+          selector: "#viewNext"
+      - click:
+          selector: "#viewNext"
+      - caption: "Навигация по ходам"
+      - pause: 700
+      - click:
+          selector: "#viewComments .analysis-move"
+      - caption: "Переход к ошибке по клику из комментария"
+      - pause: 800
+      - scroll_to: "#engineEvalPanel"
+      - highlight:
+          selector: "#engineEvalPanel"
+          duration: 1100
+      - caption: "График Stockfish: цвет точки — чей был ход"
+      - highlight:
+          selector: ".engine-move-legend"
+          duration: 1200
+      - chart_click:
+          selector: "#engineEvalChart"
+          index: 20
+      - pause: 700
+      - highlight:
+          selector: "#engineCurrentEval"
+          duration: 1200
+      - caption: "Текущая оценка меняется вместе с ходом"
+      - pause: 700
+
+  - name: "Нотация и заметка"
+    steps:
+      - click:
+          selector: "button.js-copy-notation"
+      - caption: "Копируем всю нотацию"
+      - notepad:
+          title: "Буфер обмена · вся нотация"
+      - pause: 1000
+      - hide_notepad:
+      - click:
+          selector: "#viewNext"
+      - click:
+          selector: "button.js-copy-current"
+      - caption: "Копируем нотацию до выбранного хода"
+      - notepad:
+          title: "Буфер обмена · часть нотации"
+      - pause: 900
+      - hide_notepad:
+      - click:
+          selector: ".btn-favorite[data-game-id='WwQ2QmxT']"
+      - pause: 500
+      - click:
+          selector: ".btn-favorite[data-game-id='WwQ2QmxT']"
+      - caption: "Добавляем партию в избранное"
+      - click:
+          selector: ".btn-note[data-game-id='WwQ2QmxT']"
+      - wait_for: "#noteModal.show"
+      - wait_for: "#noteModalText"
+      - type:
+          selector: "#noteModalText"
+          clear: true
+          text: "Переломный момент: 21...g6. После этого белые получили сильную атаку, а защита чёрных развалилась."
+          delay: 30
+      - caption: "Заметка набирается по буквам и сохраняется"
+      - pause: 800
+      - click:
+          selector: "#noteModalSave"
+      - wait_hidden: "#noteModal.show"
+      - caption: "Заметка сохранена"
+      - pause: 600
+
+  - name: "Фильтр по нотации"
+    steps:
+      - click:
+          selector: "a.viewer-opening-link"
+      - wait_for: "#notationInput"
+      - click:
+          selector: "#notationInput"
+      - press: Control+V
+      - caption: "Вставляем скопированную нотацию в фильтр"
+      - pause: 700
+      - click:
+          selector: "form[action$='/openings'] button[type='submit']"
+      - wait_for: "#results"
+      - caption: "Поиск партий по нотации"
+      - pause: 900
+
+  - name: "Избранное и заметки"
+    steps:
+      - goto: /favorites
+      - wait_for: "[data-favorite-card]"
+      - caption: "Избранные партии"
+      - highlight:
+          selector: "[data-favorite-card]"
+          duration: 1200
+      - goto: /notes
+      - wait_for: "[data-note-card]"
+      - caption: "Заметки с поиском"
+      - highlight:
+          selector: "[data-note-card]"
+          duration: 1200
+      - click:
+          selector: ".btn-note[data-game-id='WwQ2QmxT']"
+      - wait_for: "#noteModal.show"
+      - caption: "Удаление заметки"
+      - click:
+          selector: "#noteModalDelete"
+      - wait_hidden: "#noteModal.show"
+      - pause: 700
+
+  - name: "Прогресс"
+    steps:
+      - goto: /player/AnishGiri/progression?period=all&tc=blitz
+      - wait_for: "#ratingProgressionChart"
+      - caption: "Прогресс рейтинга"
+      - pause: 900
+      - highlight:
+          selector: ".progression-chart"
+          duration: 1200
+      - caption: "Клик по точке графика открывает партию"
+      - chart_click:
+          selector: "#ratingProgressionChart"
+          index: 5
+      - wait_for: "#chessBoard"
+      - pause: 900
+
+  - name: "Длина партий"
+    steps:
+      - goto: /player/AnishGiri/move-length
+      - wait_for: "text=Распределение по длине"
+      - caption: "Длина партий: короткие и длинные"
+      - highlight:
+          selector: ".move-stats-row"
+          duration: 1200
+      - click:
+          selector: "a.page-btn[href*='short_page=2']"
+      - wait_for: "text=Самые короткие партии"
+      - caption: "Пагинация коротких партий"
+      - pause: 800
+      - click:
+          selector: "a.page-btn[href*='long_page=2']"
+      - wait_for: "text=Самые длинные партии"
+      - caption: "Пагинация длинных партий"
+      - pause: 800
+
+  - name: "Избранное с фильтром"
+    steps:
+      - goto: /favorites?q=AnishGiri
+      - wait_for: "[data-favorite-card]"
+      - caption: "Избранное с поиском по игроку"
+      - highlight:
+          selector: ".favorites-search"
+          duration: 1200
+      - pause: 600
+
+  - name: "Ссылка на Lichess"
+    steps:
+      - goto: /player/AnishGiri/game/WwQ2QmxT/view
+      - wait_for: "#chessBoard"
+      - caption: "Переход на Lichess"
+      - highlight:
+          selector: "a[href*='lichess.org']"
+          duration: 1400
+      - pause: 600
+
+  - name: "Финал"
+    steps:
+      - goto: https://github.com/bauman-robotics/lichess_db_project/blob/dev_1_service/README.md
+      - wait_for: "body"
+      - caption: "README проекта на GitHub"
+      - scroll:
+          y: 650
+      - pause: 800
+      - scroll:
+          y: 900
+      - caption: "Спасибо за просмотр"
+      - pause: 1200
+      - caption: ""

@@ -74,12 +74,11 @@ demo/.venv/bin/python demo/record_demo.py \
 
 ## Большой обзор
 
-`scenarios/overview_v2.yaml` — ролик до 5 минут:
+`scenarios/overview_v4.yaml` — продолжение после вступления с Lichess:
 
-- демонстрационный экран профиля Lichess;
-- копирование ссылки и поиск игрока;
 - 300 игр и пагинация;
 - топ дебютов с сортировкой по победам и поражениям;
+- переход к партиям проблемного дебюта;
 - подсказки на кнопках анализа (Lichess / Stockfish / DeepSeek);
 - готовый разбор и переключение вариантов промпта;
 - переворот доски, навигация, переходы по комментариям;
@@ -87,7 +86,30 @@ demo/.venv/bin/python demo/record_demo.py \
 - копирование всей и части нотации;
 - заметка с посимвольным вводом, сохранением и удалением;
 - избранное и фильтр по нотации;
-- README проекта на GitHub в финале.
+- прогресс, длина партий, избранное с поиском;
+- тёмная страница README на GitHub в финале.
+
+## Сборка финального видео
+
+Вступление `overview_intro` (1680×1050) нормализуется до 1920×1080:
+
+```bash
+ffmpeg -y -i demo/output/Личесс_Аниш_Гири.mp4 \
+  -vf "scale=1728:1080:force_original_aspect_ratio=decrease,\
+pad=1920:1080:96:0:color=0x161512,setsar=1" \
+  -r 30 -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -an \
+  demo/output/intro-normalized.mp4
+```
+
+Затем склеить с `overview-v4.mp4`:
+
+```bash
+printf "file '%s'\nfile '%s'\n" \
+  "$PWD/demo/output/intro-normalized.mp4" \
+  "$PWD/demo/output/overview-v4.mp4" > demo/output/concat-v4.txt
+ffmpeg -y -f concat -safe 0 -i demo/output/concat-v4.txt \
+  -c copy -movflags +faststart demo/output/overview-user-final.mp4
+```
 
 ## Особенности
 
