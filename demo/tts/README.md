@@ -62,6 +62,18 @@ demo/.venv/bin/python demo/tts/test_voices.py --provider all
 - `polly-tatyana.mp3`;
 - `polly-maxim.mp3`.
 
+## Ударения
+
+Для Yandex используйте `sample_text_yandex.txt`:
+
+```bash
+demo/.venv/bin/python demo/tts/test_voices.py \
+  --provider yandex \
+  --text-file demo/tts/sample_text_yandex.txt
+```
+
+Разметка и варианты произношения — в [pronunciation.md](pronunciation.md).
+
 ## Голоса
 
 ### Yandex
