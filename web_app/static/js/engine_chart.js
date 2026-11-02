@@ -15,6 +15,7 @@
     const sourceLabel = document.getElementById('engineEvalSource');
     const body = document.getElementById('engineEvalBody');
     const currentEval = document.getElementById('engineCurrentEval');
+    const moveInfo = document.getElementById('engineMoveInfo');
 
     let chart = null;
     let positions = [];
@@ -50,6 +51,34 @@
         }
         currentEval.textContent = text;
         currentEval.className = 'engine-current-eval ' + cls;
+    }
+
+    function renderMoveInfo(index) {
+        if (!moveInfo) return;
+        const pos = positions[index];
+        if (!pos || !pos.color) {
+            moveInfo.textContent = '—';
+            moveInfo.className = 'engine-move-info neutral';
+            return;
+        }
+        const prev = positions[index - 1];
+        const side = pos.color === 'white' ? '⚪' : '⚫';
+        const label = side + ' ' + pos.move_number + (pos.color === 'black' ? '…' : '.') + ' ' + (pos.san || '');
+        let delta = null;
+        if (prev) {
+            const a = valueOf(pos);
+            const b = valueOf(prev);
+            if (a !== null && b !== null) delta = a - b;
+        }
+        let text = label;
+        let cls = 'neutral';
+        if (delta !== null) {
+            const sign = delta > 0 ? '+' : '';
+            text += ' · Δ ' + sign + delta.toFixed(2);
+            cls = delta > 0 ? 'positive' : (delta < 0 ? 'negative' : 'neutral');
+        }
+        moveInfo.textContent = text;
+        moveInfo.className = 'engine-move-info ' + cls;
     }
 
     function valueOf(pos) {
@@ -232,6 +261,7 @@
         const initialIndex = window.GameViewer ? window.GameViewer.getCurrentIndex() : 0;
         updatePointStyles(initialIndex);
         renderCurrentEval(positions[initialIndex]);
+        renderMoveInfo(initialIndex);
         updateLegend();
         setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 0);
     }
@@ -334,6 +364,7 @@
             // positions графика обновляются после анализа; position из GameViewer
             // может быть старой (без оценок).
             renderCurrentEval(positions[index]);
+            renderMoveInfo(index);
         } catch (e) {}
     });
 
