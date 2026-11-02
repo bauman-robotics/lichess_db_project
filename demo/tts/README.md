@@ -123,6 +123,14 @@ demo/.venv/bin/python demo/tts/test_voices.py \
 - `sarcastic_sample.txt` — фрагмент саркастичного разбора;
 - `samples/yandex-filipp-sarcastic.mp3` — тестовая озвучка этого фрагмента.
 
+## Полная озвучка
+
+- `script/desktop_humorous.md` — полный сценарий с лёгким сарказмом;
+- `desktop_humorous.txt` — текст для TTS с разметкой;
+- `samples/yandex-filipp-humorous-full.mp3` — полная озвучка Filipp, 4:07.
+
+Финальное видео с голосом: `demo/output/overview-final-v5-voice.mp4`.
+
 ## Проверка
 
 ```bash

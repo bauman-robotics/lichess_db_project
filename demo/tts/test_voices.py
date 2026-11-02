@@ -46,7 +46,7 @@ def yandex(text: str, voice: str) -> bytes:
             "voice": voice,
             "folderId": env("YANDEX_FOLDER_ID"),
             "format": "mp3",
-            "speed": "0.95",
+            "speed": os.environ.get("YANDEX_SPEED", "1.0"),
         },
         timeout=90,
     )
