@@ -4012,8 +4012,9 @@ thead.table-light th {
 .video-vertical-frame {
     position: relative;
     width: min(100%, 360px);
+    aspect-ratio: 390 / 844;
     margin: 0 auto;
-    padding-top: 216.41%;
+    padding-top: 0;
     border-radius: 8px;
     overflow: hidden;
     background: #000;
