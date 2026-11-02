@@ -131,6 +131,12 @@ demo/.venv/bin/python demo/tts/test_voices.py \
 
 Финальное видео с голосом: `demo/output/overview-final-v5-voice.mp4`.
 
+## Женский голос
+
+- `desktop_humorous_female.txt` — текст для Alena;
+- `samples/yandex-alena-humorous-full.mp3` — полная озвучка, 4:05;
+- `demo/output/overview-final-v5-voice-alena.mp4` — видео с женским голосом.
+
 ## Проверка
 
 ```bash
