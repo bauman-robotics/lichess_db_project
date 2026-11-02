@@ -97,8 +97,19 @@
 
             <!-- Метаданные партии -->
             <div class="viewer-game-meta">
-                <h5 class="mb-1">♟️ {{ username }}</h5>
-                <div class="text-muted small mb-2">— {{ game.opponent_name }}</div>
+                <h5 class="mb-1">
+                    <a href="/lichess-analyzer/player/{{ username }}" class="viewer-player-link">
+                        ♟️ {{ username }}
+                    </a>
+                </h5>
+                <div class="text-muted small mb-1">
+                    — <a href="https://lichess.org/@/{{ game.opponent_name }}" target="_blank" rel="noopener">{{ game.opponent_name }}</a>
+                    <span>({{ game.opponent_rating if game.opponent_rating else '?' }})</span>
+                </div>
+                <div class="viewer-ratings small mb-2">
+                    Рейтинг: <strong>{{ game.my_rating if game.my_rating else '—' }}</strong>
+                    против <strong>{{ game.opponent_rating if game.opponent_rating else '—' }}</strong>
+                </div>
 
                 <div class="viewer-game-info small mb-3">
                     {% if game.game_date %}
@@ -144,7 +155,7 @@
             {% if engine_enabled %}
             <details class="game-mobile-meta d-md-none">
                 <summary>
-                    <span class="game-mobile-players">♟️ {{ username }} — {{ game.opponent_name }}</span>
+                    <span class="game-mobile-players">♟️ {{ username }} ({{ game.my_rating if game.my_rating else '—' }}) — {{ game.opponent_name }} ({{ game.opponent_rating if game.opponent_rating else '—' }})</span>
                     <span class="game-mobile-chevron" aria-hidden="true">▾</span>
                 </summary>
                 <div class="game-mobile-meta-body">
@@ -164,7 +175,7 @@
             </details>
             {% else %}
             <div class="viewer-mobile-header d-md-none mb-2">
-                <strong>♟️ {{ username }} — {{ game.opponent_name }}</strong>
+                <strong>♟️ {{ username }} ({{ game.my_rating if game.my_rating else '—' }}) — {{ game.opponent_name }} ({{ game.opponent_rating if game.opponent_rating else '—' }})</strong>
                 <div class="text-muted small">
                     {{ game.time_control or '—' }} · {{ game.result or '—' }}
                     {% if game.opening_name %}

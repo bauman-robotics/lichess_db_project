@@ -1020,7 +1020,7 @@ def get_game_for_analysis(username: str, game_id: str) -> dict:
                     SELECT
                         game_id, game_date, player_color, opponent_name,
                         opponent_rating, result, opening_name, time_control,
-                        move_count, pgn_moves, game_analysis
+                        move_count, pgn_moves, game_analysis, my_rating
                     FROM {table_name}
                     WHERE game_id = %s;
                 """, (game_id,))
@@ -1039,6 +1039,7 @@ def get_game_for_analysis(username: str, game_id: str) -> dict:
                     'move_count': row[8],
                     'pgn_moves': row[9] or '',
                     'game_analysis': row[10] or '',
+                    'my_rating': row[11],
                 }
                 game['is_favorite'] = game_id in get_favorite_ids(username, [game_id])
                 game['has_note'] = game_id in get_note_ids(username, [game_id])

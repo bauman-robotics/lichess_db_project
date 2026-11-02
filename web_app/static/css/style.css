@@ -3958,3 +3958,17 @@ thead.table-light th {
 .engine-current-eval {
     left: 42px;
 }
+
+.viewer-player-link {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.viewer-player-link:hover {
+    color: var(--accent-gold);
+    text-decoration: underline;
+}
+
+.viewer-ratings {
+    color: var(--text-secondary);
+}
