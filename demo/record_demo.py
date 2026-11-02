@@ -135,6 +135,11 @@ def run_step(page, step: dict, defaults: dict, base_url: str) -> None:
         locator.evaluate("el => el.classList.remove('demo-highlight')")
         return
 
+    if "check" in step:
+        args = step["check"] if isinstance(step["check"], dict) else {"selector": step["check"]}
+        page.locator(args["selector"]).first.check()
+        return
+
     if "select" in step:
         args = step["select"]
         page.locator(args["selector"]).first.select_option(args["value"])

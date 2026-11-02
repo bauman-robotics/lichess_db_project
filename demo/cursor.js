@@ -47,6 +47,14 @@
             font: 700 13px/1.2 system-ui, sans-serif; letter-spacing: .04em;
             text-transform: uppercase;
         }
+        @media (max-width: 500px) {
+            #demo-caption {
+                bottom: 108px; max-width: 88vw; padding: 8px 12px;
+                font-size: 16px; line-height: 1.35;
+            }
+            #demo-tooltip { max-width: 82vw; font-size: 12px; }
+            #demo-notepad { right: 10px; bottom: 120px; width: calc(100vw - 20px); max-width: none; }
+        }
         #demo-caption {
             position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%);
             z-index: 2147483645; max-width: 80vw; padding: 10px 18px;
@@ -94,7 +102,16 @@
     function mount() {
         if (!document.documentElement || !document.body) return;
         if (!cssMounted) {
-            document.documentElement.appendChild(css);
+            css.textContent += `
+        @media (max-width: 500px) {
+            #demo-caption {
+                bottom: 108px !important; max-width: 88vw !important;
+                padding: 8px 12px !important; font-size: 16px !important;
+                line-height: 1.35 !important;
+            }
+        }
+    `;
+    document.documentElement.appendChild(css);
             cssMounted = true;
         }
         if (!cursor.parentNode) document.body.appendChild(cursor);

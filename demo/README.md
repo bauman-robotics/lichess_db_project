@@ -89,6 +89,21 @@ demo/.venv/bin/python demo/record_demo.py \
 - прогресс, длина партий, избранное с поиском;
 - тёмная страница README на GitHub в финале.
 
+## Финальный сценарий
+
+`scenarios/overview_v5.yaml` — расширенная версия:
+
+- фильтр только по поражениям;
+- реальный повторный анализ: саркастичный, обычный и «Шахматы — это Круто»;
+- ход и Δ оценки на графике;
+- прогресс в режиме точек;
+- контроль времени и длина партий;
+- заметки, избранное, фильтр по нотации;
+- без страницы GitHub.
+
+`scenarios/mobile.yaml` — отдельный мобильный ролик 390×844:
+страница игрока, фильтр, партия, график, комментарии и заметка.
+
 ## Сборка финального видео
 
 Вступление `overview_intro` (1680×1050) нормализуется до 1920×1080:
@@ -101,14 +116,23 @@ pad=1920:1080:96:0:color=0x161512,setsar=1" \
   demo/output/intro-normalized.mp4
 ```
 
-Затем склеить с `overview-v4.mp4`:
+У `overview-v5.mp4` обрезается белый старт:
+
+```bash
+ffmpeg -y -i demo/output/overview-v5.mp4 \
+  -vf "trim=start=3.5,setpts=PTS-STARTPTS" \
+  -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -r 30 -an \
+  demo/output/v5-trimmed.mp4
+```
+
+Затем склеить с `v5-trimmed.mp4`:
 
 ```bash
 printf "file '%s'\nfile '%s'\n" \
   "$PWD/demo/output/intro-normalized.mp4" \
-  "$PWD/demo/output/overview-v4.mp4" > demo/output/concat-v4.txt
-ffmpeg -y -f concat -safe 0 -i demo/output/concat-v4.txt \
-  -c copy -movflags +faststart demo/output/overview-user-final.mp4
+  "$PWD/demo/output/v5-trimmed.mp4" > demo/output/concat-v5.txt
+ffmpeg -y -f concat -safe 0 -i demo/output/concat-v5.txt \
+  -c copy -movflags +faststart demo/output/overview-final-v5.mp4
 ```
 
 ## Особенности

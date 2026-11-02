@@ -1,0 +1,116 @@
+output: demo/output/overview-mobile.mp4
+base_url: https://5-187-0-91.nip.io/lichess-analyzer
+
+video:
+  width: 390
+  height: 844
+  fps: 30
+
+defaults:
+  move_ms: 280
+  pause: 550
+
+scenes:
+  - name: "Мобильная страница игрока"
+    steps:
+      - goto: /player/AnishGiri
+      - wait_for: "text=Последние игры"
+      - caption: "Мобильная версия"
+      - pause: 900
+      - highlight:
+          selector: ".player-nav"
+          duration: 1100
+      - highlight:
+          selector: ".player-summary"
+          duration: 1100
+
+  - name: "Топ дебютов"
+    steps:
+      - click:
+          selector: "a[href$='/player/AnishGiri/debuts']"
+      - wait_for: "h5:has-text('Топ дебютов')"
+      - caption: "Топ дебютов"
+      - pause: 700
+      - click:
+          selector: "input[name='sort'][value='losses']"
+      - wait_for: "h5:has-text('Топ дебютов')"
+      - caption: "Сортировка по поражениям"
+      - pause: 900
+      - highlight:
+          selector: ".mobile-cards"
+          duration: 1200
+
+  - name: "Фильтр и партия"
+    steps:
+      - goto: /player/AnishGiri/openings
+      - wait_for: "button[data-bs-target='#filtersCollapse']"
+      - click:
+          selector: "button[data-bs-target='#filtersCollapse']"
+      - wait_for: "#filtersCollapse.show"
+      - wait_for: "#openingInput"
+      - caption: "Фильтр партий"
+      - pause: 800
+      - click:
+          selector: "#resLoss"
+      - click:
+          selector: "form[action$='/openings'] button[type='submit']"
+      - wait_for: "#results"
+      - caption: "Только поражения"
+      - pause: 900
+      - click:
+          selector: ".mobile-cards a[href$='/game/WwQ2QmxT/view']"
+      - wait_for: "#chessBoard"
+
+  - name: "Просмотр и график"
+    steps:
+      - caption: "Просмотр партии"
+      - pause: 700
+      - click:
+          selector: "button[data-tab='graph']"
+      - caption: "График оценки"
+      - pause: 900
+      - click:
+          selector: "#viewNext"
+      - pause: 600
+      - highlight:
+          selector: "#engineCurrentEval"
+          duration: 1200
+      - caption: "Оценка меняется по ходам"
+      - pause: 700
+      - click:
+          selector: "button[data-tab='comments']"
+      - caption: "Переход к ходу из комментария"
+      - click:
+          selector: "#viewMobileAnalysis .analysis-move"
+      - pause: 900
+
+  - name: "Заметка"
+    steps:
+      - click:
+          selector: ".game-mobile-actions-bar .dropdown-toggle"
+      - wait_for: ".game-mobile-menu.show"
+      - click:
+          selector: ".game-mobile-menu .btn-note[data-game-id='WwQ2QmxT']"
+      - wait_for: "#noteModal.show"
+      - wait_for: "#noteModalText"
+      - type:
+          selector: "#noteModalText"
+          clear: true
+          text: "Мобильная заметка: переломный момент 21...g6."
+          delay: 35
+      - pause: 700
+      - click:
+          selector: "#noteModalSave"
+      - wait_hidden: "#noteModal.show"
+      - caption: "Заметка сохранена"
+      - pause: 700
+
+  - name: "Финал"
+    steps:
+      - goto: /favorites
+      - wait_for: "[data-favorite-card]"
+      - caption: "Избранное"
+      - pause: 900
+      - caption: "Спасибо за просмотр"
+      - pause: 1000
+      - caption: ""
