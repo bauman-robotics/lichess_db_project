@@ -35,7 +35,7 @@ def wait_for_server(url: str, timeout: float = 20.0) -> None:
 
 
 def resolve_url(base_url: str, value: str) -> str:
-    if value.startswith("http://") or value.startswith("https://"):
+    if value.startswith(("http://", "https://", "file://")):
         return value
     return base_url.rstrip("/") + "/" + value.lstrip("/")
 
@@ -102,6 +102,8 @@ def run_step(page, step: dict, defaults: dict, base_url: str) -> None:
         x, y = target_point(page, args)
         move_mouse(page, x, y, int(defaults.get("move_ms", 450)))
         page.mouse.click(x, y)
+        if args.get("clear"):
+            page.keyboard.press("Control+A")
         page.keyboard.type(args.get("text", ""), delay=int(args.get("delay", 45)))
         return
 
@@ -136,6 +138,38 @@ def run_step(page, step: dict, defaults: dict, base_url: str) -> None:
     if "select" in step:
         args = step["select"]
         page.locator(args["selector"]).first.select_option(args["value"])
+        return
+
+    if "copy_text" in step:
+        page.evaluate(
+            """(text) => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch (e) {}
+                ta.remove();
+                return ok;
+            }""",
+            str(step["copy_text"]),
+        )
+        return
+
+    if "notepad" in step:
+        args = step["notepad"] if isinstance(step["notepad"], dict) else {}
+        text = page.evaluate("() => navigator.clipboard.readText()")
+        page.evaluate(
+            "([text, title]) => window.__demoNotepad(text, title)",
+            [text, args.get("title", "Буфер обмена")],
+        )
+        return
+
+    if "hide_notepad" in step:
+        page.evaluate("() => window.__demoHideNotepad()")
         return
 
     if "chart_click" in step:
@@ -202,6 +236,7 @@ def record(config_path: Path, base_url_override: str | None, output_override: st
             screen={"width": width, "height": height},
             device_scale_factor=1,
             locale="ru-RU",
+            permissions=["clipboard-read", "clipboard-write"],
             record_video_dir=str(temp_video_dir),
             record_video_size={"width": width, "height": height},
         )

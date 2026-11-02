@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Lichess · AnishGiri</title>
+<style>
+  :root { color-scheme: dark; --bg:#161512; --panel:#262421; --text:#e8e6e3; --muted:#9e9a94; --gold:#ffd700; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; display:flex; align-items:center; justify-content:center; }
+  .wrap { width:760px; }
+  .top { display:flex; align-items:center; gap:12px; margin-bottom:34px; color:var(--muted); font-size:14px; }
+  .logo { font-weight:800; font-size:26px; color:var(--text); letter-spacing:-.03em; }
+  .logo span { color:var(--gold); }
+  .card { background:var(--panel); border:1px solid #3d3934; border-radius:14px; padding:30px 34px; }
+  .eyebrow { color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.08em; }
+  h1 { margin:6px 0 4px; font-size:38px; }
+  .title { display:inline-block; padding:2px 7px; border-radius:5px; background:var(--gold); color:#1c1b18; font-size:13px; font-weight:800; vertical-align:middle; }
+  .url { margin:18px 0 24px; padding:11px 13px; border:1px solid #4a4540; border-radius:7px; background:#1b1a18; color:#bfbab3; font:14px ui-monospace, monospace; }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; }
+  .stat { padding:10px 14px; border:1px solid #3d3934; border-radius:8px; min-width:130px; }
+  .stat b { display:block; font-size:22px; }
+  .stat small { color:var(--muted); }
+  .hint { margin-top:22px; color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="logo">lichess<span>.</span>org</div><div>Профиль игрока</div></div>
+  <div class="card">
+    <div class="eyebrow">Grandmaster · Netherlands</div>
+    <h1>AnishGiri <span class="title">GM</span></h1>
+    <div class="url">https://lichess.org/@/AnishGiri</div>
+    <div class="stats">
+      <div class="stat"><b>2854</b><small>Blitz</small></div>
+      <div class="stat"><b>3271</b><small>Bullet</small></div>
+      <div class="stat"><b>300</b><small>игр в базе</small></div>
+    </div>
+    <div class="hint">Скопируем ссылку на профиль и вставим её в поиск Lichess Analyzer.</div>
+  </div>
+</div>
+</body>
+</html>

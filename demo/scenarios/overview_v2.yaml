@@ -1,0 +1,250 @@
+output: demo/output/overview-v2.mp4
+base_url: https://5-187-0-91.nip.io/lichess-analyzer
+
+video:
+  width: 1920
+  height: 1080
+  fps: 30
+
+defaults:
+  move_ms: 380
+  pause: 520
+
+scenes:
+  - name: "Lichess → поиск игрока"
+    steps:
+      - goto: file:///home/ypc/projects/14_Lichess_db/lichess_db_project/demo/assets/lichess_profile.html
+      - wait_for: "body"
+      - caption: "Берём профиль сильного игрока на Lichess"
+      - pause: 1100
+      - copy_text: "https://lichess.org/@/AnishGiri"
+      - caption: "Копируем ссылку на профиль"
+      - pause: 700
+      - goto: /search
+      - wait_for: "#usernameInput"
+      - click:
+          selector: "#usernameInput"
+      - press: Control+V
+      - caption: "Вставляем ссылку в поиск"
+      - pause: 700
+      - click:
+          selector: "#searchBtn"
+      - wait_for: "text=Последние игры"
+      - caption: "300 последних игр · скачивание ~15 секунд (сокращено)"
+      - pause: 1100
+      - highlight:
+          selector: ".player-summary"
+          duration: 1200
+
+  - name: "Топ дебютов"
+    steps:
+      - click:
+          selector: "a[href$='/player/AnishGiri/debuts']"
+      - wait_for: "text=Топ дебютов"
+      - caption: "Топ дебютов"
+      - pause: 700
+      - click:
+          selector: "input[name='sort'][value='wins']"
+      - wait_for: "text=Топ дебютов"
+      - caption: "Сортировка по победам"
+      - pause: 1100
+      - click:
+          selector: "input[name='sort'][value='losses']"
+      - wait_for: "text=Топ дебютов"
+      - caption: "Сортировка по поражениям"
+      - pause: 1000
+      - highlight:
+          selector: ".card .table-responsive"
+          duration: 1200
+
+  - name: "Пагинация игр"
+    steps:
+      - goto: /player/AnishGiri
+      - wait_for: "text=Последние игры"
+      - highlight:
+          selector: ".pagination-wrap"
+          duration: 1000
+      - caption: "Пагинация: следующие 30 игр"
+      - click:
+          selector: ".pagination-wrap a.page-btn[href='?page=2']"
+      - wait_for: "text=Последние игры"
+      - pause: 900
+      - goto: /player/AnishGiri
+
+  - name: "Подсказки анализа"
+    steps:
+      - move_to:
+          selector: "button.btn-analysis[data-game-id='7BpSkExe'] .analysis-eval-dot.engine"
+      - caption: "Фиолетовая точка — оценки Stockfish"
+      - pause: 1600
+      - move_to:
+          selector: "button.btn-analysis[data-game-id='7BpSkExe'] .analysis-eval-dot.lichess"
+      - caption: "Синяя точка — оценки Lichess"
+      - pause: 1600
+      - move_to:
+          selector: "button.btn-analysis[data-game-id='7BpSkExe']"
+      - caption: "Зелёная галочка — анализ DeepSeek готов"
+      - pause: 1400
+
+  - name: "Разбор партии"
+    steps:
+      - click:
+          selector: "button.btn-analysis[data-game-id='7BpSkExe']"
+      - wait_for: "#analysisModal.show"
+      - wait_for: "#analysis-content"
+      - caption: "Разбор DeepSeek: ~7 секунд"
+      - pause: 1000
+      - highlight:
+          selector: "#analysisPromptButtons"
+          duration: 1000
+      - caption: "Выбор промпта: саркастичный, обычный, «Шахматы — это Круто»"
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis_sarcastic']"
+      - pause: 700
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis']"
+      - pause: 700
+      - click:
+          selector: ".analysis-prompt-btn[data-prompt-key='game_analysis_shahmaty_eto_kruto']"
+      - pause: 800
+      - click:
+          selector: "#analysisModal .btn-close"
+      - wait_hidden: "#analysisModal.show"
+
+  - name: "Просмотр партии"
+    steps:
+      - click:
+          selector: "a[href$='/game/7BpSkExe/view']"
+      - wait_for: "#chessBoard"
+      - caption: "Просмотр партии"
+      - pause: 700
+      - click:
+          selector: "#viewFlip"
+      - caption: "Переворот доски"
+      - pause: 700
+      - click:
+          selector: "#viewFlip"
+      - click:
+          selector: "#viewNext"
+      - click:
+          selector: "#viewNext"
+      - caption: "Навигация по ходам"
+      - pause: 700
+      - click:
+          selector: "#viewComments .analysis-move"
+      - caption: "Переход к ошибке по клику из комментария"
+      - pause: 900
+      - scroll_to: "#engineEvalPanel"
+      - highlight:
+          selector: "#engineEvalPanel"
+          duration: 1100
+      - caption: "График: синие точки — мои ходы, оранжевые — соперника"
+      - highlight:
+          selector: ".engine-move-legend"
+          duration: 1300
+      - pause: 600
+      - chart_click:
+          selector: "#engineEvalChart"
+          index: 20
+      - pause: 800
+      - highlight:
+          selector: "#engineCurrentEval"
+          duration: 1200
+      - caption: "Оценка меняется при перелистывании"
+      - pause: 600
+
+  - name: "Нотация и заметки"
+    steps:
+      - click:
+          selector: "button.js-copy-notation"
+      - caption: "Копируем всю нотацию"
+      - notepad:
+          title: "Буфер обмена · вся нотация"
+      - pause: 1200
+      - hide_notepad:
+      - click:
+          selector: "#viewNext"
+      - click:
+          selector: "button.js-copy-current"
+      - caption: "Копируем нотацию до выбранного хода"
+      - notepad:
+          title: "Буфер обмена · часть нотации"
+      - pause: 1100
+      - hide_notepad:
+      - click:
+          selector: ".btn-favorite[data-game-id='7BpSkExe']"
+      - pause: 600
+      - click:
+          selector: ".btn-favorite[data-game-id='7BpSkExe']"
+      - caption: "Добавляем партию в избранное"
+      - click:
+          selector: ".btn-note[data-game-id='7BpSkExe']"
+      - wait_for: "#noteModal.show"
+      - wait_for: "#noteModalText"
+      - type:
+          selector: "#noteModalText"
+          clear: true
+          text: "Ключевой момент: 41-й ход белых резко ухудшил позицию. Надо разобрать защиту короля."
+          delay: 35
+      - caption: "Заметка набирается по буквам и сохраняется"
+      - pause: 900
+      - click:
+          selector: "#noteModalSave"
+      - wait_hidden: "#noteModal.show"
+      - caption: "Заметка сохранена"
+      - pause: 700
+
+  - name: "Фильтр по нотации"
+    steps:
+      - click:
+          selector: "a[href$='/openings']"
+      - wait_for: "#notationInput"
+      - click:
+          selector: "#notationInput"
+      - press: Control+V
+      - caption: "Вставляем скопированную нотацию в фильтр"
+      - pause: 700
+      - click:
+          selector: "form[action$='/openings'] button[type='submit']"
+      - wait_for: "#results"
+      - caption: "Поиск партий по нотации"
+      - pause: 900
+
+  - name: "Избранное и заметки"
+    steps:
+      - goto: /favorites
+      - wait_for: "[data-favorite-card]"
+      - caption: "Избранные партии"
+      - highlight:
+          selector: "[data-favorite-card]"
+          duration: 1200
+      - goto: /notes
+      - wait_for: "[data-note-card]"
+      - caption: "Заметки с поиском"
+      - highlight:
+          selector: "[data-note-card]"
+          duration: 1200
+      - click:
+          selector: ".btn-note[data-game-id='7BpSkExe']"
+      - wait_for: "#noteModal.show"
+      - caption: "Удаление заметки"
+      - click:
+          selector: "#noteModalDelete"
+      - wait_hidden: "#noteModal.show"
+      - pause: 700
+
+  - name: "Финал"
+    steps:
+      - goto: https://github.com/bauman-robotics/lichess_db_project/blob/dev_1_service/README.md
+      - wait_for: "body"
+      - caption: "README проекта"
+      - scroll:
+          y: 650
+      - pause: 900
+      - scroll:
+          y: 900
+      - caption: "Проект на GitHub"
+      - pause: 1000
+      - caption: "Спасибо за просмотр"
+      - pause: 1200
+      - caption: ""
