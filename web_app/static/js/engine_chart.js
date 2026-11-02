@@ -331,7 +331,9 @@
         if (index === undefined || index === null) return;
         try {
             updatePointStyles(index);
-            renderCurrentEval(event.detail.position || positions[index]);
+            // positions графика обновляются после анализа; position из GameViewer
+            // может быть старой (без оценок).
+            renderCurrentEval(positions[index]);
         } catch (e) {}
     });
 
