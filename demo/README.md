@@ -20,10 +20,16 @@ Chromium скачивается в `demo/.cache/ms-playwright`, чтобы не 
 
 ```bash
 demo/.venv/bin/python demo/record_demo.py \
-  --scenario demo/scenarios/test.yaml
+  --scenario demo/scenarios/overview_v5.yaml
 ```
 
-Результат: `demo/output/test-demo.mp4` — 1920×1080, 30 fps, H.264.
+Результат: `demo/output/overview-v5.mp4` — 1920×1080, 30 fps, H.264.
+Мобильный ролик:
+
+```bash
+demo/.venv/bin/python demo/record_demo.py \
+  --scenario demo/scenarios/mobile.yaml
+```
 
 ## Сценарий
 
@@ -56,7 +62,16 @@ demo/.venv/bin/python demo/record_demo.py \
 
 ## Обзорный сценарий
 
-`scenarios/overview.yaml` — расширенный ролик:
+## Архив сценариев
+
+Пробные сценарии перенесены в `scenarios/archive/`:
+`overview.yaml`, `overview_v2.yaml`, `overview_v3.yaml`, `overview_v4.yaml`,
+`test.yaml`. В корне `scenarios/` остались только финальные
+`overview_v5.yaml` и `mobile.yaml`.
+
+## Старый расширенный ролик
+
+`scenarios/archive/overview.yaml` — расширенный ролик:
 
 - поиск и список стримеров;
 - страница игрока и количество игр;
@@ -70,11 +85,11 @@ demo/.venv/bin/python demo/record_demo.py \
 - избранное и заметки;
 - ссылки на Lichess.
 
-Запись: `demo/.venv/bin/python demo/record_demo.py --scenario demo/scenarios/overview.yaml`.
+Запись: `demo/.venv/bin/python demo/record_demo.py --scenario demo/scenarios/archive/overview.yaml`.
 
-## Большой обзор
+## Большой обзор (архив)
 
-`scenarios/overview_v4.yaml` — продолжение после вступления с Lichess:
+`scenarios/archive/overview_v4.yaml` — продолжение после вступления с Lichess:
 
 - 300 игр и пагинация;
 - топ дебютов с сортировкой по победам и поражениям;

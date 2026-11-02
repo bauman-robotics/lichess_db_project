@@ -303,7 +303,7 @@ def record(config_path: Path, base_url_override: str | None, output_override: st
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Запись демо-видео сервиса")
-    parser.add_argument("--scenario", default="demo/scenarios/test.yaml")
+    parser.add_argument("--scenario", default="demo/scenarios/overview_v5.yaml")
     parser.add_argument("--base-url", default=None)
     parser.add_argument("--output", default=None)
     args = parser.parse_args()
